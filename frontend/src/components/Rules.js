@@ -19,9 +19,13 @@ function Rules() {
     points: 0
   });
 
-  const loadRules = useCallback(async (searchQuery = '') => {
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const loadRules = useCallback(async (searchQuery = '', showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const params = searchQuery ? { name: searchQuery } : {};
       const data = await rulesAPI.getAll(params);
       setRules(Array.isArray(data) ? data : []);
@@ -30,7 +34,9 @@ function Rules() {
       setError('Failed to load rules');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -59,23 +65,15 @@ function Rules() {
     
     // If search is empty, load immediately
     if (value === '') {
-      loadRules('');
+      loadRules('', false);
     } else {
       // Debounce search by 300ms
       searchTimeoutRef.current = setTimeout(() => {
-        loadRules(value);
+        loadRules(value, false);
       }, 300);
     }
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    // Clear any pending timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    loadRules(searchTerm);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -83,10 +81,47 @@ function Rules() {
       ...prev,
       [name]: name === 'points' ? parseInt(value) || 0 : value
     }));
+    
+    // Clear validation error for this field when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = 'Name is required';
+    }
+    
+    if (!formData.description.trim()) {
+      errors.description = 'Description is required';
+    }
+    
+    if (!formData.type) {
+      errors.type = 'Type is required';
+    }
+    
+    if (formData.points === '' || formData.points === null || formData.points === undefined) {
+      errors.points = 'Points is required';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form before submitting
+    if (!validateForm()) {
+      return;
+    }
+    
     try {
       if (editingRule) {
         await rulesAPI.update(editingRule.id, formData);
@@ -96,7 +131,8 @@ function Rules() {
       setShowForm(false);
       setEditingRule(null);
       resetForm();
-      loadRules();
+      setValidationErrors({});
+      loadRules(searchTerm, false);
     } catch (err) {
       setError('Failed to save rule');
       console.error(err);
@@ -118,7 +154,7 @@ function Rules() {
     if (window.confirm('Are you sure you want to delete this rule?')) {
       try {
         await rulesAPI.delete(id);
-        loadRules();
+        loadRules(searchTerm, false);
       } catch (err) {
         setError('Failed to delete rule');
         console.error(err);
@@ -133,6 +169,7 @@ function Rules() {
       type: '',
       points: 0
     });
+    setValidationErrors({});
   };
 
   if (loading) return <div className="loading">Loading rules...</div>;
@@ -145,16 +182,13 @@ function Rules() {
         {error && <div className="error">{error}</div>}
         
         <div className="search-bar">
-          <form onSubmit={handleSearchSubmit}>
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search rules by name..."
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            <button type="submit" className="btn">Search</button>
-          </form>
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search rules by name..."
+            value={searchTerm}
+            onChange={handleSearch}
+          />
         </div>
         
         <button 
@@ -194,37 +228,60 @@ function Rules() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
+                  className={validationErrors.name ? 'error' : ''}
                 />
+                {validationErrors.name && (
+                  <div className="error-message">{validationErrors.name}</div>
+                )}
               </div>
               
               <div className="form-group">
-                <label>Description</label>
+                <label>Description *</label>
                 <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
                   rows="3"
+                  required
+                  className={validationErrors.description ? 'error' : ''}
                 />
+                {validationErrors.description && (
+                  <div className="error-message">{validationErrors.description}</div>
+                )}
               </div>
               
               <div className="form-group">
-                <label>Type</label>
-                <input
-                  type="text"
+                <label>Type *</label>
+                <select
                   name="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                />
+                  required
+                  className={validationErrors.type ? 'error' : ''}
+                >
+                  <option value="">Select Type</option>
+                  <option value="Unit">Unit</option>
+                  <option value="Weapon">Weapon</option>
+                  <option value="WarGear">WarGear</option>
+                </select>
+                {validationErrors.type && (
+                  <div className="error-message">{validationErrors.type}</div>
+                )}
               </div>
               
               <div className="form-group">
-                <label>Points</label>
+                <label>Points *</label>
                 <input
                   type="number"
                   name="points"
                   value={formData.points}
                   onChange={handleInputChange}
+                  required
+                  className={validationErrors.points ? 'error' : ''}
                 />
+                {validationErrors.points && (
+                  <div className="error-message">{validationErrors.points}</div>
+                )}
               </div>
 
               <div style={{ marginTop: '1rem' }}>

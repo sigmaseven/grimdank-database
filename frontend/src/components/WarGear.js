@@ -21,9 +21,11 @@ function WarGear() {
     weapons: []
   });
 
-  const loadWarGear = useCallback(async (searchQuery = '') => {
+  const loadWarGear = useCallback(async (searchQuery = '', showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const params = searchQuery ? { name: searchQuery } : {};
       const data = await wargearAPI.getAll(params);
       setWargear(Array.isArray(data) ? data : []);
@@ -32,7 +34,9 @@ function WarGear() {
       setError('Failed to load wargear');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -61,23 +65,15 @@ function WarGear() {
     
     // If search is empty, load immediately
     if (value === '') {
-      loadWarGear('');
+      loadWarGear('', false);
     } else {
       // Debounce search by 300ms
       searchTimeoutRef.current = setTimeout(() => {
-        loadWarGear(value);
+        loadWarGear(value, false);
       }, 300);
     }
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    // Clear any pending timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    loadWarGear(searchTerm);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -98,7 +94,7 @@ function WarGear() {
       setShowForm(false);
       setEditingWarGear(null);
       resetForm();
-      loadWarGear();
+      loadWarGear(searchTerm, false);
     } catch (err) {
       setError('Failed to save wargear');
       console.error(err);
@@ -122,7 +118,7 @@ function WarGear() {
     if (window.confirm('Are you sure you want to delete this wargear?')) {
       try {
         await wargearAPI.delete(id);
-        loadWarGear();
+        loadWarGear(searchTerm, false);
       } catch (err) {
         setError('Failed to delete wargear');
         console.error(err);
@@ -151,16 +147,13 @@ function WarGear() {
         {error && <div className="error">{error}</div>}
         
         <div className="search-bar">
-          <form onSubmit={handleSearchSubmit}>
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search wargear by name..."
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            <button type="submit" className="btn">Search</button>
-          </form>
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search wargear by name..."
+            value={searchTerm}
+            onChange={handleSearch}
+          />
         </div>
         
         <button 

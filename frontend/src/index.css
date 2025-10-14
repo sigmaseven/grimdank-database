@@ -346,3 +346,18 @@ code {
   margin-bottom: 1rem;
   border: 1px solid #238636;
 }
+
+/* Form validation error styles */
+input.error,
+textarea.error,
+select.error {
+  border-color: #da3633 !important;
+  background-color: #490202;
+}
+
+.error-message {
+  color: #f85149;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}

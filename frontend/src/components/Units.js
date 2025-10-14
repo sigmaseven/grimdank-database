@@ -37,9 +37,11 @@ function Units() {
     availableWarGear: []
   });
 
-  const loadUnits = useCallback(async (searchQuery = '') => {
+  const loadUnits = useCallback(async (searchQuery = '', showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const params = searchQuery ? { name: searchQuery } : {};
       const data = await unitsAPI.getAll(params);
       setUnits(Array.isArray(data) ? data : []);
@@ -48,7 +50,9 @@ function Units() {
       setError('Failed to load units');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -93,23 +97,15 @@ function Units() {
     
     // If search is empty, load immediately
     if (value === '') {
-      loadUnits('');
+      loadUnits('', false);
     } else {
       // Debounce search by 300ms
       searchTimeoutRef.current = setTimeout(() => {
-        loadUnits(value);
+        loadUnits(value, false);
       }, 300);
     }
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    // Clear any pending timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    loadUnits(searchTerm);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -130,7 +126,7 @@ function Units() {
       setShowForm(false);
       setEditingUnit(null);
       resetForm();
-      loadUnits();
+      loadUnits(searchTerm, false);
     } catch (err) {
       setError('Failed to save unit');
       console.error(err);
@@ -164,7 +160,7 @@ function Units() {
     if (window.confirm('Are you sure you want to delete this unit?')) {
       try {
         await unitsAPI.delete(id);
-        loadUnits();
+        loadUnits(searchTerm, false);
       } catch (err) {
         setError('Failed to delete unit');
         console.error(err);
@@ -248,16 +244,13 @@ function Units() {
         {error && <div className="error">{error}</div>}
         
         <div className="search-bar">
-          <form onSubmit={handleSearchSubmit}>
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search units by name..."
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            <button type="submit" className="btn">Search</button>
-          </form>
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search units by name..."
+            value={searchTerm}
+            onChange={handleSearch}
+          />
         </div>
         
         <button 

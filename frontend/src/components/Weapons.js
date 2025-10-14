@@ -23,9 +23,11 @@ function Weapons() {
     points: 0
   });
 
-  const loadWeapons = useCallback(async (searchQuery = '') => {
+  const loadWeapons = useCallback(async (searchQuery = '', showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const params = searchQuery ? { name: searchQuery } : {};
       const data = await weaponsAPI.getAll(params);
       setWeapons(Array.isArray(data) ? data : []);
@@ -34,7 +36,9 @@ function Weapons() {
       setError('Failed to load weapons');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -63,23 +67,15 @@ function Weapons() {
     
     // If search is empty, load immediately
     if (value === '') {
-      loadWeapons('');
+      loadWeapons('', false);
     } else {
       // Debounce search by 300ms
       searchTimeoutRef.current = setTimeout(() => {
-        loadWeapons(value);
+        loadWeapons(value, false);
       }, 300);
     }
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    // Clear any pending timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    loadWeapons(searchTerm);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -100,7 +96,7 @@ function Weapons() {
       setShowForm(false);
       setEditingWeapon(null);
       resetForm();
-      loadWeapons();
+      loadWeapons(searchTerm, false);
     } catch (err) {
       setError('Failed to save weapon');
       console.error(err);
@@ -126,7 +122,7 @@ function Weapons() {
     if (window.confirm('Are you sure you want to delete this weapon?')) {
       try {
         await weaponsAPI.delete(id);
-        loadWeapons();
+        loadWeapons(searchTerm, false);
       } catch (err) {
         setError('Failed to delete weapon');
         console.error(err);
@@ -157,16 +153,13 @@ function Weapons() {
         {error && <div className="error">{error}</div>}
         
         <div className="search-bar">
-          <form onSubmit={handleSearchSubmit}>
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search weapons by name..."
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            <button type="submit" className="btn">Search</button>
-          </form>
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search weapons by name..."
+            value={searchTerm}
+            onChange={handleSearch}
+          />
         </div>
         
         <button 
@@ -211,12 +204,15 @@ function Weapons() {
               
               <div className="form-group">
                 <label>Type</label>
-                <input
-                  type="text"
+                <select
                   name="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                />
+                >
+                  <option value="">Select Type</option>
+                  <option value="Ranged">Ranged</option>
+                  <option value="Melee">Melee</option>
+                </select>
               </div>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

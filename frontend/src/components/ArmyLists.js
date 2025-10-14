@@ -21,9 +21,11 @@ function ArmyLists() {
     description: ''
   });
 
-  const loadArmyLists = useCallback(async (searchQuery = '') => {
+  const loadArmyLists = useCallback(async (searchQuery = '', showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const params = searchQuery ? { name: searchQuery } : {};
       const data = await armyListsAPI.getAll(params);
       setArmyLists(Array.isArray(data) ? data : []);
@@ -32,7 +34,9 @@ function ArmyLists() {
       setError('Failed to load army lists');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -61,23 +65,15 @@ function ArmyLists() {
     
     // If search is empty, load immediately
     if (value === '') {
-      loadArmyLists('');
+      loadArmyLists('', false);
     } else {
       // Debounce search by 300ms
       searchTimeoutRef.current = setTimeout(() => {
-        loadArmyLists(value);
+        loadArmyLists(value, false);
       }, 300);
     }
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    // Clear any pending timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    loadArmyLists(searchTerm);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -98,7 +94,7 @@ function ArmyLists() {
       setShowForm(false);
       setEditingArmyList(null);
       resetForm();
-      loadArmyLists();
+      loadArmyLists(searchTerm, false);
     } catch (err) {
       setError('Failed to save army list');
       console.error(err);
@@ -122,7 +118,7 @@ function ArmyLists() {
     if (window.confirm('Are you sure you want to delete this army list?')) {
       try {
         await armyListsAPI.delete(id);
-        loadArmyLists();
+        loadArmyLists(searchTerm, false);
       } catch (err) {
         setError('Failed to delete army list');
         console.error(err);
@@ -151,16 +147,13 @@ function ArmyLists() {
         {error && <div className="error">{error}</div>}
         
         <div className="search-bar">
-          <form onSubmit={handleSearchSubmit}>
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search army lists by name..."
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            <button type="submit" className="btn">Search</button>
-          </form>
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search army lists by name..."
+            value={searchTerm}
+            onChange={handleSearch}
+          />
         </div>
         
         <button 

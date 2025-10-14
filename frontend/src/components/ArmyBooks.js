@@ -20,9 +20,11 @@ function ArmyBooks() {
     rules: []
   });
 
-  const loadArmyBooks = useCallback(async (searchQuery = '') => {
+  const loadArmyBooks = useCallback(async (searchQuery = '', showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const params = searchQuery ? { name: searchQuery } : {};
       const data = await armyBooksAPI.getAll(params);
       setArmyBooks(Array.isArray(data) ? data : []);
@@ -31,7 +33,9 @@ function ArmyBooks() {
       setError('Failed to load army books');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -60,23 +64,15 @@ function ArmyBooks() {
     
     // If search is empty, load immediately
     if (value === '') {
-      loadArmyBooks('');
+      loadArmyBooks('', false);
     } else {
       // Debounce search by 300ms
       searchTimeoutRef.current = setTimeout(() => {
-        loadArmyBooks(value);
+        loadArmyBooks(value, false);
       }, 300);
     }
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    // Clear any pending timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    loadArmyBooks(searchTerm);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -97,7 +93,7 @@ function ArmyBooks() {
       setShowForm(false);
       setEditingArmyBook(null);
       resetForm();
-      loadArmyBooks();
+      loadArmyBooks(searchTerm, false);
     } catch (err) {
       setError('Failed to save army book');
       console.error(err);
@@ -120,7 +116,7 @@ function ArmyBooks() {
     if (window.confirm('Are you sure you want to delete this army book?')) {
       try {
         await armyBooksAPI.delete(id);
-        loadArmyBooks();
+        loadArmyBooks(searchTerm, false);
       } catch (err) {
         setError('Failed to delete army book');
         console.error(err);
@@ -148,16 +144,13 @@ function ArmyBooks() {
         {error && <div className="error">{error}</div>}
         
         <div className="search-bar">
-          <form onSubmit={handleSearchSubmit}>
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search army books by name..."
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            <button type="submit" className="btn">Search</button>
-          </form>
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search army books by name..."
+            value={searchTerm}
+            onChange={handleSearch}
+          />
         </div>
         
         <button 
