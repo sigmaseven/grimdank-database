@@ -58,6 +58,7 @@ function Weapons() {
       setAvailableRules(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to load rules:', err);
+      setAvailableRules([]);
     } finally {
       setRuleLoading(false);
     }
@@ -143,6 +144,13 @@ function Weapons() {
     setRuleSearchTerm('');
     setShowSuggestions(false);
   };
+
+  // Load initial rules when dialog opens
+  useEffect(() => {
+    if (showRuleSelector) {
+      loadRules(''); // Load all rules initially
+    }
+  }, [showRuleSelector, loadRules]);
 
   const handleSuggestionSelect = (rule) => {
     setRuleSearchTerm(rule.name);
