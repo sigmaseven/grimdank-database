@@ -71,9 +71,22 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
     const basePoints = Math.pow(2, (adjustedScore - 1) / 2);
     const clampedPoints = Math.max(1, Math.min(75, basePoints));
     
-    const tier1 = Math.round(clampedPoints);
-    const tier2 = Math.round(clampedPoints * 1.1);
-    const tier3 = Math.round(clampedPoints * 1.21);
+    let tier1 = Math.round(clampedPoints);
+    let tier2 = Math.round(clampedPoints * 1.1);
+    let tier3 = Math.round(clampedPoints * 1.21);
+    
+    // Ensure each tier has a unique cost (minimum 1 point difference)
+    if (tier2 <= tier1) {
+      tier2 = tier1 + 1;
+    }
+    if (tier3 <= tier2) {
+      tier3 = tier2 + 1;
+    }
+    
+    // Ensure tiers don't exceed the maximum (75 points)
+    if (tier1 > 75) tier1 = 75;
+    if (tier2 > 75) tier2 = 75;
+    if (tier3 > 75) tier3 = 75;
     
     setCalculatedPoints([tier1, tier2, tier3]);
   };
@@ -135,6 +148,10 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
       'Advanced - Elite capability (51-75 pts)'
     ];
     return descriptions[tier] || '';
+  };
+
+  const getUniqueTierNote = () => {
+    return 'Each tier has a unique cost (minimum 1 point difference)';
   };
 
   return (
@@ -252,6 +269,9 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
 
           <div className="calculated-points">
             <h4>Calculated Points (Range: 1-75 per model)</h4>
+            <p style={{ fontSize: '0.9em', color: '#8b949e', marginBottom: '1rem' }}>
+              {getUniqueTierNote()}
+            </p>
             <div className="points-display">
               {calculatedPoints.map((points, index) => (
                 <div key={index} className="tier-points">

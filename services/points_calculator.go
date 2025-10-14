@@ -55,10 +55,29 @@ func (pc *PointsCalculator) CalculatePoints(effectiveness RuleEffectiveness) []i
 		basePoints = 75
 	}
 
-	// Calculate tier points with 10% scaling
+	// Calculate tier points with 10% scaling, ensuring unique costs
 	tier1 := int(math.Round(basePoints))
 	tier2 := int(math.Round(basePoints * 1.1))
 	tier3 := int(math.Round(basePoints * 1.21)) // 1.1 * 1.1 = 1.21
+
+	// Ensure each tier has a unique cost (minimum 1 point difference)
+	if tier2 <= tier1 {
+		tier2 = tier1 + 1
+	}
+	if tier3 <= tier2 {
+		tier3 = tier2 + 1
+	}
+
+	// Ensure tiers don't exceed the maximum (75 points)
+	if tier1 > 75 {
+		tier1 = 75
+	}
+	if tier2 > 75 {
+		tier2 = 75
+	}
+	if tier3 > 75 {
+		tier3 = 75
+	}
 
 	return []int{tier1, tier2, tier3}
 }
@@ -558,10 +577,11 @@ func (pc *PointsCalculator) GetPointsExplanation(effectiveness RuleEffectiveness
 	explanation += "Step 5: Clamp to Range (1-75)\n"
 	explanation += "        = max(1, min(75, " + strconv.FormatFloat(basePoints, 'f', 1, 64) + ")) = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + "\n\n"
 
-	explanation += "Step 6: Calculate Tiers\n"
+	explanation += "Step 6: Calculate Tiers (ensuring unique costs)\n"
 	explanation += "        Tier 1 = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + " = " + strconv.Itoa(points[0]) + " points\n"
 	explanation += "        Tier 2 = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + " × 1.1 = " + strconv.FormatFloat(clampedPoints*1.1, 'f', 1, 64) + " = " + strconv.Itoa(points[1]) + " points\n"
-	explanation += "        Tier 3 = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + " × 1.21 = " + strconv.FormatFloat(clampedPoints*1.21, 'f', 1, 64) + " = " + strconv.Itoa(points[2]) + " points\n\n"
+	explanation += "        Tier 3 = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + " × 1.21 = " + strconv.FormatFloat(clampedPoints*1.21, 'f', 1, 64) + " = " + strconv.Itoa(points[2]) + " points\n"
+	explanation += "        (Adjusted to ensure unique costs: min 1 point difference per tier)\n\n"
 
 	explanation += "Final Result: " + strconv.Itoa(points[0]) + " / " + strconv.Itoa(points[1]) + " / " + strconv.Itoa(points[2]) + " points (Tier 1/2/3)"
 
