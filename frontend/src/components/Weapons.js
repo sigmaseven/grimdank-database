@@ -446,14 +446,6 @@ function Weapons() {
                     </div>
                   </div>
                 )}
-                
-                <textarea
-                  name="abilities"
-                  value={formData.abilities}
-                  onChange={handleInputChange}
-                  rows="3"
-                  placeholder="Additional rule descriptions or notes..."
-                />
               </div>
               
               <div className="form-group">
@@ -768,12 +760,11 @@ function Weapons() {
               )}
             </div>
             
-            {/* Action Buttons */}
+            {/* Back Button */}
             <div style={{ 
               marginTop: '1rem', 
               display: 'flex', 
-              justifyContent: 'space-between',
-              gap: '0.5rem'
+              justifyContent: 'flex-end'
             }}>
               <button
                 onClick={() => setShowRuleSelector(false)}
@@ -786,43 +777,12 @@ function Weapons() {
                   cursor: 'pointer',
                   fontSize: '0.85rem',
                   fontWeight: 'bold',
-                  transition: 'background-color 0.2s ease',
-                  flex: 1
+                  transition: 'background-color 0.2s ease'
                 }}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#8b949e'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#6e7681'}
               >
-                Cancel
-              </button>
-              
-              <button
-                onClick={() => {
-                  // Apply the selected rules to the weapon
-                  setFormData(prev => ({
-                    ...prev,
-                    // Update the abilities field with rule information
-                    abilities: selectedRules.map(rule => 
-                      `${rule.name}${rule.points && rule.points.length > 0 ? ` (${rule.points[0]}/${rule.points[1]}/${rule.points[2]} pts)` : ''}`
-                    ).join(', ')
-                  }));
-                  setShowRuleSelector(false);
-                }}
-                style={{
-                  backgroundColor: '#238636',
-                  color: 'white',
-                  border: 'none',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  fontWeight: 'bold',
-                  transition: 'background-color 0.2s ease',
-                  flex: 1
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#2ea043'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#238636'}
-              >
-                Apply Rules ({selectedRules.length})
+                Back
               </button>
             </div>
           </div>
