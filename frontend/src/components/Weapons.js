@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { weaponsAPI } from '../services/api';
+import { weaponsAPI, rulesAPI } from '../services/api';
 import { Icon } from './Icons';
 
 function Weapons() {
@@ -22,6 +22,13 @@ function Weapons() {
     points: 0
   });
 
+  // Rule attachment system
+  const [availableRules, setAvailableRules] = useState([]);
+  const [selectedRules, setSelectedRules] = useState([]);
+  const [ruleSearchTerm, setRuleSearchTerm] = useState('');
+  const [showRuleSelector, setShowRuleSelector] = useState(false);
+  const [ruleLoading, setRuleLoading] = useState(false);
+
   const loadWeapons = useCallback(async (searchQuery = '', showLoading = true) => {
     try {
       if (showLoading) {
@@ -38,6 +45,19 @@ function Weapons() {
       if (showLoading) {
         setLoading(false);
       }
+    }
+  }, []);
+
+  const loadRules = useCallback(async (searchQuery = '') => {
+    try {
+      setRuleLoading(true);
+      const params = searchQuery ? { name: searchQuery } : {};
+      const data = await rulesAPI.getAll(params);
+      setAvailableRules(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load rules:', err);
+    } finally {
+      setRuleLoading(false);
     }
   }, []);
 
@@ -82,6 +102,33 @@ function Weapons() {
       ...prev,
       [name]: name === 'points' || name === 'range' ? parseInt(value) || 0 : value
     }));
+  };
+
+  const handleRuleSearch = (e) => {
+    const query = e.target.value;
+    setRuleSearchTerm(query);
+    if (query.length > 2) {
+      loadRules(query);
+    }
+  };
+
+  const handleRuleSelect = (rule) => {
+    setSelectedRules(prev => [...prev, rule]);
+    setShowRuleSelector(false);
+    setRuleSearchTerm('');
+  };
+
+  const handleRuleRemove = (ruleId) => {
+    setSelectedRules(prev => prev.filter(rule => rule._id !== ruleId));
+  };
+
+  const calculateTotalPoints = () => {
+    const basePoints = formData.points || 0;
+    const rulePoints = selectedRules.reduce((total, rule) => {
+      const points = rule.points || [];
+      return total + (points[0] || 0); // Use tier 1 points
+    }, 0);
+    return basePoints + rulePoints;
   };
 
   const handleSubmit = async (e) => {
@@ -246,12 +293,85 @@ function Weapons() {
               </div>
               
               <div className="form-group">
-                <label>Abilities</label>
+                <label>Rules</label>
+                <div style={{ marginBottom: '1rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowRuleSelector(true)}
+                    style={{
+                      backgroundColor: '#238636',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    + Attach Rules
+                  </button>
+                </div>
+                
+                {selectedRules.length > 0 && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', color: '#f0f6fc' }}>Attached Rules:</h4>
+                    {selectedRules.map(rule => (
+                      <div key={rule._id} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        backgroundColor: '#21262d',
+                        padding: '0.5rem',
+                        marginBottom: '0.5rem',
+                        borderRadius: '4px',
+                        border: '1px solid #30363d'
+                      }}>
+                        <div>
+                          <strong style={{ color: '#f0f6fc' }}>{rule.name}</strong>
+                          <div style={{ fontSize: '0.8rem', color: '#8b949e' }}>
+                            {rule.points && rule.points.length > 0 ? 
+                              `${rule.points[0]}/${rule.points[1]}/${rule.points[2]} pts` : 
+                              'No points calculated'
+                            }
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRuleRemove(rule._id)}
+                          style={{
+                            backgroundColor: '#da3633',
+                            color: 'white',
+                            border: 'none',
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.8rem'
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    <div style={{
+                      padding: '0.5rem',
+                      backgroundColor: '#161b22',
+                      borderRadius: '4px',
+                      border: '1px solid #30363d',
+                      marginTop: '0.5rem'
+                    }}>
+                      <strong style={{ color: '#f0f6fc' }}>
+                        Total Points: {calculateTotalPoints()}
+                      </strong>
+                    </div>
+                  </div>
+                )}
+                
                 <textarea
                   name="abilities"
                   value={formData.abilities}
                   onChange={handleInputChange}
                   rows="3"
+                  placeholder="Additional rule descriptions or notes..."
                 />
               </div>
               
@@ -361,6 +481,122 @@ function Weapons() {
           </table>
         )}
       </div>
+
+      {/* Rule Selector Modal */}
+      {showRuleSelector && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: '#161b22',
+            border: '1px solid #30363d',
+            borderRadius: '8px',
+            padding: '2rem',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1rem'
+            }}>
+              <h3 style={{ color: '#f0f6fc', margin: 0 }}>Select Rules</h3>
+              <button
+                onClick={() => setShowRuleSelector(false)}
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#f0f6fc',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+                type="text"
+                placeholder="Search rules..."
+                value={ruleSearchTerm}
+                onChange={handleRuleSearch}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  backgroundColor: '#21262d',
+                  border: '1px solid #30363d',
+                  borderRadius: '6px',
+                  color: '#f0f6fc',
+                  fontSize: '0.9rem',
+                  outline: 'none'
+                }}
+              />
+            </div>
+            
+            <div style={{ maxHeight: '400px', overflow: 'auto' }}>
+              {ruleLoading ? (
+                <div style={{ textAlign: 'center', color: '#8b949e' }}>Loading rules...</div>
+              ) : availableRules.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#8b949e' }}>
+                  {ruleSearchTerm ? 'No rules found matching your search.' : 'Start typing to search for rules.'}
+                </div>
+              ) : (
+                availableRules.map(rule => (
+                  <div key={rule._id} style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '0.75rem',
+                    marginBottom: '0.5rem',
+                    backgroundColor: '#21262d',
+                    borderRadius: '6px',
+                    border: '1px solid #30363d',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => handleRuleSelect(rule)}
+                  >
+                    <div>
+                      <div style={{ color: '#f0f6fc', fontWeight: 'bold' }}>{rule.name}</div>
+                      <div style={{ color: '#8b949e', fontSize: '0.8rem' }}>{rule.description}</div>
+                      {rule.points && rule.points.length > 0 && (
+                        <div style={{ color: '#58a6ff', fontSize: '0.8rem' }}>
+                          {rule.points[0]}/{rule.points[1]}/{rule.points[2]} pts
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      style={{
+                        backgroundColor: '#238636',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem'
+                      }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
