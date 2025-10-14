@@ -250,11 +250,13 @@ func TestBulkImportIntegration(t *testing.T) {
 				Name: "Bulk Unit 1", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
 				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
 				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
+				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
 			},
 			{
 				Name: "Bulk Unit 2", Type: "Vehicle", Movement: "12\"", WeaponSkill: "4+",
 				BallisticSkill: "4+", Strength: "6", Toughness: "7", Wounds: "3",
 				Initiative: "2", Attacks: "2", Leadership: "8", Save: "3+", Points: 200,
+				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
 			},
 		}
 
@@ -365,6 +367,7 @@ func TestSearchIntegration(t *testing.T) {
 			Name: "Fire Unit", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
 			BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
 			Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
+			Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
 		}
 		armyBook := &models.ArmyBook{Name: "Fire Army Book", Faction: "Fire Faction", Description: "A fire army book"}
 		armyList := &models.ArmyList{Name: "Fire Army List", Player: "Fire Player", Faction: "Fire Faction", Points: 1000, Description: "A fire army list"}
@@ -467,6 +470,7 @@ func TestPaginationIntegration(t *testing.T) {
 				Name: fmt.Sprintf("Unit %d", i), Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
 				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
 				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: i * 100,
+				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
 			}
 			armyBook := &models.ArmyBook{Name: fmt.Sprintf("Army Book %d", i), Faction: fmt.Sprintf("Faction %d", i), Description: fmt.Sprintf("Description %d", i)}
 			armyList := &models.ArmyList{Name: fmt.Sprintf("Army List %d", i), Player: fmt.Sprintf("Player %d", i), Faction: fmt.Sprintf("Faction %d", i), Points: i * 1000, Description: fmt.Sprintf("Description %d", i)}

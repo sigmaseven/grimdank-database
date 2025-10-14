@@ -34,7 +34,9 @@ function Units() {
     points: 0,
     rules: [],
     availableWeapons: [],
-    availableWarGear: []
+    availableWarGear: [],
+    weapons: [],
+    warGear: []
   });
 
   const loadUnits = useCallback(async (searchQuery = '', showLoading = true) => {
@@ -151,7 +153,9 @@ function Units() {
       points: unit.points,
       rules: unit.rules || [],
       availableWeapons: unit.availableWeapons || [],
-      availableWarGear: unit.availableWarGear || []
+      availableWarGear: unit.availableWarGear || [],
+      weapons: unit.weapons || [],
+      warGear: unit.warGear || []
     });
     setShowForm(true);
   };
@@ -185,7 +189,9 @@ function Units() {
       points: 0,
       rules: [],
       availableWeapons: [],
-      availableWarGear: []
+      availableWarGear: [],
+      weapons: [],
+      warGear: []
     });
   };
 

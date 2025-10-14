@@ -280,6 +280,8 @@ func CreateTestUnit() *models.Unit {
 		Rules:            []models.Rule{},
 		AvailableWeapons: []models.Weapon{},
 		AvailableWarGear: []models.WarGear{},
+		Weapons:          []models.Weapon{},
+		WarGear:          []models.WarGear{},
 	}
 }
 

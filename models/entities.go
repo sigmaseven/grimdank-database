@@ -76,3 +76,4 @@ type ArmyList struct {
 	Units       []Unit             `bson:"units" json:"units"`
 	Description string             `bson:"description" json:"description"`
 }
+
