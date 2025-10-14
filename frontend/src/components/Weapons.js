@@ -164,19 +164,20 @@ function Weapons() {
     return basePoints + rulePoints;
   };
 
-  // Update weapon points when rules are added/removed
-  const updateWeaponPoints = useCallback(() => {
-    const totalPoints = calculateTotalPoints();
+  // Update points whenever selectedRules changes
+  useEffect(() => {
+    const basePoints = formData.points || 0;
+    const rulePoints = selectedRules.reduce((total, rule) => {
+      const points = rule.points || [];
+      return total + (points[0] || 0); // Use tier 1 points
+    }, 0);
+    const totalPoints = basePoints + rulePoints;
+    
     setFormData(prev => ({
       ...prev,
       points: totalPoints
     }));
   }, [selectedRules, formData.points]);
-
-  // Update points whenever selectedRules changes
-  useEffect(() => {
-    updateWeaponPoints();
-  }, [selectedRules, updateWeaponPoints]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
