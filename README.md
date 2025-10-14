@@ -35,12 +35,27 @@ A comprehensive full-stack application for managing wargame data entities, built
 - Responsive design
 - Real-time CRUD operations
 
+## 🚀 Quick Start (Single Command)
+
+**Start the entire application stack:**
+```bash
+docker-compose up -d
+```
+
+**Access the application:**
+- 🌐 **Frontend**: http://localhost:3000
+- 🔧 **Backend API**: http://localhost:8080  
+- 🗄️ **MongoDB**: localhost:27017
+
+**For development with hot-reloading:**
+```bash
+docker-compose -f docker-compose.dev.yml up -d
+```
+
 ## Prerequisites
 
-- Go 1.21 or higher
-- Node.js 16 or higher
-- MongoDB 4.4 or higher
-- Git
+- Docker and Docker Compose (for single command setup)
+- OR Go 1.21+, Node.js 16+, MongoDB 4.4+ (for manual setup)
 
 ## Installation & Setup
 

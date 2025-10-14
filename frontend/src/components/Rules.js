@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { rulesAPI } from '../services/api';
+import { Icon } from './Icons';
 
 function Rules() {
   const [rules, setRules] = useState([]);
@@ -8,6 +9,8 @@ function Rules() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingRule, setEditingRule] = useState(null);
+  const searchInputRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -16,12 +19,12 @@ function Rules() {
     points: 0
   });
 
-  const loadRules = useCallback(async () => {
+  const loadRules = useCallback(async (searchQuery = '') => {
     try {
       setLoading(true);
-      const params = searchTerm ? { name: searchTerm } : {};
+      const params = searchQuery ? { name: searchQuery } : {};
       const data = await rulesAPI.getAll(params);
-      setRules(data);
+      setRules(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError('Failed to load rules');
@@ -29,22 +32,49 @@ function Rules() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm]);
+  }, []);
 
   useEffect(() => {
-    loadRules();
-  }, [loadRules]);
+    loadRules('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    if (e.target.value === '') {
-      loadRules();
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // If search is empty, load immediately
+    if (value === '') {
+      loadRules('');
+    } else {
+      // Debounce search by 300ms
+      searchTimeoutRef.current = setTimeout(() => {
+        loadRules(value);
+      }, 300);
     }
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    loadRules();
+    // Clear any pending timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    loadRules(searchTerm);
   };
 
   const handleInputChange = (e) => {
@@ -117,6 +147,7 @@ function Rules() {
         <div className="search-bar">
           <form onSubmit={handleSearchSubmit}>
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search rules by name..."
               value={searchTerm}
@@ -218,7 +249,7 @@ function Rules() {
 
       <div className="card">
         <h3>Rules List</h3>
-        {rules.length === 0 ? (
+        {!rules || rules.length === 0 ? (
           <p>No rules found.</p>
         ) : (
           <table className="table">
@@ -232,25 +263,55 @@ function Rules() {
               </tr>
             </thead>
             <tbody>
-              {rules.map(rule => (
+              {rules && rules.map(rule => (
                 <tr key={rule.id}>
                   <td>{rule.name}</td>
                   <td>{rule.type}</td>
                   <td>{rule.points}</td>
                   <td>{rule.description}</td>
                   <td>
-                    <button 
-                      className="btn" 
-                      onClick={() => handleEdit(rule)}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="btn btn-danger" 
-                      onClick={() => handleDelete(rule.id)}
-                    >
-                      Delete
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div 
+                        onClick={() => handleEdit(rule)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="edit" size={20} color="#8b949e" />
+                      </div>
+                      <div 
+                        onClick={() => handleDelete(rule.id)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="delete" size={20} color="#f85149" />
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))}

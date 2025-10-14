@@ -7,21 +7,24 @@ import Rules from './components/Rules';
 import ArmyBooks from './components/ArmyBooks';
 import ArmyLists from './components/ArmyLists';
 import Import from './components/Import';
+import Export from './components/Export';
 import Home from './components/Home';
+import { Icon } from './components/Icons';
 
 // Navigation component with icons
 function Sidebar() {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Home', icon: '🏠' },
-    { path: '/units', label: 'Units', icon: '⚔️' },
-    { path: '/weapons', label: 'Weapons', icon: '🔫' },
-    { path: '/wargear', label: 'WarGear', icon: '🛡️' },
-    { path: '/rules', label: 'Rules', icon: '📜' },
-    { path: '/armybooks', label: 'Army Books', icon: '📚' },
-    { path: '/armylists', label: 'Army Lists', icon: '📋' },
-    { path: '/import', label: 'Import', icon: '📥' }
+    { path: '/', label: 'Home', icon: 'home' },
+    { path: '/units', label: 'Units', icon: 'units' },
+    { path: '/weapons', label: 'Weapons', icon: 'weapons' },
+    { path: '/wargear', label: 'WarGear', icon: 'wargear' },
+    { path: '/rules', label: 'Rules', icon: 'rules' },
+    { path: '/armybooks', label: 'Army Books', icon: 'armybooks' },
+    { path: '/armylists', label: 'Army Lists', icon: 'armylists' },
+    { path: '/import', label: 'Import', icon: 'import' },
+    { path: '/export', label: 'Export', icon: 'export' }
   ];
 
   return (
@@ -36,7 +39,13 @@ function Sidebar() {
             to={item.path}
             className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
           >
-            <span className="nav-icon">{item.icon}</span>
+            <span className="nav-icon">
+              <Icon 
+                name={item.icon} 
+                size={20} 
+                color={location.pathname === item.path ? '#1f6feb' : '#8b949e'} 
+              />
+            </span>
             {item.label}
           </Link>
         ))}
@@ -60,6 +69,7 @@ function App() {
             <Route path="/armybooks" element={<ArmyBooks />} />
             <Route path="/armylists" element={<ArmyLists />} />
             <Route path="/import" element={<Import />} />
+            <Route path="/export" element={<Export />} />
           </Routes>
         </main>
       </div>

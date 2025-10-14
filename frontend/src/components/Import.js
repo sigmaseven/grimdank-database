@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { rulesAPI, weaponsAPI, wargearAPI, unitsAPI, armyBooksAPI, armyListsAPI } from '../services/api';
+import { Icon } from './Icons';
 
 function Import() {
   const [selectedType, setSelectedType] = useState('');
@@ -10,12 +11,12 @@ function Import() {
   const [template, setTemplate] = useState(null);
 
   const entityTypes = [
-    { value: 'rules', label: 'Rules', icon: '📜' },
-    { value: 'weapons', label: 'Weapons', icon: '🔫' },
-    { value: 'wargear', label: 'WarGear', icon: '🛡️' },
-    { value: 'units', label: 'Units', icon: '⚔️' },
-    { value: 'armybooks', label: 'Army Books', icon: '📚' },
-    { value: 'armylists', label: 'Army Lists', icon: '📋' }
+    { value: 'rules', label: 'Rules', icon: 'rules' },
+    { value: 'weapons', label: 'Weapons', icon: 'weapons' },
+    { value: 'wargear', label: 'WarGear', icon: 'wargear' },
+    { value: 'units', label: 'Units', icon: 'units' },
+    { value: 'armybooks', label: 'Army Books', icon: 'armybooks' },
+    { value: 'armylists', label: 'Army Lists', icon: 'armylists' }
   ];
 
   const handleFileChange = (e) => {
@@ -148,7 +149,7 @@ function Import() {
             <option value="">Select entity type...</option>
             {entityTypes.map(type => (
               <option key={type.value} value={type.value}>
-                {type.icon} {type.label}
+                {type.label}
               </option>
             ))}
           </select>
@@ -181,7 +182,8 @@ function Import() {
             onClick={handleDownloadTemplate}
             disabled={!selectedType}
           >
-            📥 Download Template
+            <Icon name="import" size={16} color="#8b949e" style={{ marginRight: '0.5rem' }} />
+            Download Template
           </button>
 
           <button
@@ -189,7 +191,8 @@ function Import() {
             onClick={handlePreviewTemplate}
             disabled={!selectedType}
           >
-            👁️ Preview Template
+            <Icon name="preview" size={16} color="#8b949e" style={{ marginRight: '0.5rem' }} />
+            Preview Template
           </button>
         </div>
       </div>
@@ -223,7 +226,7 @@ function Import() {
       <div className="card">
         <h3>Import Instructions</h3>
         <div style={{ color: '#8b949e' }}>
-          <h4>📋 How to Import:</h4>
+          <h4>How to Import:</h4>
           <ol>
             <li>Select the entity type you want to import</li>
             <li>Download the template to see the expected JSON structure</li>
@@ -231,7 +234,7 @@ function Import() {
             <li>Upload your JSON file and click "Import Entities"</li>
           </ol>
 
-          <h4>📝 JSON Format:</h4>
+          <h4>JSON Format:</h4>
           <p>Your JSON file should be an array of objects, for example:</p>
           <pre style={{ 
             background: '#161b22', 
@@ -253,7 +256,7 @@ function Import() {
 ]`}
           </pre>
 
-          <h4>⚠️ Important Notes:</h4>
+          <h4>Important Notes:</h4>
           <ul>
             <li>All entities must have a <code>name</code> field</li>
             <li>Nested objects (like rules, weapons) should be included as full objects</li>

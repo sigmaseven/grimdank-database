@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { weaponsAPI } from '../services/api';
+import { Icon } from './Icons';
 
 function Weapons() {
   const [weapons, setWeapons] = useState([]);
@@ -8,6 +9,8 @@ function Weapons() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingWeapon, setEditingWeapon] = useState(null);
+  const searchInputRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -15,17 +18,17 @@ function Weapons() {
     range: '',
     strength: '',
     ap: '',
-    damage: '',
+    attacks: '',
     abilities: '',
     points: 0
   });
 
-  const loadWeapons = useCallback(async () => {
+  const loadWeapons = useCallback(async (searchQuery = '') => {
     try {
       setLoading(true);
-      const params = searchTerm ? { name: searchTerm } : {};
+      const params = searchQuery ? { name: searchQuery } : {};
       const data = await weaponsAPI.getAll(params);
-      setWeapons(data);
+      setWeapons(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError('Failed to load weapons');
@@ -33,22 +36,49 @@ function Weapons() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm]);
+  }, []);
 
   useEffect(() => {
-    loadWeapons();
-  }, [loadWeapons]);
+    loadWeapons('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    if (e.target.value === '') {
-      loadWeapons();
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // If search is empty, load immediately
+    if (value === '') {
+      loadWeapons('');
+    } else {
+      // Debounce search by 300ms
+      searchTimeoutRef.current = setTimeout(() => {
+        loadWeapons(value);
+      }, 300);
     }
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    loadWeapons();
+    // Clear any pending timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    loadWeapons(searchTerm);
   };
 
   const handleInputChange = (e) => {
@@ -85,7 +115,7 @@ function Weapons() {
       range: weapon.range,
       strength: weapon.strength,
       ap: weapon.ap,
-      damage: weapon.damage,
+      attacks: weapon.attacks,
       abilities: weapon.abilities,
       points: weapon.points
     });
@@ -111,7 +141,7 @@ function Weapons() {
       range: '',
       strength: '',
       ap: '',
-      damage: '',
+      attacks: '',
       abilities: '',
       points: 0
     });
@@ -129,6 +159,7 @@ function Weapons() {
         <div className="search-bar">
           <form onSubmit={handleSearchSubmit}>
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search weapons by name..."
               value={searchTerm}
@@ -220,11 +251,11 @@ function Weapons() {
                 </div>
                 
                 <div className="form-group">
-                  <label>Damage</label>
+                  <label>Attacks</label>
                   <input
                     type="text"
-                    name="damage"
-                    value={formData.damage}
+                    name="attacks"
+                    value={formData.attacks}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -272,7 +303,7 @@ function Weapons() {
 
       <div className="card">
         <h3>Weapons List</h3>
-        {weapons.length === 0 ? (
+        {!weapons || weapons.length === 0 ? (
           <p>No weapons found.</p>
         ) : (
           <table className="table">
@@ -283,34 +314,64 @@ function Weapons() {
                 <th>Range</th>
                 <th>Strength</th>
                 <th>AP</th>
-                <th>Damage</th>
+                <th>Attacks</th>
                 <th>Points</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {weapons.map(weapon => (
+              {weapons && weapons.map(weapon => (
                 <tr key={weapon.id}>
                   <td>{weapon.name}</td>
                   <td>{weapon.type}</td>
                   <td>{weapon.range}</td>
                   <td>{weapon.strength}</td>
                   <td>{weapon.ap}</td>
-                  <td>{weapon.damage}</td>
+                  <td>{weapon.attacks}</td>
                   <td>{weapon.points}</td>
                   <td>
-                    <button 
-                      className="btn" 
-                      onClick={() => handleEdit(weapon)}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="btn btn-danger" 
-                      onClick={() => handleDelete(weapon.id)}
-                    >
-                      Delete
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div 
+                        onClick={() => handleEdit(weapon)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="edit" size={20} color="#8b949e" />
+                      </div>
+                      <div 
+                        onClick={() => handleDelete(weapon.id)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="delete" size={20} color="#f85149" />
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))}

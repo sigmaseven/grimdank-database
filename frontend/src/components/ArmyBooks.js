@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { armyBooksAPI } from '../services/api';
+import { Icon } from './Icons';
 
 function ArmyBooks() {
   const [armyBooks, setArmyBooks] = useState([]);
@@ -8,6 +9,8 @@ function ArmyBooks() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingArmyBook, setEditingArmyBook] = useState(null);
+  const searchInputRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -17,12 +20,12 @@ function ArmyBooks() {
     rules: []
   });
 
-  const loadArmyBooks = useCallback(async () => {
+  const loadArmyBooks = useCallback(async (searchQuery = '') => {
     try {
       setLoading(true);
-      const params = searchTerm ? { name: searchTerm } : {};
+      const params = searchQuery ? { name: searchQuery } : {};
       const data = await armyBooksAPI.getAll(params);
-      setArmyBooks(data);
+      setArmyBooks(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError('Failed to load army books');
@@ -30,22 +33,49 @@ function ArmyBooks() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm]);
+  }, []);
 
   useEffect(() => {
-    loadArmyBooks();
-  }, [loadArmyBooks]);
+    loadArmyBooks('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    if (e.target.value === '') {
-      loadArmyBooks();
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // If search is empty, load immediately
+    if (value === '') {
+      loadArmyBooks('');
+    } else {
+      // Debounce search by 300ms
+      searchTimeoutRef.current = setTimeout(() => {
+        loadArmyBooks(value);
+      }, 300);
     }
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    loadArmyBooks();
+    // Clear any pending timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    loadArmyBooks(searchTerm);
   };
 
   const handleInputChange = (e) => {
@@ -120,6 +150,7 @@ function ArmyBooks() {
         <div className="search-bar">
           <form onSubmit={handleSearchSubmit}>
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search army books by name..."
               value={searchTerm}
@@ -211,7 +242,7 @@ function ArmyBooks() {
 
       <div className="card">
         <h3>Army Books List</h3>
-        {armyBooks.length === 0 ? (
+        {!armyBooks || armyBooks.length === 0 ? (
           <p>No army books found.</p>
         ) : (
           <table className="table">
@@ -224,24 +255,54 @@ function ArmyBooks() {
               </tr>
             </thead>
             <tbody>
-              {armyBooks.map(armyBook => (
+              {armyBooks && armyBooks.map(armyBook => (
                 <tr key={armyBook.id}>
                   <td>{armyBook.name}</td>
                   <td>{armyBook.faction}</td>
                   <td>{armyBook.description}</td>
                   <td>
-                    <button 
-                      className="btn" 
-                      onClick={() => handleEdit(armyBook)}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="btn btn-danger" 
-                      onClick={() => handleDelete(armyBook.id)}
-                    >
-                      Delete
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div 
+                        onClick={() => handleEdit(armyBook)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="edit" size={20} color="#8b949e" />
+                      </div>
+                      <div 
+                        onClick={() => handleDelete(armyBook.id)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="delete" size={20} color="#f85149" />
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))}

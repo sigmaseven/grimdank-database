@@ -21,7 +21,7 @@ type Weapon struct {
 	Range    string             `bson:"range" json:"range"`
 	Strength string             `bson:"strength" json:"strength"`
 	AP       string             `bson:"ap" json:"ap"`
-	Damage   string             `bson:"damage" json:"damage"`
+	Attacks  int                `bson:"attacks" json:"attacks"`
 	Rules    []Rule             `bson:"rules" json:"rules"`
 	Points   int                `bson:"points" json:"points"`
 }

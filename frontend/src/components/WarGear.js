@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { wargearAPI } from '../services/api';
+import { Icon } from './Icons';
 
 function WarGear() {
   const [wargear, setWargear] = useState([]);
@@ -8,6 +9,8 @@ function WarGear() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingWarGear, setEditingWarGear] = useState(null);
+  const searchInputRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,12 +21,12 @@ function WarGear() {
     weapons: []
   });
 
-  const loadWarGear = useCallback(async () => {
+  const loadWarGear = useCallback(async (searchQuery = '') => {
     try {
       setLoading(true);
-      const params = searchTerm ? { name: searchTerm } : {};
+      const params = searchQuery ? { name: searchQuery } : {};
       const data = await wargearAPI.getAll(params);
-      setWargear(data);
+      setWargear(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError('Failed to load wargear');
@@ -31,22 +34,49 @@ function WarGear() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm]);
+  }, []);
 
   useEffect(() => {
-    loadWarGear();
-  }, [loadWarGear]);
+    loadWarGear('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    if (e.target.value === '') {
-      loadWarGear();
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // If search is empty, load immediately
+    if (value === '') {
+      loadWarGear('');
+    } else {
+      // Debounce search by 300ms
+      searchTimeoutRef.current = setTimeout(() => {
+        loadWarGear(value);
+      }, 300);
     }
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    loadWarGear();
+    // Clear any pending timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    loadWarGear(searchTerm);
   };
 
   const handleInputChange = (e) => {
@@ -123,6 +153,7 @@ function WarGear() {
         <div className="search-bar">
           <form onSubmit={handleSearchSubmit}>
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search wargear by name..."
               value={searchTerm}
@@ -224,7 +255,7 @@ function WarGear() {
 
       <div className="card">
         <h3>WarGear List</h3>
-        {wargear.length === 0 ? (
+        {!wargear || wargear.length === 0 ? (
           <p>No wargear found.</p>
         ) : (
           <table className="table">
@@ -238,25 +269,55 @@ function WarGear() {
               </tr>
             </thead>
             <tbody>
-              {wargear.map(item => (
+              {wargear && wargear.map(item => (
                 <tr key={item.id}>
                   <td>{item.name}</td>
                   <td>{item.type}</td>
                   <td>{item.points}</td>
                   <td>{item.description}</td>
                   <td>
-                    <button 
-                      className="btn" 
-                      onClick={() => handleEdit(item)}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="btn btn-danger" 
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      Delete
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div 
+                        onClick={() => handleEdit(item)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="edit" size={20} color="#8b949e" />
+                      </div>
+                      <div 
+                        onClick={() => handleDelete(item.id)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="delete" size={20} color="#f85149" />
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))}

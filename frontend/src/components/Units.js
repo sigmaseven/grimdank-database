@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { unitsAPI, rulesAPI, weaponsAPI, wargearAPI } from '../services/api';
+import { Icon } from './Icons';
 
 function Units() {
   const [units, setUnits] = useState([]);
@@ -8,6 +9,8 @@ function Units() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingUnit, setEditingUnit] = useState(null);
+  const searchInputRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
   const [showRuleModal, setShowRuleModal] = useState(false);
   const [showWeaponModal, setShowWeaponModal] = useState(false);
   const [showWarGearModal, setShowWarGearModal] = useState(false);
@@ -34,12 +37,12 @@ function Units() {
     availableWarGear: []
   });
 
-  const loadUnits = useCallback(async () => {
+  const loadUnits = useCallback(async (searchQuery = '') => {
     try {
       setLoading(true);
-      const params = searchTerm ? { name: searchTerm } : {};
+      const params = searchQuery ? { name: searchQuery } : {};
       const data = await unitsAPI.getAll(params);
-      setUnits(data);
+      setUnits(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError('Failed to load units');
@@ -47,7 +50,7 @@ function Units() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm]);
+  }, []);
 
   const loadAvailableData = useCallback(async () => {
     try {
@@ -56,29 +59,56 @@ function Units() {
         weaponsAPI.getAll(),
         wargearAPI.getAll()
       ]);
-      setAvailableRules(rulesData);
-      setAvailableWeapons(weaponsData);
-      setAvailableWarGear(wargearData);
+      setAvailableRules(Array.isArray(rulesData) ? rulesData : []);
+      setAvailableWeapons(Array.isArray(weaponsData) ? weaponsData : []);
+      setAvailableWarGear(Array.isArray(wargearData) ? wargearData : []);
     } catch (err) {
       console.error('Failed to load available data:', err);
     }
   }, []);
 
   useEffect(() => {
-    loadUnits();
+    loadUnits('');
     loadAvailableData();
-  }, [loadUnits, loadAvailableData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    if (e.target.value === '') {
-      loadUnits();
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // If search is empty, load immediately
+    if (value === '') {
+      loadUnits('');
+    } else {
+      // Debounce search by 300ms
+      searchTimeoutRef.current = setTimeout(() => {
+        loadUnits(value);
+      }, 300);
     }
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    loadUnits();
+    // Clear any pending timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    loadUnits(searchTerm);
   };
 
   const handleInputChange = (e) => {
@@ -220,6 +250,7 @@ function Units() {
         <div className="search-bar">
           <form onSubmit={handleSearchSubmit}>
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search units by name..."
               value={searchTerm}
@@ -507,7 +538,7 @@ function Units() {
               <button className="close-btn" onClick={() => setShowRuleModal(false)}>×</button>
             </div>
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {availableRules.map(rule => (
+              {availableRules && availableRules.map(rule => (
                 <div key={rule.id} className="card" style={{ marginBottom: '0.5rem' }}>
                   <h5>{rule.name}</h5>
                   <p>{rule.description}</p>
@@ -533,7 +564,7 @@ function Units() {
               <button className="close-btn" onClick={() => setShowWeaponModal(false)}>×</button>
             </div>
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {availableWeapons.map(weapon => (
+              {availableWeapons && availableWeapons.map(weapon => (
                 <div key={weapon.id} className="card" style={{ marginBottom: '0.5rem' }}>
                   <h5>{weapon.name}</h5>
                   <p>Range: {weapon.range} | S: {weapon.strength} | AP: {weapon.ap} | D: {weapon.damage}</p>
@@ -559,7 +590,7 @@ function Units() {
               <button className="close-btn" onClick={() => setShowWarGearModal(false)}>×</button>
             </div>
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {availableWarGear.map(wargear => (
+              {availableWarGear && availableWarGear.map(wargear => (
                 <div key={wargear.id} className="card" style={{ marginBottom: '0.5rem' }}>
                   <h5>{wargear.name}</h5>
                   <p>{wargear.description}</p>
@@ -578,7 +609,7 @@ function Units() {
 
       <div className="card">
         <h3>Units List</h3>
-        {units.length === 0 ? (
+        {!units || units.length === 0 ? (
           <p>No units found.</p>
         ) : (
           <table className="table">
@@ -591,24 +622,54 @@ function Units() {
               </tr>
             </thead>
             <tbody>
-              {units.map(unit => (
+              {units && units.map(unit => (
                 <tr key={unit.id}>
                   <td>{unit.name}</td>
                   <td>{unit.type}</td>
                   <td>{unit.points}</td>
                   <td>
-                    <button 
-                      className="btn" 
-                      onClick={() => handleEdit(unit)}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="btn btn-danger" 
-                      onClick={() => handleDelete(unit.id)}
-                    >
-                      Delete
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div 
+                        onClick={() => handleEdit(unit)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="edit" size={20} color="#8b949e" />
+                      </div>
+                      <div 
+                        onClick={() => handleDelete(unit.id)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="delete" size={20} color="#f85149" />
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))}

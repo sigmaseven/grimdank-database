@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { armyListsAPI } from '../services/api';
+import { Icon } from './Icons';
 
 function ArmyLists() {
   const [armyLists, setArmyLists] = useState([]);
@@ -8,6 +9,8 @@ function ArmyLists() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingArmyList, setEditingArmyList] = useState(null);
+  const searchInputRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,12 +21,12 @@ function ArmyLists() {
     description: ''
   });
 
-  const loadArmyLists = useCallback(async () => {
+  const loadArmyLists = useCallback(async (searchQuery = '') => {
     try {
       setLoading(true);
-      const params = searchTerm ? { name: searchTerm } : {};
+      const params = searchQuery ? { name: searchQuery } : {};
       const data = await armyListsAPI.getAll(params);
-      setArmyLists(data);
+      setArmyLists(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError('Failed to load army lists');
@@ -31,22 +34,49 @@ function ArmyLists() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm]);
+  }, []);
 
   useEffect(() => {
-    loadArmyLists();
-  }, [loadArmyLists]);
+    loadArmyLists('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    if (e.target.value === '') {
-      loadArmyLists();
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // If search is empty, load immediately
+    if (value === '') {
+      loadArmyLists('');
+    } else {
+      // Debounce search by 300ms
+      searchTimeoutRef.current = setTimeout(() => {
+        loadArmyLists(value);
+      }, 300);
     }
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    loadArmyLists();
+    // Clear any pending timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    loadArmyLists(searchTerm);
   };
 
   const handleInputChange = (e) => {
@@ -123,6 +153,7 @@ function ArmyLists() {
         <div className="search-bar">
           <form onSubmit={handleSearchSubmit}>
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search army lists by name..."
               value={searchTerm}
@@ -234,7 +265,7 @@ function ArmyLists() {
 
       <div className="card">
         <h3>Army Lists List</h3>
-        {armyLists.length === 0 ? (
+        {!armyLists || armyLists.length === 0 ? (
           <p>No army lists found.</p>
         ) : (
           <table className="table">
@@ -249,7 +280,7 @@ function ArmyLists() {
               </tr>
             </thead>
             <tbody>
-              {armyLists.map(armyList => (
+              {armyLists && armyLists.map(armyList => (
                 <tr key={armyList.id}>
                   <td>{armyList.name}</td>
                   <td>{armyList.player}</td>
@@ -257,18 +288,48 @@ function ArmyLists() {
                   <td>{armyList.points}</td>
                   <td>{armyList.description}</td>
                   <td>
-                    <button 
-                      className="btn" 
-                      onClick={() => handleEdit(armyList)}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="btn btn-danger" 
-                      onClick={() => handleDelete(armyList.id)}
-                    >
-                      Delete
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div 
+                        onClick={() => handleEdit(armyList)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="edit" size={20} color="#8b949e" />
+                      </div>
+                      <div 
+                        onClick={() => handleDelete(armyList.id)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Icon name="delete" size={20} color="#f85149" />
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))}
