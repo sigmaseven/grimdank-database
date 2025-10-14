@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"grimdank-database/models"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func TestUnitCRUD(t *testing.T) {
@@ -56,19 +58,19 @@ func TestUnitCRUD(t *testing.T) {
 				Name: "Unit 1", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
 				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
 				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
-				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Unit 2", Type: "Vehicle", Movement: "12\"", WeaponSkill: "4+",
 				BallisticSkill: "4+", Strength: "6", Toughness: "7", Wounds: "3",
 				Initiative: "2", Attacks: "2", Leadership: "8", Save: "3+", Points: 200,
-				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Unit 3", Type: "Monster", Movement: "8\"", WeaponSkill: "2+",
 				BallisticSkill: "5+", Strength: "8", Toughness: "8", Wounds: "6",
 				Initiative: "1", Attacks: "4", Leadership: "9", Save: "2+", Points: 300,
-				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 		}
 
@@ -100,19 +102,19 @@ func TestUnitCRUD(t *testing.T) {
 				Name: "Fire Marines", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
 				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
 				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
-				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Ice Warriors", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
 				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
 				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
-				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Fire Tank", Type: "Vehicle", Movement: "12\"", WeaponSkill: "4+",
 				BallisticSkill: "4+", Strength: "6", Toughness: "7", Wounds: "3",
 				Initiative: "2", Attacks: "2", Leadership: "8", Save: "3+", Points: 200,
-				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 		}
 
@@ -191,7 +193,7 @@ func TestUnitCRUD(t *testing.T) {
 			Name: "", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
 			BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
 			Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
-			Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+			Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 		}
 
 		_, err := testServices.UnitService.CreateUnit(ctx, unit)
@@ -277,19 +279,19 @@ func TestUnitBulkImport(t *testing.T) {
 				Name: "Bulk Unit 1", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
 				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
 				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
-				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Bulk Unit 2", Type: "Vehicle", Movement: "12\"", WeaponSkill: "4+",
 				BallisticSkill: "4+", Strength: "6", Toughness: "7", Wounds: "3",
 				Initiative: "2", Attacks: "2", Leadership: "8", Save: "3+", Points: 200,
-				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Bulk Unit 3", Type: "Monster", Movement: "8\"", WeaponSkill: "2+",
 				BallisticSkill: "5+", Strength: "8", Toughness: "8", Wounds: "6",
 				Initiative: "1", Attacks: "4", Leadership: "9", Save: "2+", Points: 300,
-				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 		}
 
@@ -322,13 +324,13 @@ func TestUnitBulkImport(t *testing.T) {
 				Name: "Valid Unit", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
 				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
 				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
-				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "", Type: "Vehicle", Movement: "12\"", WeaponSkill: "4+",
 				BallisticSkill: "4+", Strength: "6", Toughness: "7", Wounds: "3",
 				Initiative: "2", Attacks: "2", Leadership: "8", Save: "3+", Points: 200,
-				Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 		}
 
@@ -365,7 +367,7 @@ func TestUnitPagination(t *testing.T) {
 				Name: fmt.Sprintf("Unit %d", i), Type: "Infantry", Movement: "6\"",
 				WeaponSkill: "3+", BallisticSkill: "3+", Strength: "3", Toughness: "3",
 				Wounds: "1", Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+",
-				Points: i * 50, Weapons: []models.Weapon{}, WarGear: []models.WarGear{},
+				Points: i * 50, Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			}
 			_, err := testServices.UnitService.CreateUnit(ctx, unit)
 			if err != nil {
