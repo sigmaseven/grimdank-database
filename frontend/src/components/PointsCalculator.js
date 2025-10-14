@@ -9,7 +9,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   const [customEffectiveness, setCustomEffectiveness] = useState({
     baseValue: 3,
     multiplier: 1.0,
-    complexity: 2,
     gameImpact: 2
   });
   const [useCustom, setUseCustom] = useState(false);
@@ -58,10 +57,9 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   const calculateCustomPoints = () => {
     // Calculate points based on custom effectiveness
     const baseEffectiveness = customEffectiveness.baseValue;
-    const complexityBonus = customEffectiveness.complexity * 0.2;
     const impactBonus = customEffectiveness.gameImpact * 0.3;
     
-    const combinedScore = baseEffectiveness + complexityBonus + impactBonus;
+    const combinedScore = baseEffectiveness + impactBonus;
     const finalScore = combinedScore * customEffectiveness.multiplier;
     
     // Calculate base points using logarithmic scaling
@@ -173,16 +171,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
                   />
                 </div>
                 <div className="input-group">
-                  <label>Complexity (1-5)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="5"
-                    value={customEffectiveness.complexity}
-                    onChange={(e) => handleCustomChange('complexity', e.target.value)}
-                  />
-                </div>
-                <div className="input-group">
                   <label>Game Impact (1-5)</label>
                   <input
                     type="number"
@@ -244,10 +232,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
                 <div className="breakdown-item">
                   <span className="label">Multiplier:</span>
                   <span className="value">{breakdown.effectiveness?.multiplier}x</span>
-                </div>
-                <div className="breakdown-item">
-                  <span className="label">Complexity:</span>
-                  <span className="value">{breakdown.effectiveness?.complexity}/5</span>
                 </div>
                 <div className="breakdown-item">
                   <span className="label">Game Impact:</span>

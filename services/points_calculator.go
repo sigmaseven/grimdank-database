@@ -29,11 +29,10 @@ func (pc *PointsCalculator) CalculatePoints(effectiveness RuleEffectiveness) []i
 	
 	// Base calculation: 2^((effectiveness - 1) / 2) gives us exponential growth
 	baseEffectiveness := float64(effectiveness.BaseValue)
-	complexityBonus := float64(effectiveness.Complexity) * 0.2
 	impactBonus := float64(effectiveness.GameImpact) * 0.3
 	
-	// Combined effectiveness score
-	combinedScore := baseEffectiveness + complexityBonus + impactBonus
+	// Combined effectiveness score (without complexity)
+	combinedScore := baseEffectiveness + impactBonus
 	
 	// Apply multiplier
 	finalScore := combinedScore * effectiveness.Multiplier
@@ -257,7 +256,6 @@ func (pc *PointsCalculator) GetPointsExplanation(effectiveness RuleEffectiveness
 	
 	explanation := "Points Calculation:\n"
 	explanation += "• Base Effectiveness: " + strconv.Itoa(effectiveness.BaseValue) + "/10\n"
-	explanation += "• Complexity: " + strconv.Itoa(effectiveness.Complexity) + "/5\n"
 	explanation += "• Game Impact: " + strconv.Itoa(effectiveness.GameImpact) + "/5\n"
 	explanation += "• Multiplier: " + strconv.FormatFloat(effectiveness.Multiplier, 'f', 1, 64) + "x\n"
 	explanation += "• Calculated Points: " + strconv.Itoa(points[0]) + " / " + strconv.Itoa(points[1]) + " / " + strconv.Itoa(points[2]) + "\n"
