@@ -65,6 +65,9 @@ export const wargearAPI = {
   update: (id, data) => updateEntity('wargear', id, data),
   delete: (id) => deleteEntity('wargear', id),
   import: (data) => api.post('/import/wargear', data).then(res => res.data),
+  addRule: (id, ruleId, tier) => api.post(`/wargear/${id}/rules`, { ruleId, tier }).then(res => res.data),
+  removeRule: (id, ruleId) => api.delete(`/wargear/${id}/rules/${ruleId}`).then(res => res.data),
+  getAllWithRules: (params) => getEntities('wargear-with-rules', params),
 };
 
 export const unitsAPI = {
@@ -92,6 +95,15 @@ export const armyListsAPI = {
   update: (id, data) => updateEntity('armylists', id, data),
   delete: (id) => deleteEntity('armylists', id),
   import: (data) => api.post('/import/armylists', data).then(res => res.data),
+};
+
+export const factionsAPI = {
+  create: (data) => createEntity('factions', data),
+  getAll: (params) => getEntities('factions', params),
+  getById: (id) => getEntity('factions', id),
+  update: (id, data) => updateEntity('factions', id, data),
+  delete: (id) => deleteEntity('factions', id),
+  import: (data) => api.post('/import/factions', data).then(res => res.data),
 };
 
 export default api;

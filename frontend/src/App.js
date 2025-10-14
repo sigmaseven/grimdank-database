@@ -6,6 +6,7 @@ import WarGear from './components/WarGear';
 import Rules from './components/Rules';
 import ArmyBooks from './components/ArmyBooks';
 import ArmyLists from './components/ArmyLists';
+import Factions from './components/Factions';
 import Import from './components/Import';
 import Export from './components/Export';
 import Home from './components/Home';
@@ -21,6 +22,7 @@ function Sidebar() {
     { path: '/weapons', label: 'Weapons', icon: 'weapons' },
     { path: '/wargear', label: 'WarGear', icon: 'wargear' },
     { path: '/rules', label: 'Rules', icon: 'rules' },
+    { path: '/factions', label: 'Factions', icon: 'factions' },
     { path: '/armybooks', label: 'Army Books', icon: 'armybooks' },
     { path: '/armylists', label: 'Army Lists', icon: 'armylists' },
     { path: '/import', label: 'Import', icon: 'import' },
@@ -66,6 +68,7 @@ function App() {
             <Route path="/weapons" element={<Weapons />} />
             <Route path="/wargear" element={<WarGear />} />
             <Route path="/rules" element={<Rules />} />
+            <Route path="/factions" element={<Factions />} />
             <Route path="/armybooks" element={<ArmyBooks />} />
             <Route path="/armylists" element={<ArmyLists />} />
             <Route path="/import" element={<Import />} />

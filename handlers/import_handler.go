@@ -19,6 +19,7 @@ type ImportHandler struct {
 	unitService     *services.UnitService
 	armyBookService *services.ArmyBookService
 	armyListService *services.ArmyListService
+	factionService  *services.FactionService
 }
 
 func NewImportHandler(
@@ -28,6 +29,7 @@ func NewImportHandler(
 	unitService *services.UnitService,
 	armyBookService *services.ArmyBookService,
 	armyListService *services.ArmyListService,
+	factionService *services.FactionService,
 ) *ImportHandler {
 	return &ImportHandler{
 		ruleService:     ruleService,
@@ -36,6 +38,7 @@ func NewImportHandler(
 		unitService:     unitService,
 		armyBookService: armyBookService,
 		armyListService: armyListService,
+		factionService:  factionService,
 	}
 }
 
@@ -189,6 +192,31 @@ func (h *ImportHandler) ImportArmyLists(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(response)
 }
 
+// Import Factions
+func (h *ImportHandler) ImportFactions(w http.ResponseWriter, r *http.Request) {
+	var factions []models.Faction
+	if err := json.NewDecoder(r.Body).Decode(&factions); err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	importedIDs, err := h.factionService.BulkImportFactions(r.Context(), factions)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	response := map[string]interface{}{
+		"message":     "Factions imported successfully",
+		"count":       len(importedIDs),
+		"importedIds": importedIDs,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(response)
+}
+
 // Get Import Template
 func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -253,7 +281,7 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 		template = []models.ArmyBook{
 			{
 				Name:        "Example Army Book",
-				Faction:     "Space Marines",
+				FactionID:   primitive.NewObjectID(),
 				Description: "This is an example army book",
 				Units:       []primitive.ObjectID{},
 				Rules:       []models.RuleReference{},
@@ -264,10 +292,18 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 			{
 				Name:        "Example Army List",
 				Player:      "Player Name",
-				Faction:     "Space Marines",
+				FactionID:   primitive.NewObjectID(),
 				Points:      2000,
 				Units:       []primitive.ObjectID{},
 				Description: "This is an example army list",
+			},
+		}
+	case "factions":
+		template = []models.Faction{
+			{
+				Name:        "Example Faction",
+				Description: "This is an example faction",
+				Type:        "Official",
 			},
 		}
 	default:

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -68,7 +70,7 @@ type Unit struct {
 type ArmyBook struct {
 	ID          primitive.ObjectID   `bson:"_id,omitempty" json:"id"`
 	Name        string               `bson:"name" json:"name" validate:"required"`
-	Faction     string               `bson:"faction" json:"faction"`
+	FactionID   primitive.ObjectID   `bson:"factionId" json:"factionId"`
 	Description string               `bson:"description" json:"description"`
 	Units       []primitive.ObjectID `bson:"unitIds" json:"unitIds"`
 	Rules       []RuleReference      `bson:"rules" json:"rules"`
@@ -79,7 +81,7 @@ type ArmyList struct {
 	ID          primitive.ObjectID   `bson:"_id,omitempty" json:"id"`
 	Name        string               `bson:"name" json:"name" validate:"required"`
 	Player      string               `bson:"player" json:"player"`
-	Faction     string               `bson:"faction" json:"faction"`
+	FactionID   primitive.ObjectID   `bson:"factionId" json:"factionId"`
 	Points      int                  `bson:"points" json:"points"`
 	Units       []primitive.ObjectID `bson:"unitIds" json:"unitIds"`
 	Description string               `bson:"description" json:"description"`
@@ -89,6 +91,16 @@ type ArmyList struct {
 type RuleWithTier struct {
 	Rule
 	Tier int `json:"tier"`
+}
+
+// Faction represents a game faction
+type Faction struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name        string             `bson:"name" json:"name"`
+	Description string             `bson:"description" json:"description"`
+	Type        string             `bson:"type" json:"type"` // "Official" or "Custom"
+	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
 // Populated entities for API responses (when you need the full data)

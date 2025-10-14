@@ -194,3 +194,49 @@ func (ps *PopulationService) RemoveRuleFromWeapon(ctx context.Context, weaponID 
 	// Update weapon
 	return ps.weaponService.UpdateWeapon(ctx, weaponID, weapon)
 }
+
+// AddRuleToWarGear adds a rule reference to a wargear item
+func (ps *PopulationService) AddRuleToWarGear(ctx context.Context, wargearID string, ruleID string, tier int) error {
+	ruleObjID, err := primitive.ObjectIDFromHex(ruleID)
+	if err != nil {
+		return err
+	}
+
+	ruleRef := models.RuleReference{
+		RuleID: ruleObjID,
+		Tier:   tier,
+	}
+
+	// Get current wargear
+	wargear, err := ps.wargearService.GetWarGearByID(ctx, wargearID)
+	if err != nil {
+		return err
+	}
+
+	// Add rule reference
+	wargear.Rules = append(wargear.Rules, ruleRef)
+
+	// Update wargear
+	return ps.wargearService.UpdateWarGear(ctx, wargearID, wargear)
+}
+
+// RemoveRuleFromWarGear removes a rule reference from a wargear item
+func (ps *PopulationService) RemoveRuleFromWarGear(ctx context.Context, wargearID string, ruleID primitive.ObjectID) error {
+	// Get current wargear
+	wargear, err := ps.wargearService.GetWarGearByID(ctx, wargearID)
+	if err != nil {
+		return err
+	}
+
+	// Remove rule reference
+	var newRules []models.RuleReference
+	for _, ruleRef := range wargear.Rules {
+		if ruleRef.RuleID != ruleID {
+			newRules = append(newRules, ruleRef)
+		}
+	}
+	wargear.Rules = newRules
+
+	// Update wargear
+	return ps.wargearService.UpdateWarGear(ctx, wargearID, wargear)
+}

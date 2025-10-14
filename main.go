@@ -39,6 +39,7 @@ func main() {
 	unitRepo := repositories.NewUnitRepository(db.Database.Collection("units"))
 	armyBookRepo := repositories.NewArmyBookRepository(db.Database.Collection("armybooks"))
 	armyListRepo := repositories.NewArmyListRepository(db.Database.Collection("armylists"))
+	factionRepo := repositories.NewFactionRepository(db.Database.Collection("factions"))
 
 	// Initialize services
 	ruleService := services.NewRuleService(ruleRepo)
@@ -47,6 +48,7 @@ func main() {
 	unitService := services.NewUnitService(unitRepo)
 	armyBookService := services.NewArmyBookService(armyBookRepo)
 	armyListService := services.NewArmyListService(armyListRepo)
+	factionService := services.NewFactionService(factionRepo)
 
 	// Initialize points services
 	rulePointsService := services.NewRulePointsService(ruleService)
@@ -61,9 +63,11 @@ func main() {
 	unitHandler := handlers.NewUnitHandler(unitService)
 	armyBookHandler := handlers.NewArmyBookHandler(armyBookService)
 	armyListHandler := handlers.NewArmyListHandler(armyListService)
-	importHandler := handlers.NewImportHandler(ruleService, weaponService, wargearService, unitService, armyBookService, armyListService)
+	factionHandler := handlers.NewFactionHandler(factionService)
+	importHandler := handlers.NewImportHandler(ruleService, weaponService, wargearService, unitService, armyBookService, armyListService, factionService)
 	pointsHandler := handlers.NewPointsHandler(rulePointsService)
 	populatedWeaponHandler := handlers.NewPopulatedWeaponHandler(weaponService, populationService)
+	populatedWarGearHandler := handlers.NewPopulatedWarGearHandler(wargearService, populationService)
 	weaponPointsHandler := handlers.NewWeaponPointsHandler()
 
 	// Setup routes
@@ -114,6 +118,9 @@ func main() {
 	api.HandleFunc("/wargear/{id}", wargearHandler.GetWarGear).Methods("GET")
 	api.HandleFunc("/wargear/{id}", wargearHandler.UpdateWarGear).Methods("PUT")
 	api.HandleFunc("/wargear/{id}", wargearHandler.DeleteWarGear).Methods("DELETE")
+	api.HandleFunc("/wargear/{id}/rules", populatedWarGearHandler.AddRuleToWarGear).Methods("POST")
+	api.HandleFunc("/wargear/{id}/rules/{ruleId}", populatedWarGearHandler.RemoveRuleFromWarGear).Methods("DELETE")
+	api.HandleFunc("/wargear-with-rules", populatedWarGearHandler.GetWarGearWithRulesList).Methods("GET")
 
 	// Unit routes
 	api.HandleFunc("/units", unitHandler.CreateUnit).Methods("POST")
@@ -136,6 +143,13 @@ func main() {
 	api.HandleFunc("/armylists/{id}", armyListHandler.UpdateArmyList).Methods("PUT")
 	api.HandleFunc("/armylists/{id}", armyListHandler.DeleteArmyList).Methods("DELETE")
 
+	// Faction routes
+	api.HandleFunc("/factions", factionHandler.CreateFaction).Methods("POST")
+	api.HandleFunc("/factions", factionHandler.GetFactions).Methods("GET")
+	api.HandleFunc("/factions/{id}", factionHandler.GetFaction).Methods("GET")
+	api.HandleFunc("/factions/{id}", factionHandler.UpdateFaction).Methods("PUT")
+	api.HandleFunc("/factions/{id}", factionHandler.DeleteFaction).Methods("DELETE")
+
 	// Import routes
 	api.HandleFunc("/import/rules", importHandler.ImportRules).Methods("POST")
 	api.HandleFunc("/import/weapons", importHandler.ImportWeapons).Methods("POST")
@@ -143,6 +157,7 @@ func main() {
 	api.HandleFunc("/import/units", importHandler.ImportUnits).Methods("POST")
 	api.HandleFunc("/import/armybooks", importHandler.ImportArmyBooks).Methods("POST")
 	api.HandleFunc("/import/armylists", importHandler.ImportArmyLists).Methods("POST")
+	api.HandleFunc("/import/factions", importHandler.ImportFactions).Methods("POST")
 	api.HandleFunc("/import/template/{type}", importHandler.GetImportTemplate).Methods("GET")
 
 	// Points calculation routes

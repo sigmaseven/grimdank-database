@@ -149,6 +149,15 @@ export const Icon = ({ name, size = 20, color = '#8b949e', className = '' }) => 
         <path d="M7 10L12 15L17 10" />
         <path d="M12 15V3" />
       </svg>
+    ),
+    
+    // Factions icon - shield with star
+    factions: (
+      <svg {...iconProps}>
+        <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" />
+        <path d="M12 2L3 6L12 10L21 6L12 2Z" />
+        <path d="M12 10V22" />
+      </svg>
     )
   };
 
