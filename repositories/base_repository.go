@@ -98,3 +98,21 @@ func (r *BaseRepository) SearchByName(ctx context.Context, name string, results 
 	}
 	return r.GetAll(ctx, filter, results, limit, skip)
 }
+
+func (r *BaseRepository) BulkInsert(ctx context.Context, documents []interface{}) ([]primitive.ObjectID, error) {
+	if len(documents) == 0 {
+		return []primitive.ObjectID{}, nil
+	}
+
+	result, err := r.Collection.InsertMany(ctx, documents)
+	if err != nil {
+		return nil, err
+	}
+
+	insertedIDs := make([]primitive.ObjectID, len(result.InsertedIDs))
+	for i, id := range result.InsertedIDs {
+		insertedIDs[i] = id.(primitive.ObjectID)
+	}
+
+	return insertedIDs, nil
+}

@@ -70,3 +70,26 @@ func (r *WeaponRepository) DeleteWeapon(ctx context.Context, id string) error {
 	}
 	return r.Delete(ctx, objectID)
 }
+
+func (r *WeaponRepository) BulkImportWeapons(ctx context.Context, weaponsList []models.Weapon) ([]string, error) {
+	if len(weaponsList) == 0 {
+		return []string{}, nil
+	}
+
+	documents := make([]interface{}, len(weaponsList))
+	for i, weapon := range weaponsList {
+		documents[i] = weapon
+	}
+
+	insertedIDs, err := r.BulkInsert(ctx, documents)
+	if err != nil {
+		return nil, err
+	}
+
+	hexIDs := make([]string, len(insertedIDs))
+	for i, id := range insertedIDs {
+		hexIDs[i] = id.Hex()
+	}
+
+	return hexIDs, nil
+}

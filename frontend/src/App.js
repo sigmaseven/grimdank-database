@@ -6,6 +6,7 @@ import WarGear from './components/WarGear';
 import Rules from './components/Rules';
 import ArmyBooks from './components/ArmyBooks';
 import ArmyLists from './components/ArmyLists';
+import Import from './components/Import';
 import Home from './components/Home';
 
 // Navigation component with icons
@@ -19,7 +20,8 @@ function Sidebar() {
     { path: '/wargear', label: 'WarGear', icon: '🛡️' },
     { path: '/rules', label: 'Rules', icon: '📜' },
     { path: '/armybooks', label: 'Army Books', icon: '📚' },
-    { path: '/armylists', label: 'Army Lists', icon: '📋' }
+    { path: '/armylists', label: 'Army Lists', icon: '📋' },
+    { path: '/import', label: 'Import', icon: '📥' }
   ];
 
   return (
@@ -57,6 +59,7 @@ function App() {
             <Route path="/rules" element={<Rules />} />
             <Route path="/armybooks" element={<ArmyBooks />} />
             <Route path="/armylists" element={<ArmyLists />} />
+            <Route path="/import" element={<Import />} />
           </Routes>
         </main>
       </div>

@@ -70,3 +70,26 @@ func (r *RuleRepository) DeleteRule(ctx context.Context, id string) error {
 	}
 	return r.Delete(ctx, objectID)
 }
+
+func (r *RuleRepository) BulkImportRules(ctx context.Context, rulesList []models.Rule) ([]string, error) {
+	if len(rulesList) == 0 {
+		return []string{}, nil
+	}
+
+	documents := make([]interface{}, len(rulesList))
+	for i, rule := range rulesList {
+		documents[i] = rule
+	}
+
+	insertedIDs, err := r.BulkInsert(ctx, documents)
+	if err != nil {
+		return nil, err
+	}
+
+	hexIDs := make([]string, len(insertedIDs))
+	for i, id := range insertedIDs {
+		hexIDs[i] = id.Hex()
+	}
+
+	return hexIDs, nil
+}

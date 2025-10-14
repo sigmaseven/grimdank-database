@@ -84,6 +84,31 @@ func (r *WarGearRepository) DeleteWarGear(ctx context.Context, id string) error 
 	return r.Delete(ctx, objectID)
 }
 
+func (r *WarGearRepository) BulkImportWarGear(ctx context.Context, wargearList []models.WarGear) ([]string, error) {
+	if len(wargearList) == 0 {
+		return []string{}, nil
+	}
+
+	// Convert to interface{} slice for bulk insert
+	documents := make([]interface{}, len(wargearList))
+	for i, wargear := range wargearList {
+		documents[i] = wargear
+	}
+
+	insertedIDs, err := r.BulkInsert(ctx, documents)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert ObjectIDs to hex strings
+	hexIDs := make([]string, len(insertedIDs))
+	for i, id := range insertedIDs {
+		hexIDs[i] = id.Hex()
+	}
+
+	return hexIDs, nil
+}
+
 // Unit Repository
 type UnitRepository struct {
 	*BaseRepository
@@ -157,6 +182,29 @@ func (r *UnitRepository) DeleteUnit(ctx context.Context, id string) error {
 		return err
 	}
 	return r.Delete(ctx, objectID)
+}
+
+func (r *UnitRepository) BulkImportUnits(ctx context.Context, unitsList []models.Unit) ([]string, error) {
+	if len(unitsList) == 0 {
+		return []string{}, nil
+	}
+
+	documents := make([]interface{}, len(unitsList))
+	for i, unit := range unitsList {
+		documents[i] = unit
+	}
+
+	insertedIDs, err := r.BulkInsert(ctx, documents)
+	if err != nil {
+		return nil, err
+	}
+
+	hexIDs := make([]string, len(insertedIDs))
+	for i, id := range insertedIDs {
+		hexIDs[i] = id.Hex()
+	}
+
+	return hexIDs, nil
 }
 
 // ArmyBook Repository
@@ -234,6 +282,29 @@ func (r *ArmyBookRepository) DeleteArmyBook(ctx context.Context, id string) erro
 	return r.Delete(ctx, objectID)
 }
 
+func (r *ArmyBookRepository) BulkImportArmyBooks(ctx context.Context, armyBooksList []models.ArmyBook) ([]string, error) {
+	if len(armyBooksList) == 0 {
+		return []string{}, nil
+	}
+
+	documents := make([]interface{}, len(armyBooksList))
+	for i, armyBook := range armyBooksList {
+		documents[i] = armyBook
+	}
+
+	insertedIDs, err := r.BulkInsert(ctx, documents)
+	if err != nil {
+		return nil, err
+	}
+
+	hexIDs := make([]string, len(insertedIDs))
+	for i, id := range insertedIDs {
+		hexIDs[i] = id.Hex()
+	}
+
+	return hexIDs, nil
+}
+
 // ArmyList Repository
 type ArmyListRepository struct {
 	*BaseRepository
@@ -307,4 +378,27 @@ func (r *ArmyListRepository) DeleteArmyList(ctx context.Context, id string) erro
 		return err
 	}
 	return r.Delete(ctx, objectID)
+}
+
+func (r *ArmyListRepository) BulkImportArmyLists(ctx context.Context, armyListsList []models.ArmyList) ([]string, error) {
+	if len(armyListsList) == 0 {
+		return []string{}, nil
+	}
+
+	documents := make([]interface{}, len(armyListsList))
+	for i, armyList := range armyListsList {
+		documents[i] = armyList
+	}
+
+	insertedIDs, err := r.BulkInsert(ctx, documents)
+	if err != nil {
+		return nil, err
+	}
+
+	hexIDs := make([]string, len(insertedIDs))
+	for i, id := range insertedIDs {
+		hexIDs[i] = id.Hex()
+	}
+
+	return hexIDs, nil
 }

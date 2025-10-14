@@ -41,6 +41,7 @@ export const rulesAPI = {
   getById: (id) => getEntity('rules', id),
   update: (id, data) => updateEntity('rules', id, data),
   delete: (id) => deleteEntity('rules', id),
+  import: (data) => api.post('/import/rules', data).then(res => res.data),
 };
 
 export const weaponsAPI = {
@@ -49,6 +50,7 @@ export const weaponsAPI = {
   getById: (id) => getEntity('weapons', id),
   update: (id, data) => updateEntity('weapons', id, data),
   delete: (id) => deleteEntity('weapons', id),
+  import: (data) => api.post('/import/weapons', data).then(res => res.data),
 };
 
 export const wargearAPI = {
@@ -57,6 +59,7 @@ export const wargearAPI = {
   getById: (id) => getEntity('wargear', id),
   update: (id, data) => updateEntity('wargear', id, data),
   delete: (id) => deleteEntity('wargear', id),
+  import: (data) => api.post('/import/wargear', data).then(res => res.data),
 };
 
 export const unitsAPI = {
@@ -65,6 +68,7 @@ export const unitsAPI = {
   getById: (id) => getEntity('units', id),
   update: (id, data) => updateEntity('units', id, data),
   delete: (id) => deleteEntity('units', id),
+  import: (data) => api.post('/import/units', data).then(res => res.data),
 };
 
 export const armyBooksAPI = {
@@ -73,6 +77,7 @@ export const armyBooksAPI = {
   getById: (id) => getEntity('armybooks', id),
   update: (id, data) => updateEntity('armybooks', id, data),
   delete: (id) => deleteEntity('armybooks', id),
+  import: (data) => api.post('/import/armybooks', data).then(res => res.data),
 };
 
 export const armyListsAPI = {
@@ -81,6 +86,7 @@ export const armyListsAPI = {
   getById: (id) => getEntity('armylists', id),
   update: (id, data) => updateEntity('armylists', id, data),
   delete: (id) => deleteEntity('armylists', id),
+  import: (data) => api.post('/import/armylists', data).then(res => res.data),
 };
 
 export default api;

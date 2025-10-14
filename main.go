@@ -55,6 +55,7 @@ func main() {
 	unitHandler := handlers.NewUnitHandler(unitService)
 	armyBookHandler := handlers.NewArmyBookHandler(armyBookService)
 	armyListHandler := handlers.NewArmyListHandler(armyListService)
+	importHandler := handlers.NewImportHandler(ruleService, weaponService, wargearService, unitService, armyBookService, armyListService)
 
 	// Setup routes
 	router := mux.NewRouter()
@@ -119,6 +120,15 @@ func main() {
 	api.HandleFunc("/armylists/{id}", armyListHandler.GetArmyList).Methods("GET")
 	api.HandleFunc("/armylists/{id}", armyListHandler.UpdateArmyList).Methods("PUT")
 	api.HandleFunc("/armylists/{id}", armyListHandler.DeleteArmyList).Methods("DELETE")
+
+	// Import routes
+	api.HandleFunc("/import/rules", importHandler.ImportRules).Methods("POST")
+	api.HandleFunc("/import/weapons", importHandler.ImportWeapons).Methods("POST")
+	api.HandleFunc("/import/wargear", importHandler.ImportWarGear).Methods("POST")
+	api.HandleFunc("/import/units", importHandler.ImportUnits).Methods("POST")
+	api.HandleFunc("/import/armybooks", importHandler.ImportArmyBooks).Methods("POST")
+	api.HandleFunc("/import/armylists", importHandler.ImportArmyLists).Methods("POST")
+	api.HandleFunc("/import/template/{type}", importHandler.GetImportTemplate).Methods("GET")
 
 	// Add CORS middleware
 	router.Use(func(next http.Handler) http.Handler {

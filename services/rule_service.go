@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"grimdank-database/models"
 	"grimdank-database/repositories"
 	"strings"
@@ -57,4 +58,15 @@ func (s *RuleService) UpdateRule(ctx context.Context, id string, rule *models.Ru
 
 func (s *RuleService) DeleteRule(ctx context.Context, id string) error {
 	return s.repo.DeleteRule(ctx, id)
+}
+
+func (s *RuleService) BulkImportRules(ctx context.Context, rules []models.Rule) ([]string, error) {
+	// Validate all rules before importing
+	for i, rule := range rules {
+		if strings.TrimSpace(rule.Name) == "" {
+			return nil, fmt.Errorf("rule at index %d has empty name", i)
+		}
+	}
+
+	return s.repo.BulkImportRules(ctx, rules)
 }

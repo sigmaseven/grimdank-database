@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"grimdank-database/models"
 	"grimdank-database/repositories"
 	"strings"
@@ -58,6 +59,17 @@ func (s *WeaponService) DeleteWeapon(ctx context.Context, id string) error {
 	return s.repo.DeleteWeapon(ctx, id)
 }
 
+func (s *WeaponService) BulkImportWeapons(ctx context.Context, weapons []models.Weapon) ([]string, error) {
+	// Validate all weapons before importing
+	for i, weapon := range weapons {
+		if strings.TrimSpace(weapon.Name) == "" {
+			return nil, fmt.Errorf("weapon at index %d has empty name", i)
+		}
+	}
+
+	return s.repo.BulkImportWeapons(ctx, weapons)
+}
+
 // WarGear Service
 type WarGearService struct {
 	repo *repositories.WarGearRepository
@@ -104,6 +116,17 @@ func (s *WarGearService) UpdateWarGear(ctx context.Context, id string, wargear *
 
 func (s *WarGearService) DeleteWarGear(ctx context.Context, id string) error {
 	return s.repo.DeleteWarGear(ctx, id)
+}
+
+func (s *WarGearService) BulkImportWarGear(ctx context.Context, wargear []models.WarGear) ([]string, error) {
+	// Validate all wargear before importing
+	for i, item := range wargear {
+		if strings.TrimSpace(item.Name) == "" {
+			return nil, fmt.Errorf("wargear at index %d has empty name", i)
+		}
+	}
+
+	return s.repo.BulkImportWarGear(ctx, wargear)
 }
 
 // Unit Service
@@ -154,6 +177,17 @@ func (s *UnitService) DeleteUnit(ctx context.Context, id string) error {
 	return s.repo.DeleteUnit(ctx, id)
 }
 
+func (s *UnitService) BulkImportUnits(ctx context.Context, units []models.Unit) ([]string, error) {
+	// Validate all units before importing
+	for i, unit := range units {
+		if strings.TrimSpace(unit.Name) == "" {
+			return nil, fmt.Errorf("unit at index %d has empty name", i)
+		}
+	}
+
+	return s.repo.BulkImportUnits(ctx, units)
+}
+
 // ArmyBook Service
 type ArmyBookService struct {
 	repo *repositories.ArmyBookRepository
@@ -202,6 +236,17 @@ func (s *ArmyBookService) DeleteArmyBook(ctx context.Context, id string) error {
 	return s.repo.DeleteArmyBook(ctx, id)
 }
 
+func (s *ArmyBookService) BulkImportArmyBooks(ctx context.Context, armyBooks []models.ArmyBook) ([]string, error) {
+	// Validate all army books before importing
+	for i, armyBook := range armyBooks {
+		if strings.TrimSpace(armyBook.Name) == "" {
+			return nil, fmt.Errorf("army book at index %d has empty name", i)
+		}
+	}
+
+	return s.repo.BulkImportArmyBooks(ctx, armyBooks)
+}
+
 // ArmyList Service
 type ArmyListService struct {
 	repo *repositories.ArmyListRepository
@@ -248,4 +293,15 @@ func (s *ArmyListService) UpdateArmyList(ctx context.Context, id string, armyLis
 
 func (s *ArmyListService) DeleteArmyList(ctx context.Context, id string) error {
 	return s.repo.DeleteArmyList(ctx, id)
+}
+
+func (s *ArmyListService) BulkImportArmyLists(ctx context.Context, armyLists []models.ArmyList) ([]string, error) {
+	// Validate all army lists before importing
+	for i, armyList := range armyLists {
+		if strings.TrimSpace(armyList.Name) == "" {
+			return nil, fmt.Errorf("army list at index %d has empty name", i)
+		}
+	}
+
+	return s.repo.BulkImportArmyLists(ctx, armyLists)
 }
