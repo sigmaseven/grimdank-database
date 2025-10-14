@@ -30,6 +30,7 @@ function Weapons() {
   const [ruleLoading, setRuleLoading] = useState(false);
   const [ruleSuggestions, setRuleSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [baseWeaponPoints, setBaseWeaponPoints] = useState(0);
 
   const loadWeapons = useCallback(async (searchQuery = '', showLoading = true) => {
     try {
@@ -164,7 +165,7 @@ function Weapons() {
   };
 
   const calculateTotalPoints = () => {
-    const basePoints = formData.points || 0;
+    const basePoints = baseWeaponPoints || 0;
     const rulePoints = selectedRules.reduce((total, rule) => {
       const points = rule.points || [];
       return total + (points[0] || 0); // Use tier 1 points
@@ -172,20 +173,26 @@ function Weapons() {
     return basePoints + rulePoints;
   };
 
-  // Update points whenever selectedRules changes
+  // Update base weapon points when form data changes
   useEffect(() => {
-    const basePoints = formData.points || 0;
+    if (selectedRules.length === 0) {
+      setBaseWeaponPoints(formData.points || 0);
+    }
+  }, [formData.points, selectedRules.length]);
+
+  // Update total points whenever selectedRules changes
+  useEffect(() => {
     const rulePoints = selectedRules.reduce((total, rule) => {
       const points = rule.points || [];
       return total + (points[0] || 0); // Use tier 1 points
     }, 0);
-    const totalPoints = basePoints + rulePoints;
+    const totalPoints = baseWeaponPoints + rulePoints;
     
     setFormData(prev => ({
       ...prev,
       points: totalPoints
     }));
-  }, [selectedRules, formData.points]);
+  }, [selectedRules, baseWeaponPoints]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
