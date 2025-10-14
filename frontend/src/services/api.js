@@ -51,6 +51,11 @@ export const weaponsAPI = {
   update: (id, data) => updateEntity('weapons', id, data),
   delete: (id) => deleteEntity('weapons', id),
   import: (data) => api.post('/import/weapons', data).then(res => res.data),
+  // New reference-based methods
+  getWithRules: (id) => getEntity('weapons', id + '/with-rules'),
+  addRule: (id, ruleId, tier) => api.post(`/weapons/${id}/rules`, { ruleId, tier }).then(res => res.data),
+  removeRule: (id, ruleId) => api.delete(`/weapons/${id}/rules/${ruleId}`).then(res => res.data),
+  getAllWithRules: (params) => getEntities('weapons-with-rules', params),
 };
 
 export const wargearAPI = {

@@ -51,6 +51,9 @@ func main() {
 	// Initialize points services
 	rulePointsService := services.NewRulePointsService(ruleService)
 	
+	// Initialize population service for reference-based operations
+	populationService := services.NewPopulationService(ruleService, weaponService, wargearService, unitService)
+	
 	// Initialize handlers
 	ruleHandler := handlers.NewRuleHandler(ruleService)
 	weaponHandler := handlers.NewWeaponHandler(weaponService)
@@ -60,6 +63,7 @@ func main() {
 	armyListHandler := handlers.NewArmyListHandler(armyListService)
 	importHandler := handlers.NewImportHandler(ruleService, weaponService, wargearService, unitService, armyBookService, armyListService)
 	pointsHandler := handlers.NewPointsHandler(rulePointsService)
+	populatedWeaponHandler := handlers.NewPopulatedWeaponHandler(weaponService, populationService)
 
 	// Setup routes
 	router := mux.NewRouter()
@@ -96,6 +100,12 @@ func main() {
 	api.HandleFunc("/weapons/{id}", weaponHandler.GetWeapon).Methods("GET")
 	api.HandleFunc("/weapons/{id}", weaponHandler.UpdateWeapon).Methods("PUT")
 	api.HandleFunc("/weapons/{id}", weaponHandler.DeleteWeapon).Methods("DELETE")
+
+	// Populated weapon routes (reference-based)
+	api.HandleFunc("/weapons/{id}/with-rules", populatedWeaponHandler.GetWeaponWithRules).Methods("GET")
+	api.HandleFunc("/weapons/{id}/rules", populatedWeaponHandler.AddRuleToWeapon).Methods("POST")
+	api.HandleFunc("/weapons/{id}/rules/{ruleId}", populatedWeaponHandler.RemoveRuleFromWeapon).Methods("DELETE")
+	api.HandleFunc("/weapons-with-rules", populatedWeaponHandler.GetWeaponsWithRules).Methods("GET")
 
 	// WarGear routes
 	api.HandleFunc("/wargear", wargearHandler.CreateWarGear).Methods("POST")

@@ -141,11 +141,27 @@ function Weapons() {
     }
   };
 
-  const handleRuleSelect = (rule) => {
-    setSelectedRules(prev => [...prev, rule]);
-    setShowRuleSelector(false);
-    setRuleSearchTerm('');
-    setShowSuggestions(false);
+  const handleRuleSelect = async (rule) => {
+    try {
+      // Add rule to weapon using the new API
+      if (editingWeapon) {
+        await weaponsAPI.addRule(editingWeapon.id, rule._id, 1); // Default to tier 1
+        // Reload the weapon to get updated data
+        const updatedWeapon = await weaponsAPI.getWithRules(editingWeapon.id);
+        setFormData(prev => ({
+          ...prev,
+          points: updatedWeapon.totalPoints
+        }));
+      } else {
+        // For new weapons, add to selected rules
+        setSelectedRules(prev => [...prev, rule]);
+      }
+      setShowRuleSelector(false);
+      setRuleSearchTerm('');
+      setShowSuggestions(false);
+    } catch (err) {
+      console.error('Failed to add rule to weapon:', err);
+    }
   };
 
   // Load initial rules when dialog opens
@@ -162,8 +178,24 @@ function Weapons() {
     loadRules(rule.name);
   };
 
-  const handleRuleRemove = (ruleId) => {
-    setSelectedRules(prev => prev.filter(rule => rule._id !== ruleId));
+  const handleRuleRemove = async (ruleId) => {
+    try {
+      if (editingWeapon) {
+        // Remove rule from weapon using the new API
+        await weaponsAPI.removeRule(editingWeapon.id, ruleId);
+        // Reload the weapon to get updated data
+        const updatedWeapon = await weaponsAPI.getWithRules(editingWeapon.id);
+        setFormData(prev => ({
+          ...prev,
+          points: updatedWeapon.totalPoints
+        }));
+      } else {
+        // For new weapons, remove from selected rules
+        setSelectedRules(prev => prev.filter(rule => rule._id !== ruleId));
+      }
+    } catch (err) {
+      console.error('Failed to remove rule from weapon:', err);
+    }
   };
 
   const calculateTotalPoints = () => {
@@ -252,18 +284,41 @@ function Weapons() {
     }
   };
 
-  const handleEdit = (weapon) => {
-    setEditingWeapon(weapon);
-    setFormData({
-      name: weapon.name,
-      type: weapon.type,
-      range: weapon.range,
-      ap: weapon.ap,
-      attacks: weapon.attacks,
-      abilities: weapon.abilities,
-      points: weapon.points
-    });
-    setShowForm(true);
+  const handleEdit = async (weapon) => {
+    try {
+      // Load weapon with populated rules
+      const weaponWithRules = await weaponsAPI.getWithRules(weapon.id);
+      
+      setEditingWeapon(weapon);
+      setFormData({
+        name: weapon.name,
+        type: weapon.type,
+        range: weapon.range,
+        ap: weapon.ap,
+        attacks: weapon.attacks,
+        abilities: weapon.abilities,
+        points: weaponWithRules.totalPoints
+      });
+      
+      // Set selected rules from populated data
+      setSelectedRules(weaponWithRules.weapon.populatedRules || []);
+      
+      setShowForm(true);
+    } catch (err) {
+      console.error('Failed to load weapon with rules:', err);
+      // Fallback to original weapon data
+      setEditingWeapon(weapon);
+      setFormData({
+        name: weapon.name,
+        type: weapon.type,
+        range: weapon.range,
+        ap: weapon.ap,
+        attacks: weapon.attacks,
+        abilities: weapon.abilities,
+        points: weapon.points
+      });
+      setShowForm(true);
+    }
   };
 
   const handleDelete = async (id) => {
