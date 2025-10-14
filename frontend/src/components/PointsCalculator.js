@@ -108,7 +108,7 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
     <div className="points-calculator-overlay">
       <div className="points-calculator-modal">
         <div className="points-calculator-header">
-          <h3>Points Calculator</h3>
+          <h3>🧮 Rule Points Calculator</h3>
           {onClose && (
             <button className="close-button" onClick={onClose}>×</button>
           )}
@@ -283,29 +283,38 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
+          background: rgba(0, 0, 0, 0.8);
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 1000;
+          z-index: 2000;
         }
 
         .points-calculator-modal {
-          background: white;
+          background: #161b22;
+          border: 1px solid #30363d;
           border-radius: 8px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
           max-width: 800px;
           width: 90%;
           max-height: 90vh;
           overflow-y: auto;
+          color: #e6edf3;
         }
 
         .points-calculator-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 1rem;
-          border-bottom: 1px solid #eee;
+          padding: 1.5rem;
+          border-bottom: 1px solid #30363d;
+        }
+
+        .points-calculator-header h3 {
+          margin: 0;
+          color: #f0f6fc;
+          font-weight: 600;
+          font-size: 1.25rem;
         }
 
         .close-button {
@@ -313,18 +322,39 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
           border: none;
           font-size: 1.5rem;
           cursor: pointer;
-          color: #666;
+          color: #8b949e;
+          padding: 0.25rem;
+          border-radius: 4px;
+          transition: all 0.2s;
+        }
+
+        .close-button:hover {
+          color: #f0f6fc;
+          background-color: #21262d;
         }
 
         .points-calculator-content {
-          padding: 1rem;
+          padding: 1.5rem;
         }
 
         .rule-info {
-          background: #f5f5f5;
+          background: #0d1117;
+          border: 1px solid #30363d;
           padding: 1rem;
-          border-radius: 4px;
+          border-radius: 6px;
           margin-bottom: 1rem;
+        }
+
+        .rule-info h4 {
+          margin: 0 0 0.5rem 0;
+          color: #f0f6fc;
+          font-weight: 600;
+        }
+
+        .rule-info p {
+          margin: 0.25rem 0;
+          color: #8b949e;
+          font-size: 0.9rem;
         }
 
         .mode-selector {
@@ -338,6 +368,12 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
           align-items: center;
           gap: 0.5rem;
           cursor: pointer;
+          color: #e6edf3;
+          font-size: 0.9rem;
+        }
+
+        .mode-selector input[type="radio"] {
+          margin-right: 0.5rem;
         }
 
         .effectiveness-inputs {
@@ -353,27 +389,48 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
         }
 
         .input-group label {
-          font-weight: bold;
-          margin-bottom: 0.25rem;
+          font-weight: 600;
+          margin-bottom: 0.5rem;
+          color: #f0f6fc;
+          font-size: 0.9rem;
         }
 
         .input-group input {
-          padding: 0.5rem;
-          border: 1px solid #ddd;
-          border-radius: 4px;
+          padding: 0.75rem;
+          border: 1px solid #30363d;
+          border-radius: 6px;
+          background-color: #0d1117;
+          color: #e6edf3;
+          font-size: 0.9rem;
+          transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+          outline: none;
+          border-color: #1f6feb;
+          box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.1);
         }
 
         .calculate-button {
-          background: #007bff;
+          background: #1f6feb;
           color: white;
-          border: none;
+          border: 1px solid #1f6feb;
           padding: 0.5rem 1rem;
-          border-radius: 4px;
+          border-radius: 6px;
           cursor: pointer;
+          font-size: 0.9rem;
+          font-weight: 500;
+          transition: all 0.2s;
+        }
+
+        .calculate-button:hover {
+          background: #2f81f3;
+          border-color: #2f81f3;
         }
 
         .calculate-button:disabled {
-          background: #ccc;
+          background: #6c757d;
+          border-color: #6c757d;
           cursor: not-allowed;
         }
 
@@ -403,13 +460,14 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
         }
 
         .tier-label {
-          font-weight: bold;
+          font-weight: 600;
           font-size: 0.9rem;
+          color: #f0f6fc;
         }
 
         .tier-description {
           font-size: 0.8rem;
-          color: #666;
+          color: #8b949e;
           text-align: center;
           max-width: 120px;
         }
@@ -423,22 +481,30 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
         .breakdown-item {
           display: flex;
           justify-content: space-between;
-          padding: 0.5rem;
-          background: #f9f9f9;
-          border-radius: 4px;
+          padding: 0.75rem;
+          background: #0d1117;
+          border: 1px solid #30363d;
+          border-radius: 6px;
         }
 
         .breakdown-item .label {
-          font-weight: bold;
+          font-weight: 600;
+          color: #f0f6fc;
+        }
+
+        .breakdown-item .value {
+          color: #e6edf3;
         }
 
         .explanation-text {
-          background: #f5f5f5;
+          background: #0d1117;
+          border: 1px solid #30363d;
           padding: 1rem;
-          border-radius: 4px;
+          border-radius: 6px;
           white-space: pre-wrap;
           font-family: monospace;
           font-size: 0.9rem;
+          color: #e6edf3;
         }
 
         .points-actions {
@@ -447,33 +513,58 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
           justify-content: flex-end;
           margin-top: 1rem;
           padding-top: 1rem;
-          border-top: 1px solid #eee;
+          border-top: 1px solid #30363d;
         }
 
         .apply-button {
-          background: #28a745;
+          background: #238636;
           color: white;
-          border: none;
+          border: 1px solid #238636;
           padding: 0.5rem 1rem;
-          border-radius: 4px;
+          border-radius: 6px;
           cursor: pointer;
+          font-size: 0.9rem;
+          font-weight: 500;
+          transition: all 0.2s;
+        }
+
+        .apply-button:hover {
+          background: #2ea043;
+          border-color: #2ea043;
         }
 
         .cancel-button {
           background: #6c757d;
           color: white;
-          border: none;
+          border: 1px solid #6c757d;
           padding: 0.5rem 1rem;
-          border-radius: 4px;
+          border-radius: 6px;
           cursor: pointer;
+          font-size: 0.9rem;
+          font-weight: 500;
+          transition: all 0.2s;
+        }
+
+        .cancel-button:hover {
+          background: #8b949e;
+          border-color: #8b949e;
         }
 
         .error-message {
-          background: #f8d7da;
-          color: #721c24;
-          padding: 0.5rem;
-          border-radius: 4px;
+          background: #490202;
+          color: #f85149;
+          padding: 0.75rem;
+          border-radius: 6px;
           margin: 1rem 0;
+          border: 1px solid #da3633;
+        }
+
+        .calculated-points h4,
+        .points-breakdown h4,
+        .points-explanation h4 {
+          color: #f0f6fc;
+          font-weight: 600;
+          margin: 0 0 1rem 0;
         }
       `}</style>
     </div>
