@@ -48,6 +48,9 @@ func main() {
 	armyBookService := services.NewArmyBookService(armyBookRepo)
 	armyListService := services.NewArmyListService(armyListRepo)
 
+	// Initialize points services
+	rulePointsService := services.NewRulePointsService(ruleService)
+	
 	// Initialize handlers
 	ruleHandler := handlers.NewRuleHandler(ruleService)
 	weaponHandler := handlers.NewWeaponHandler(weaponService)
@@ -56,6 +59,7 @@ func main() {
 	armyBookHandler := handlers.NewArmyBookHandler(armyBookService)
 	armyListHandler := handlers.NewArmyListHandler(armyListService)
 	importHandler := handlers.NewImportHandler(ruleService, weaponService, wargearService, unitService, armyBookService, armyListService)
+	pointsHandler := handlers.NewPointsHandler(rulePointsService)
 
 	// Setup routes
 	router := mux.NewRouter()
@@ -129,6 +133,13 @@ func main() {
 	api.HandleFunc("/import/armybooks", importHandler.ImportArmyBooks).Methods("POST")
 	api.HandleFunc("/import/armylists", importHandler.ImportArmyLists).Methods("POST")
 	api.HandleFunc("/import/template/{type}", importHandler.GetImportTemplate).Methods("GET")
+
+	// Points calculation routes
+	api.HandleFunc("/points/calculate", pointsHandler.CalculatePoints).Methods("POST")
+	api.HandleFunc("/points/calculate/{id}", pointsHandler.CalculatePointsForRule).Methods("GET")
+	api.HandleFunc("/points/update/{id}", pointsHandler.UpdateRuleWithCalculatedPoints).Methods("PUT")
+	api.HandleFunc("/points/bulk", pointsHandler.BulkCalculatePoints).Methods("POST")
+	api.HandleFunc("/points/breakdown/{id}", pointsHandler.GetPointsBreakdown).Methods("GET")
 
 	// Add CORS middleware
 	router.Use(func(next http.Handler) http.Handler {

@@ -4,10 +4,10 @@
 # This script stops, rebuilds, and starts the services to capture latest changes
 
 echo "Stopping MongoDB and Backend services..."
-docker-compose down mongodb backend
+docker-compose down backend
 
 echo "Rebuilding and starting MongoDB and Backend services..."
-docker-compose up --build -d mongodb backend
+docker-compose up --build -d backend
 
 echo "Services restarted successfully!"
 echo "MongoDB and Backend are now running with latest changes."

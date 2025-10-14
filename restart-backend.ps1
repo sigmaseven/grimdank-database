@@ -2,10 +2,10 @@
 # This script stops, rebuilds, and starts the services to capture latest changes
 
 Write-Host "Stopping MongoDB and Backend services..." -ForegroundColor Yellow
-docker-compose down mongodb backend
+docker-compose down backend
 
 Write-Host "Rebuilding and starting MongoDB and Backend services..." -ForegroundColor Yellow
-docker-compose up --build -d mongodb backend
+docker-compose up --build -d backend
 
 Write-Host "Services restarted successfully!" -ForegroundColor Green
 Write-Host "MongoDB and Backend are now running with latest changes." -ForegroundColor Green

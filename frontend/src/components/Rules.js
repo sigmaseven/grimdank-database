@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { rulesAPI } from '../services/api';
+import PointsCalculator from './PointsCalculator';
 import { Icon } from './Icons';
 
 function Rules() {
@@ -9,6 +10,7 @@ function Rules() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingRule, setEditingRule] = useState(null);
+  const [showPointsCalculator, setShowPointsCalculator] = useState(false);
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
@@ -288,7 +290,7 @@ function Rules() {
               
               <div className="form-group">
                 <label>Points (3-tiered) *</label>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <label style={{ fontSize: '0.8rem', marginBottom: '0.25rem' }}>Tier 1</label>
                     <input
@@ -320,6 +322,21 @@ function Rules() {
                     />
                   </div>
                 </div>
+                <button 
+                  type="button" 
+                  onClick={() => setShowPointsCalculator(true)}
+                  style={{
+                    background: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  🧮 Calculate Points Automatically
+                </button>
                 {validationErrors.points && (
                   <div className="error-message">{validationErrors.points}</div>
                 )}
@@ -417,6 +434,24 @@ function Rules() {
           </table>
         )}
       </div>
+
+      {showPointsCalculator && (
+        <PointsCalculator
+          rule={formData.name ? {
+            name: formData.name,
+            description: formData.description,
+            type: formData.type
+          } : null}
+          onPointsCalculated={(points) => {
+            setFormData(prev => ({
+              ...prev,
+              points: points
+            }));
+            setShowPointsCalculator(false);
+          }}
+          onClose={() => setShowPointsCalculator(false)}
+        />
+      )}
     </div>
   );
 }
