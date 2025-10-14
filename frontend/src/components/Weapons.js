@@ -28,6 +28,8 @@ function Weapons() {
   const [ruleSearchTerm, setRuleSearchTerm] = useState('');
   const [showRuleSelector, setShowRuleSelector] = useState(false);
   const [ruleLoading, setRuleLoading] = useState(false);
+  const [ruleSuggestions, setRuleSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const loadWeapons = useCallback(async (searchQuery = '', showLoading = true) => {
     try {
@@ -58,6 +60,22 @@ function Weapons() {
       console.error('Failed to load rules:', err);
     } finally {
       setRuleLoading(false);
+    }
+  }, []);
+
+  const loadRuleSuggestions = useCallback(async (searchQuery = '') => {
+    try {
+      if (searchQuery.length >= 2) {
+        const params = { name: searchQuery, limit: 5 };
+        const data = await rulesAPI.getAll(params);
+        setRuleSuggestions(Array.isArray(data) ? data : []);
+        setShowSuggestions(true);
+      } else {
+        setRuleSuggestions([]);
+        setShowSuggestions(false);
+      }
+    } catch (err) {
+      console.error('Failed to load rule suggestions:', err);
     }
   }, []);
 
@@ -107,8 +125,15 @@ function Weapons() {
   const handleRuleSearch = (e) => {
     const query = e.target.value;
     setRuleSearchTerm(query);
+    
+    // Load suggestions for autocomplete
+    loadRuleSuggestions(query);
+    
+    // Load full results if query is long enough
     if (query.length > 2) {
       loadRules(query);
+    } else {
+      setAvailableRules([]);
     }
   };
 
@@ -116,6 +141,14 @@ function Weapons() {
     setSelectedRules(prev => [...prev, rule]);
     setShowRuleSelector(false);
     setRuleSearchTerm('');
+    setShowSuggestions(false);
+  };
+
+  const handleSuggestionSelect = (rule) => {
+    setRuleSearchTerm(rule.name);
+    setShowSuggestions(false);
+    // Load the full rule details
+    loadRules(rule.name);
   };
 
   const handleRuleRemove = (ruleId) => {
@@ -315,43 +348,74 @@ function Weapons() {
                 {selectedRules.length > 0 && (
                   <div style={{ marginBottom: '1rem' }}>
                     <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', color: '#f0f6fc' }}>Attached Rules:</h4>
-                    {selectedRules.map(rule => (
-                      <div key={rule._id} style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        backgroundColor: '#21262d',
-                        padding: '0.5rem',
-                        marginBottom: '0.5rem',
-                        borderRadius: '4px',
-                        border: '1px solid #30363d'
-                      }}>
-                        <div>
-                          <strong style={{ color: '#f0f6fc' }}>{rule.name}</strong>
-                          <div style={{ fontSize: '0.8rem', color: '#8b949e' }}>
-                            {rule.points && rule.points.length > 0 ? 
-                              `${rule.points[0]}/${rule.points[1]}/${rule.points[2]} pts` : 
-                              'No points calculated'
-                            }
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRuleRemove(rule._id)}
+                    
+                    {/* Rule Tags */}
+                    <div style={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: '0.5rem',
+                      marginBottom: '0.5rem'
+                    }}>
+                      {selectedRules.map(rule => (
+                        <div
+                          key={rule._id}
                           style={{
-                            backgroundColor: '#da3633',
-                            color: 'white',
-                            border: 'none',
-                            padding: '0.25rem 0.5rem',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '0.8rem'
+                            backgroundColor: '#21262d',
+                            border: '1px solid #30363d',
+                            borderRadius: '20px',
+                            padding: '0.25rem 0.75rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            fontSize: '0.8rem',
+                            position: 'relative',
+                            cursor: 'default'
                           }}
+                          title={rule.description} // Hover tooltip
                         >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
+                          <span style={{ color: '#f0f6fc' }}>
+                            {rule.name}
+                          </span>
+                          {rule.points && rule.points.length > 0 && (
+                            <span style={{ 
+                              color: '#58a6ff', 
+                              fontSize: '0.75rem',
+                              backgroundColor: '#0d1117',
+                              padding: '0.1rem 0.4rem',
+                              borderRadius: '10px'
+                            }}>
+                              {rule.points[0]}/{rule.points[1]}/{rule.points[2]}
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRuleRemove(rule._id)}
+                            style={{
+                              backgroundColor: 'transparent',
+                              border: 'none',
+                              color: '#f85149',
+                              cursor: 'pointer',
+                              fontSize: '1rem',
+                              padding: '0.1rem',
+                              lineHeight: 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '16px',
+                              height: '16px',
+                              borderRadius: '50%'
+                            }}
+                            title="Remove rule"
+                            onMouseEnter={(e) => e.target.style.backgroundColor = '#f85149'}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Total Points Summary */}
                     <div style={{
                       padding: '0.5rem',
                       backgroundColor: '#161b22',
@@ -538,12 +602,21 @@ function Weapons() {
               </button>
             </div>
             
-            <div style={{ marginBottom: '1rem' }}>
+            <div style={{ marginBottom: '1rem', position: 'relative' }}>
               <input
                 type="text"
                 placeholder="Search rules by name or description..."
                 value={ruleSearchTerm}
                 onChange={handleRuleSearch}
+                onFocus={() => {
+                  if (ruleSuggestions.length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
+                onBlur={() => {
+                  // Delay hiding suggestions to allow clicking on them
+                  setTimeout(() => setShowSuggestions(false), 200);
+                }}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -556,6 +629,51 @@ function Weapons() {
                 }}
                 autoFocus
               />
+              
+              {/* Autocomplete Suggestions Dropdown */}
+              {showSuggestions && ruleSuggestions.length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: '#21262d',
+                  border: '1px solid #30363d',
+                  borderRadius: '6px',
+                  marginTop: '0.25rem',
+                  maxHeight: '200px',
+                  overflow: 'auto',
+                  zIndex: 10000,
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)'
+                }}>
+                  {ruleSuggestions.map(rule => (
+                    <div
+                      key={rule._id}
+                      onClick={() => handleSuggestionSelect(rule)}
+                      style={{
+                        padding: '0.75rem',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #30363d',
+                        transition: 'background-color 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#30363d'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      <div style={{ color: '#f0f6fc', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                        {rule.name}
+                      </div>
+                      <div style={{ color: '#8b949e', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                        {rule.description}
+                      </div>
+                      {rule.points && rule.points.length > 0 && (
+                        <div style={{ color: '#58a6ff', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                          {rule.points[0]}/{rule.points[1]}/{rule.points[2]} pts
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             
             <div style={{ maxHeight: '400px', overflow: 'auto' }}>
