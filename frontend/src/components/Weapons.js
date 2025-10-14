@@ -164,6 +164,20 @@ function Weapons() {
     return basePoints + rulePoints;
   };
 
+  // Update weapon points when rules are added/removed
+  const updateWeaponPoints = useCallback(() => {
+    const totalPoints = calculateTotalPoints();
+    setFormData(prev => ({
+      ...prev,
+      points: totalPoints
+    }));
+  }, [selectedRules, formData.points]);
+
+  // Update points whenever selectedRules changes
+  useEffect(() => {
+    updateWeaponPoints();
+  }, [selectedRules, updateWeaponPoints]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -455,7 +469,23 @@ function Weapons() {
                   name="points"
                   value={formData.points}
                   onChange={handleInputChange}
+                  style={{
+                    backgroundColor: selectedRules.length > 0 ? '#21262d' : undefined,
+                    color: selectedRules.length > 0 ? '#8b949e' : undefined,
+                    cursor: selectedRules.length > 0 ? 'not-allowed' : undefined
+                  }}
+                  readOnly={selectedRules.length > 0}
+                  title={selectedRules.length > 0 ? 'Points automatically calculated from base weapon + attached rules' : 'Enter base weapon points'}
                 />
+                {selectedRules.length > 0 && (
+                  <div style={{ 
+                    fontSize: '0.8rem', 
+                    color: '#8b949e', 
+                    marginTop: '0.25rem' 
+                  }}>
+                    Auto-calculated: Base weapon + rule points
+                  </div>
+                )}
               </div>
 
               <div style={{ marginTop: '1rem' }}>
@@ -755,7 +785,10 @@ function Weapons() {
               </div>
               {selectedRules.length > 0 && (
                 <div style={{ color: '#58a6ff', fontSize: '0.85rem' }}>
-                  Total Additional Points: {selectedRules.reduce((total, rule) => total + (rule.points?.[0] || 0), 0)}
+                  <div>Rule Points: +{selectedRules.reduce((total, rule) => total + (rule.points?.[0] || 0), 0)}</div>
+                  <div style={{ color: '#f0f6fc', marginTop: '0.25rem' }}>
+                    Total Weapon Points: {calculateTotalPoints()}
+                  </div>
                 </div>
               )}
             </div>
