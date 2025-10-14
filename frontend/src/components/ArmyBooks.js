@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { armyBooksAPI } from '../services/api';
 
 function ArmyBooks() {
@@ -17,11 +17,7 @@ function ArmyBooks() {
     rules: []
   });
 
-  useEffect(() => {
-    loadArmyBooks();
-  }, []);
-
-  const loadArmyBooks = async () => {
+  const loadArmyBooks = useCallback(async () => {
     try {
       setLoading(true);
       const params = searchTerm ? { name: searchTerm } : {};
@@ -34,7 +30,11 @@ function ArmyBooks() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    loadArmyBooks();
+  }, [loadArmyBooks]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);

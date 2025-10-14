@@ -11,12 +11,13 @@
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
     "axios": "^1.6.0",
-    "web-vitals": "^3.5.0"
+    "web-vitals": "^3.5.0",
+    "cross-env": "^7.0.3"
   },
   "scripts": {
-    "start": "NODE_OPTIONS='--no-deprecation' react-scripts start",
-    "build": "NODE_OPTIONS='--no-deprecation' react-scripts build",
-    "test": "NODE_OPTIONS='--no-deprecation' react-scripts test",
+    "start": "cross-env NODE_OPTIONS=--no-deprecation react-scripts start",
+    "build": "cross-env NODE_OPTIONS=--no-deprecation react-scripts build",
+    "test": "cross-env NODE_OPTIONS=--no-deprecation react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

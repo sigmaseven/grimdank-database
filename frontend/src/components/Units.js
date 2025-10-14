@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { unitsAPI, rulesAPI, weaponsAPI, wargearAPI } from '../services/api';
 
 function Units() {
@@ -34,12 +34,7 @@ function Units() {
     availableWarGear: []
   });
 
-  useEffect(() => {
-    loadUnits();
-    loadAvailableData();
-  }, []);
-
-  const loadUnits = async () => {
+  const loadUnits = useCallback(async () => {
     try {
       setLoading(true);
       const params = searchTerm ? { name: searchTerm } : {};
@@ -52,22 +47,27 @@ function Units() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm]);
 
-  const loadAvailableData = async () => {
+  const loadAvailableData = useCallback(async () => {
     try {
-      const [rules, weapons, wargear] = await Promise.all([
+      const [rulesData, weaponsData, wargearData] = await Promise.all([
         rulesAPI.getAll(),
         weaponsAPI.getAll(),
         wargearAPI.getAll()
       ]);
-      setAvailableRules(rules);
-      setAvailableWeapons(weapons);
-      setAvailableWarGear(wargear);
+      setAvailableRules(rulesData);
+      setAvailableWeapons(weaponsData);
+      setAvailableWarGear(wargearData);
     } catch (err) {
       console.error('Failed to load available data:', err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadUnits();
+    loadAvailableData();
+  }, [loadUnits, loadAvailableData]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);

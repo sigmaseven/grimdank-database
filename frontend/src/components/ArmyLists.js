@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { armyListsAPI } from '../services/api';
 
 function ArmyLists() {
@@ -18,11 +18,7 @@ function ArmyLists() {
     description: ''
   });
 
-  useEffect(() => {
-    loadArmyLists();
-  }, []);
-
-  const loadArmyLists = async () => {
+  const loadArmyLists = useCallback(async () => {
     try {
       setLoading(true);
       const params = searchTerm ? { name: searchTerm } : {};
@@ -35,7 +31,11 @@ function ArmyLists() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    loadArmyLists();
+  }, [loadArmyLists]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);

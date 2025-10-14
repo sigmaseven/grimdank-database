@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { weaponsAPI } from '../services/api';
 
 function Weapons() {
@@ -20,11 +20,7 @@ function Weapons() {
     points: 0
   });
 
-  useEffect(() => {
-    loadWeapons();
-  }, []);
-
-  const loadWeapons = async () => {
+  const loadWeapons = useCallback(async () => {
     try {
       setLoading(true);
       const params = searchTerm ? { name: searchTerm } : {};
@@ -37,7 +33,11 @@ function Weapons() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    loadWeapons();
+  }, [loadWeapons]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);

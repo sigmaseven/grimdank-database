@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { wargearAPI } from '../services/api';
 
 function WarGear() {
@@ -18,11 +18,7 @@ function WarGear() {
     weapons: []
   });
 
-  useEffect(() => {
-    loadWarGear();
-  }, []);
-
-  const loadWarGear = async () => {
+  const loadWarGear = useCallback(async () => {
     try {
       setLoading(true);
       const params = searchTerm ? { name: searchTerm } : {};
@@ -35,7 +31,11 @@ function WarGear() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    loadWarGear();
+  }, [loadWarGear]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);

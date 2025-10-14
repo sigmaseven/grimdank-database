@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { rulesAPI } from '../services/api';
 
 function Rules() {
@@ -16,11 +16,7 @@ function Rules() {
     points: 0
   });
 
-  useEffect(() => {
-    loadRules();
-  }, []);
-
-  const loadRules = async () => {
+  const loadRules = useCallback(async () => {
     try {
       setLoading(true);
       const params = searchTerm ? { name: searchTerm } : {};
@@ -33,7 +29,11 @@ function Rules() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    loadRules();
+  }, [loadRules]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
