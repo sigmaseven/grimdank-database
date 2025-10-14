@@ -44,15 +44,27 @@ func (r *WarGearRepository) GetWarGearByID(ctx context.Context, id string) (*mod
 }
 
 func (r *WarGearRepository) GetAllWarGear(ctx context.Context, limit, skip int64) ([]models.WarGear, error) {
-	var wargear []models.WarGear
+	wargear := make([]models.WarGear, 0)
 	err := r.GetAll(ctx, bson.M{}, &wargear, limit, skip)
-	return wargear, err
+	if err != nil {
+		return nil, err
+	}
+	if wargear == nil {
+		wargear = make([]models.WarGear, 0)
+	}
+	return wargear, nil
 }
 
 func (r *WarGearRepository) SearchWarGearByName(ctx context.Context, name string, limit, skip int64) ([]models.WarGear, error) {
-	var wargear []models.WarGear
+	wargear := make([]models.WarGear, 0)
 	err := r.SearchByName(ctx, name, &wargear, limit, skip)
-	return wargear, err
+	if err != nil {
+		return nil, err
+	}
+	if wargear == nil {
+		wargear = make([]models.WarGear, 0)
+	}
+	return wargear, nil
 }
 
 func (r *WarGearRepository) UpdateWarGear(ctx context.Context, id string, wargear *models.WarGear) error {
@@ -107,15 +119,27 @@ func (r *UnitRepository) GetUnitByID(ctx context.Context, id string) (*models.Un
 }
 
 func (r *UnitRepository) GetAllUnits(ctx context.Context, limit, skip int64) ([]models.Unit, error) {
-	var units []models.Unit
+	units := make([]models.Unit, 0)
 	err := r.GetAll(ctx, bson.M{}, &units, limit, skip)
-	return units, err
+	if err != nil {
+		return nil, err
+	}
+	if units == nil {
+		units = make([]models.Unit, 0)
+	}
+	return units, nil
 }
 
 func (r *UnitRepository) SearchUnitsByName(ctx context.Context, name string, limit, skip int64) ([]models.Unit, error) {
-	var units []models.Unit
+	units := make([]models.Unit, 0)
 	err := r.SearchByName(ctx, name, &units, limit, skip)
-	return units, err
+	if err != nil {
+		return nil, err
+	}
+	if units == nil {
+		units = make([]models.Unit, 0)
+	}
+	return units, nil
 }
 
 func (r *UnitRepository) UpdateUnit(ctx context.Context, id string, unit *models.Unit) error {
@@ -170,15 +194,27 @@ func (r *ArmyBookRepository) GetArmyBookByID(ctx context.Context, id string) (*m
 }
 
 func (r *ArmyBookRepository) GetAllArmyBooks(ctx context.Context, limit, skip int64) ([]models.ArmyBook, error) {
-	var armyBooks []models.ArmyBook
+	armyBooks := make([]models.ArmyBook, 0)
 	err := r.GetAll(ctx, bson.M{}, &armyBooks, limit, skip)
-	return armyBooks, err
+	if err != nil {
+		return nil, err
+	}
+	if armyBooks == nil {
+		armyBooks = make([]models.ArmyBook, 0)
+	}
+	return armyBooks, nil
 }
 
 func (r *ArmyBookRepository) SearchArmyBooksByName(ctx context.Context, name string, limit, skip int64) ([]models.ArmyBook, error) {
-	var armyBooks []models.ArmyBook
+	armyBooks := make([]models.ArmyBook, 0)
 	err := r.SearchByName(ctx, name, &armyBooks, limit, skip)
-	return armyBooks, err
+	if err != nil {
+		return nil, err
+	}
+	if armyBooks == nil {
+		armyBooks = make([]models.ArmyBook, 0)
+	}
+	return armyBooks, nil
 }
 
 func (r *ArmyBookRepository) UpdateArmyBook(ctx context.Context, id string, armyBook *models.ArmyBook) error {
@@ -233,15 +269,27 @@ func (r *ArmyListRepository) GetArmyListByID(ctx context.Context, id string) (*m
 }
 
 func (r *ArmyListRepository) GetAllArmyLists(ctx context.Context, limit, skip int64) ([]models.ArmyList, error) {
-	var armyLists []models.ArmyList
+	armyLists := make([]models.ArmyList, 0)
 	err := r.GetAll(ctx, bson.M{}, &armyLists, limit, skip)
-	return armyLists, err
+	if err != nil {
+		return nil, err
+	}
+	if armyLists == nil {
+		armyLists = make([]models.ArmyList, 0)
+	}
+	return armyLists, nil
 }
 
 func (r *ArmyListRepository) SearchArmyListsByName(ctx context.Context, name string, limit, skip int64) ([]models.ArmyList, error) {
-	var armyLists []models.ArmyList
+	armyLists := make([]models.ArmyList, 0)
 	err := r.SearchByName(ctx, name, &armyLists, limit, skip)
-	return armyLists, err
+	if err != nil {
+		return nil, err
+	}
+	if armyLists == nil {
+		armyLists = make([]models.ArmyList, 0)
+	}
+	return armyLists, nil
 }
 
 func (r *ArmyListRepository) UpdateArmyList(ctx context.Context, id string, armyList *models.ArmyList) error {

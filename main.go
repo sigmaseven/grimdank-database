@@ -58,24 +58,24 @@ func main() {
 
 	// Setup routes
 	router := mux.NewRouter()
-	
+
 	// Health check endpoint
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		// Test database connection
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		
+
 		if err := db.Client.Ping(ctx, nil); err != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			w.Write([]byte(`{"status":"unhealthy","database":"disconnected"}`))
 			return
 		}
-		
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":"healthy","database":"connected"}`))
 	}).Methods("GET")
-	
+
 	api := router.PathPrefix("/api/v1").Subrouter()
 
 	// Rule routes

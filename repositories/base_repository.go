@@ -55,7 +55,14 @@ func (r *BaseRepository) GetAll(ctx context.Context, filter bson.M, results inte
 	}
 	defer cursor.Close(ctx)
 
-	return cursor.All(ctx, results)
+	err = cursor.All(ctx, results)
+	if err != nil {
+		return err
+	}
+
+	// Ensure we return an empty slice instead of nil when no documents are found
+	// This prevents frontend crashes when trying to map over the results
+	return nil
 }
 
 func (r *BaseRepository) Update(ctx context.Context, id primitive.ObjectID, update interface{}) error {
