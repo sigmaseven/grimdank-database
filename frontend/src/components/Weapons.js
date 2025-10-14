@@ -482,26 +482,26 @@ function Weapons() {
         )}
       </div>
 
-      {/* Rule Selector Modal */}
+      {/* Rule Selector - appears on top of weapon form */}
       {showRuleSelector && (
         <div style={{
-          position: 'fixed',
+          position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000
+          zIndex: 1001
         }}>
           <div style={{
             backgroundColor: '#161b22',
             border: '1px solid #30363d',
             borderRadius: '8px',
             padding: '2rem',
-            maxWidth: '600px',
+            maxWidth: '700px',
             width: '90%',
             maxHeight: '80vh',
             overflow: 'auto'
@@ -512,7 +512,7 @@ function Weapons() {
               alignItems: 'center',
               marginBottom: '1rem'
             }}>
-              <h3 style={{ color: '#f0f6fc', margin: 0 }}>Select Rules</h3>
+              <h3 style={{ color: '#f0f6fc', margin: 0 }}>Select Rules to Attach</h3>
               <button
                 onClick={() => setShowRuleSelector(false)}
                 style={{
@@ -520,7 +520,8 @@ function Weapons() {
                   border: 'none',
                   color: '#f0f6fc',
                   fontSize: '1.5rem',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  padding: '0.25rem'
                 }}
               >
                 ×
@@ -530,12 +531,12 @@ function Weapons() {
             <div style={{ marginBottom: '1rem' }}>
               <input
                 type="text"
-                placeholder="Search rules..."
+                placeholder="Search rules by name or description..."
                 value={ruleSearchTerm}
                 onChange={handleRuleSearch}
                 style={{
                   width: '100%',
-                  padding: '0.5rem',
+                  padding: '0.75rem',
                   backgroundColor: '#21262d',
                   border: '1px solid #30363d',
                   borderRadius: '6px',
@@ -543,14 +544,15 @@ function Weapons() {
                   fontSize: '0.9rem',
                   outline: 'none'
                 }}
+                autoFocus
               />
             </div>
             
             <div style={{ maxHeight: '400px', overflow: 'auto' }}>
               {ruleLoading ? (
-                <div style={{ textAlign: 'center', color: '#8b949e' }}>Loading rules...</div>
+                <div style={{ textAlign: 'center', color: '#8b949e', padding: '2rem' }}>Loading rules...</div>
               ) : availableRules.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#8b949e' }}>
+                <div style={{ textAlign: 'center', color: '#8b949e', padding: '2rem' }}>
                   {ruleSearchTerm ? 'No rules found matching your search.' : 'Start typing to search for rules.'}
                 </div>
               ) : (
@@ -559,21 +561,24 @@ function Weapons() {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '0.75rem',
-                    marginBottom: '0.5rem',
+                    padding: '1rem',
+                    marginBottom: '0.75rem',
                     backgroundColor: '#21262d',
                     borderRadius: '6px',
                     border: '1px solid #30363d',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    transition: 'border-color 0.2s ease'
                   }}
                   onClick={() => handleRuleSelect(rule)}
+                  onMouseEnter={(e) => e.target.style.borderColor = '#58a6ff'}
+                  onMouseLeave={(e) => e.target.style.borderColor = '#30363d'}
                   >
-                    <div>
-                      <div style={{ color: '#f0f6fc', fontWeight: 'bold' }}>{rule.name}</div>
-                      <div style={{ color: '#8b949e', fontSize: '0.8rem' }}>{rule.description}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ color: '#f0f6fc', fontWeight: 'bold', marginBottom: '0.25rem' }}>{rule.name}</div>
+                      <div style={{ color: '#8b949e', fontSize: '0.85rem', marginBottom: '0.25rem' }}>{rule.description}</div>
                       {rule.points && rule.points.length > 0 && (
-                        <div style={{ color: '#58a6ff', fontSize: '0.8rem' }}>
-                          {rule.points[0]}/{rule.points[1]}/{rule.points[2]} pts
+                        <div style={{ color: '#58a6ff', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                          Points: {rule.points[0]}/{rule.points[1]}/{rule.points[2]} (Tier 1/2/3)
                         </div>
                       )}
                     </div>
@@ -582,16 +587,37 @@ function Weapons() {
                         backgroundColor: '#238636',
                         color: 'white',
                         border: 'none',
-                        padding: '0.25rem 0.5rem',
+                        padding: '0.5rem 1rem',
                         borderRadius: '4px',
                         cursor: 'pointer',
-                        fontSize: '0.8rem'
+                        fontSize: '0.85rem',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.2s ease'
                       }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#2ea043'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#238636'}
                     >
-                      Add
+                      Attach
                     </button>
                   </div>
                 ))
+              )}
+            </div>
+            
+            <div style={{
+              marginTop: '1rem',
+              padding: '1rem',
+              backgroundColor: '#21262d',
+              borderRadius: '6px',
+              border: '1px solid #30363d'
+            }}>
+              <div style={{ color: '#f0f6fc', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                <strong>Selected Rules: {selectedRules.length}</strong>
+              </div>
+              {selectedRules.length > 0 && (
+                <div style={{ color: '#58a6ff', fontSize: '0.85rem' }}>
+                  Total Additional Points: {selectedRules.reduce((total, rule) => total + (rule.points?.[0] || 0), 0)}
+                </div>
               )}
             </div>
           </div>
