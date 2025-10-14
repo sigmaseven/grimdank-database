@@ -9,6 +9,8 @@ function Weapons() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingWeapon, setEditingWeapon] = useState(null);
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
@@ -171,6 +173,44 @@ function Weapons() {
       return total + (points[0] || 0); // Use tier 1 points
     }, 0);
     return basePoints + rulePoints;
+  };
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortedWeapons = () => {
+    if (!weapons || weapons.length === 0) return [];
+    
+    return [...weapons].sort((a, b) => {
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+      
+      // Handle numeric fields
+      if (sortField === 'range' || sortField === 'attacks' || sortField === 'points') {
+        aValue = parseFloat(aValue) || 0;
+        bValue = parseFloat(bValue) || 0;
+      }
+      
+      // Handle string fields
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      
+      if (aValue < bValue) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
   };
 
   // Update base weapon points when form data changes and no rules are selected
@@ -519,17 +559,47 @@ function Weapons() {
           <table className="table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Range</th>
-                <th>AP</th>
-                <th>Attacks</th>
-                <th>Points</th>
+                <th 
+                  onClick={() => handleSort('name')}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  onClick={() => handleSort('type')}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  Type {sortField === 'type' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  onClick={() => handleSort('range')}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  Range {sortField === 'range' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  onClick={() => handleSort('ap')}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  AP {sortField === 'ap' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  onClick={() => handleSort('attacks')}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  Attacks {sortField === 'attacks' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  onClick={() => handleSort('points')}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  Points {sortField === 'points' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {weapons && weapons.map(weapon => (
+              {getSortedWeapons().map(weapon => (
                 <tr key={weapon.id}>
                   <td>{weapon.name}</td>
                   <td>{weapon.type}</td>
