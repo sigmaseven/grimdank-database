@@ -17,8 +17,7 @@ function WarGear() {
     type: '',
     description: '',
     points: 0,
-    rules: [],
-    weapons: []
+    rules: []
   });
 
   const loadWarGear = useCallback(async (searchQuery = '', showLoading = true) => {
@@ -108,8 +107,7 @@ function WarGear() {
       type: wargearItem.type,
       description: wargearItem.description,
       points: wargearItem.points,
-      rules: wargearItem.rules || [],
-      weapons: wargearItem.weapons || []
+      rules: wargearItem.rules || []
     });
     setShowForm(true);
   };
@@ -132,8 +130,7 @@ function WarGear() {
       type: '',
       description: '',
       points: 0,
-      rules: [],
-      weapons: []
+      rules: []
     });
   };
 

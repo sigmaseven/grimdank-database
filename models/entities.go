@@ -15,15 +15,14 @@ type Rule struct {
 
 // Weapon represents a weapon in the game
 type Weapon struct {
-	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name     string             `bson:"name" json:"name" validate:"required"`
-	Type     string             `bson:"type" json:"type"`
-	Range    string             `bson:"range" json:"range"`
-	Strength string             `bson:"strength" json:"strength"`
-	AP       string             `bson:"ap" json:"ap"`
-	Attacks  int                `bson:"attacks" json:"attacks"`
-	Rules    []Rule             `bson:"rules" json:"rules"`
-	Points   int                `bson:"points" json:"points"`
+	ID      primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name    string             `bson:"name" json:"name" validate:"required"`
+	Type    string             `bson:"type" json:"type"`
+	Range   int                `bson:"range" json:"range"`
+	AP      string             `bson:"ap" json:"ap"`
+	Attacks int                `bson:"attacks" json:"attacks"`
+	Rules   []Rule             `bson:"rules" json:"rules"`
+	Points  int                `bson:"points" json:"points"`
 }
 
 // WarGear represents wargear items
@@ -34,7 +33,6 @@ type WarGear struct {
 	Description string             `bson:"description" json:"description"`
 	Points      int                `bson:"points" json:"points"`
 	Rules       []Rule             `bson:"rules" json:"rules"`
-	Weapons     []Weapon           `bson:"weapons" json:"weapons"`
 }
 
 // Unit represents a game unit

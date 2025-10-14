@@ -15,8 +15,7 @@ function Weapons() {
   const [formData, setFormData] = useState({
     name: '',
     type: '',
-    range: '',
-    strength: '',
+    range: 0,
     ap: '',
     attacks: '',
     abilities: '',
@@ -81,7 +80,7 @@ function Weapons() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'points' ? parseInt(value) || 0 : value
+      [name]: name === 'points' || name === 'range' ? parseInt(value) || 0 : value
     }));
   };
 
@@ -109,7 +108,6 @@ function Weapons() {
       name: weapon.name,
       type: weapon.type,
       range: weapon.range,
-      strength: weapon.strength,
       ap: weapon.ap,
       attacks: weapon.attacks,
       abilities: weapon.abilities,
@@ -134,8 +132,7 @@ function Weapons() {
     setFormData({
       name: '',
       type: '',
-      range: '',
-      strength: '',
+      range: 0,
       ap: '',
       attacks: '',
       abilities: '',
@@ -217,22 +214,13 @@ function Weapons() {
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
-                  <label>Range</label>
+                  <label>Range (inches)</label>
                   <input
-                    type="text"
+                    type="number"
                     name="range"
                     value={formData.range}
                     onChange={handleInputChange}
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label>Strength</label>
-                  <input
-                    type="text"
-                    name="strength"
-                    value={formData.strength}
-                    onChange={handleInputChange}
+                    min="0"
                   />
                 </div>
                 
@@ -308,7 +296,6 @@ function Weapons() {
                 <th>Name</th>
                 <th>Type</th>
                 <th>Range</th>
-                <th>Strength</th>
                 <th>AP</th>
                 <th>Attacks</th>
                 <th>Points</th>
@@ -320,8 +307,7 @@ function Weapons() {
                 <tr key={weapon.id}>
                   <td>{weapon.name}</td>
                   <td>{weapon.type}</td>
-                  <td>{weapon.range}</td>
-                  <td>{weapon.strength}</td>
+                  <td>{weapon.range}"</td>
                   <td>{weapon.ap}</td>
                   <td>{weapon.attacks}</td>
                   <td>{weapon.points}</td>

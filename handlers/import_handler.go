@@ -208,14 +208,13 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 	case "weapons":
 		template = []models.Weapon{
 			{
-				Name:     "Example Weapon",
-				Type:     "Rapid Fire",
-				Range:    "24\"",
-				Strength: "4",
-				AP:       "0",
-				Attacks:  1,
-				Rules:    []models.Rule{},
-				Points:   0,
+				Name:    "Example Weapon",
+				Type:    "Rapid Fire",
+				Range:   24,
+				AP:      "0",
+				Attacks: 1,
+				Rules:   []models.Rule{},
+				Points:  0,
 			},
 		}
 	case "wargear":
@@ -226,7 +225,6 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 				Description: "This is an example wargear description",
 				Points:      5,
 				Rules:       []models.Rule{},
-				Weapons:     []models.Weapon{},
 			},
 		}
 	case "units":
