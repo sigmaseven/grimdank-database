@@ -444,19 +444,6 @@ function Weapons() {
                         </div>
                       ))}
                     </div>
-                    
-                    {/* Total Points Summary */}
-                    <div style={{
-                      padding: '0.5rem',
-                      backgroundColor: '#161b22',
-                      borderRadius: '4px',
-                      border: '1px solid #30363d',
-                      marginTop: '0.5rem'
-                    }}>
-                      <strong style={{ color: '#f0f6fc' }}>
-                        Total Points: {calculateTotalPoints()}
-                      </strong>
-                    </div>
                   </div>
                 )}
                 
