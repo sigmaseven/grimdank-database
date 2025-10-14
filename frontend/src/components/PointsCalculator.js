@@ -194,6 +194,21 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
                   <select
                     value={customEffectiveness.baseValue}
                     onChange={(e) => handleCustomChange('baseValue', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      backgroundColor: '#161b22',
+                      border: '1px solid #30363d',
+                      borderRadius: '6px',
+                      color: '#f0f6fc',
+                      fontSize: '0.9rem',
+                      outline: 'none',
+                      transition: 'border-color 0.2s ease'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#58a6ff'}
+                    onBlur={(e) => e.target.style.borderColor = '#30363d'}
+                    onMouseEnter={(e) => e.target.style.borderColor = '#58a6ff'}
+                    onMouseLeave={(e) => e.target.style.borderColor = '#30363d'}
                   >
                     <option value="minimal">Minimal (Weak Rules)</option>
                     <option value="moderate">Moderate (Decent Rules)</option>
@@ -217,6 +232,21 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
                   <select
                     value={customEffectiveness.frequency}
                     onChange={(e) => handleCustomChange('frequency', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      backgroundColor: '#161b22',
+                      border: '1px solid #30363d',
+                      borderRadius: '6px',
+                      color: '#f0f6fc',
+                      fontSize: '0.9rem',
+                      outline: 'none',
+                      transition: 'border-color 0.2s ease'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#58a6ff'}
+                    onBlur={(e) => e.target.style.borderColor = '#30363d'}
+                    onMouseEnter={(e) => e.target.style.borderColor = '#58a6ff'}
+                    onMouseLeave={(e) => e.target.style.borderColor = '#30363d'}
                   >
                     <option value="passive">Passive (Always Active)</option>
                     <option value="conditional">Conditional (Triggered)</option>
