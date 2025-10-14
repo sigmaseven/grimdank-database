@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:18.18-alpine AS builder
 
 WORKDIR /app
 
@@ -12,7 +12,8 @@ RUN npm ci --only=production
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application with no deprecation warnings
+ENV NODE_OPTIONS="--no-deprecation"
 RUN npm run build
 
 # Production stage
