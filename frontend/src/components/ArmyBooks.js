@@ -64,7 +64,7 @@ function ArmyBooks() {
       }
     } catch (err) {
       // Handle empty results gracefully - don't show error for empty lists
-      console.log('ArmyBooks API error:', err);
+      // Handle API error gracefully
       setArmyBooks([]);
       setError(null);
       updateTotalItems(0);
@@ -144,7 +144,7 @@ function ArmyBooks() {
       loadArmyBooks(searchTerm, false);
     } catch (err) {
       setError('Failed to save army book');
-      console.error(err);
+      // Handle save error
     }
   };
 
@@ -178,7 +178,7 @@ function ArmyBooks() {
         loadArmyBooks(searchTerm, false);
       } catch (err) {
         setError('Failed to delete army book');
-        console.error(err);
+        // Handle delete error
       }
     }
   };

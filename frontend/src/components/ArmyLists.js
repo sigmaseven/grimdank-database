@@ -65,7 +65,7 @@ function ArmyLists() {
       }
     } catch (err) {
       // Handle empty results gracefully - don't show error for empty lists
-      console.log('ArmyLists API error:', err);
+      // Handle API error gracefully
       setArmyLists([]);
       setError(null);
       updateTotalItems(0);
@@ -153,7 +153,7 @@ function ArmyLists() {
       setEditingArmyList(null);
       resetForm();
     } catch (err) {
-      console.error('Failed to save army list:', err);
+      // Handle save error
       setError('Failed to save army list');
     }
   };
@@ -188,7 +188,7 @@ function ArmyLists() {
         
         loadArmyLists(searchTerm, false);
       } catch (err) {
-        console.error('Failed to delete army list:', err);
+        // Handle delete error
         setError('Failed to delete army list');
       }
     }

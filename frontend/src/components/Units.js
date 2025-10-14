@@ -80,7 +80,7 @@ function Units() {
       }
     } catch (err) {
       // Handle empty results gracefully - don't show error for empty lists
-      console.log('Units API error:', err);
+      // Handle API error gracefully
       setUnits([]);
       setError(null);
       updateTotalItems(0);
@@ -179,7 +179,7 @@ function Units() {
       resetForm();
     } catch (err) {
       setError('Failed to save unit');
-      console.error('Failed to save unit:', err);
+      // Handle save error
     }
   };
 
@@ -222,7 +222,7 @@ function Units() {
         loadUnits(searchTerm, false);
       } catch (err) {
         setError('Failed to delete unit');
-        console.error('Failed to delete unit:', err);
+        // Handle delete error
       }
     }
   };

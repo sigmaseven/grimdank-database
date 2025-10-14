@@ -338,7 +338,7 @@ function Weapons() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log('Submitting weapon data:', formData);
+      // Submit weapon data
       
       // Prepare weapon data with rules
       const weaponData = {
@@ -360,9 +360,6 @@ function Weapons() {
       resetForm();
       loadWeapons(searchTerm, false);
     } catch (err) {
-      console.error('Weapon creation error:', err);
-      console.error('Error response:', err.response);
-      console.error('Error message:', err.message);
       setError(`Failed to save weapon: ${err.response?.data?.message || err.message}`);
     }
   };

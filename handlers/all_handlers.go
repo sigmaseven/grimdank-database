@@ -2,27 +2,30 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/gorilla/mux"
+
 	"grimdank-database/models"
 	"grimdank-database/services"
-
-	"github.com/gorilla/mux"
 )
 
-// Weapon Handler
+// WeaponHandler handles HTTP requests for weapon operations
 type WeaponHandler struct {
 	service *services.WeaponService
 }
 
+// NewWeaponHandler creates a new WeaponHandler instance
 func NewWeaponHandler(service *services.WeaponService) *WeaponHandler {
 	return &WeaponHandler{
 		service: service,
 	}
 }
 
+// CreateWeapon handles POST /weapons - creates a new weapon
 func (h *WeaponHandler) CreateWeapon(w http.ResponseWriter, r *http.Request) {
 	var weapon models.Weapon
 	if err := json.NewDecoder(r.Body).Decode(&weapon); err != nil {
@@ -41,6 +44,7 @@ func (h *WeaponHandler) CreateWeapon(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(createdWeapon)
 }
 
+// GetWeapon handles GET /weapons/{id} - retrieves a weapon by ID
 func (h *WeaponHandler) GetWeapon(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -50,7 +54,8 @@ func (h *WeaponHandler) GetWeapon(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(err.Error(), "not found") {
 			http.Error(w, "Weapon not found", http.StatusNotFound)
 		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("Error in GetWeapon: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -59,6 +64,7 @@ func (h *WeaponHandler) GetWeapon(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(weapon)
 }
 
+// GetWeapons handles GET /weapons - retrieves weapons with pagination
 func (h *WeaponHandler) GetWeapons(w http.ResponseWriter, r *http.Request) {
 	limitStr := r.URL.Query().Get("limit")
 	skipStr := r.URL.Query().Get("skip")
@@ -89,7 +95,8 @@ func (h *WeaponHandler) GetWeapons(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error in GetWeapons: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
