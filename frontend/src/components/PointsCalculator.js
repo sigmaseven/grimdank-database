@@ -9,7 +9,8 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   const [customEffectiveness, setCustomEffectiveness] = useState({
     baseValue: 3,
     multiplier: 1.0,
-    gameImpact: 2
+    gameImpact: 2,
+    frequency: 'conditional'
   });
   const [useCustom, setUseCustom] = useState(false);
 
@@ -62,8 +63,12 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
     const combinedScore = baseEffectiveness + impactBonus;
     const finalScore = combinedScore * customEffectiveness.multiplier;
     
+    // Apply frequency multiplier
+    const frequencyMultiplier = getFrequencyMultiplier(customEffectiveness.frequency);
+    const adjustedScore = finalScore * frequencyMultiplier;
+    
     // Calculate base points using logarithmic scaling
-    const basePoints = Math.pow(2, (finalScore - 1) / 2);
+    const basePoints = Math.pow(2, (adjustedScore - 1) / 2);
     const clampedPoints = Math.max(1, Math.min(75, basePoints));
     
     const tier1 = Math.round(clampedPoints);
@@ -82,8 +87,17 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   const handleCustomChange = (field, value) => {
     setCustomEffectiveness(prev => ({
       ...prev,
-      [field]: parseFloat(value) || 0
+      [field]: field === 'frequency' ? value : (parseFloat(value) || 0)
     }));
+  };
+
+  const getFrequencyMultiplier = (frequency) => {
+    switch (frequency) {
+      case 'passive': return 1.0;   // Full cost - always active
+      case 'conditional': return 0.7; // 30% discount - triggered by conditions
+      case 'limited': return 0.4;   // 60% discount - limited uses
+      default: return 0.7;
+    }
   };
 
   const getPointsColor = (points) => {
@@ -180,6 +194,17 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
                     onChange={(e) => handleCustomChange('gameImpact', e.target.value)}
                   />
                 </div>
+                <div className="input-group">
+                  <label>Frequency</label>
+                  <select
+                    value={customEffectiveness.frequency}
+                    onChange={(e) => handleCustomChange('frequency', e.target.value)}
+                  >
+                    <option value="passive">Passive (Always Active)</option>
+                    <option value="conditional">Conditional (Triggered)</option>
+                    <option value="limited">Limited (Restricted Use)</option>
+                  </select>
+                </div>
               </div>
               <button onClick={calculateCustomPoints} className="calculate-button">
                 Calculate Custom Points
@@ -236,6 +261,10 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
                 <div className="breakdown-item">
                   <span className="label">Game Impact:</span>
                   <span className="value">{breakdown.effectiveness?.game_impact}/5</span>
+                </div>
+                <div className="breakdown-item">
+                  <span className="label">Frequency:</span>
+                  <span className="value">{breakdown.effectiveness?.frequency}</span>
                 </div>
               </div>
             </div>
