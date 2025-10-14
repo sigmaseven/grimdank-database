@@ -7,8 +7,8 @@ import (
 	"grimdank-database/models"
 )
 
-// ExampleCleanupTest demonstrates the improved cleanup system
-func ExampleCleanupTest(t *testing.T) {
+// TestExampleCleanup demonstrates the improved cleanup system
+func TestExampleCleanup(t *testing.T) {
 	// Setup with improved cleanup
 	SetupTestServices(t)
 	cleanupManager := NewTestCleanupManager(t)

@@ -10,7 +10,7 @@ type Rule struct {
 	Name        string             `bson:"name" json:"name" validate:"required"`
 	Description string             `bson:"description" json:"description"`
 	Type        string             `bson:"type" json:"type"`
-	Points      int                `bson:"points" json:"points"`
+	Points      []int              `bson:"points" json:"points"`
 }
 
 // Weapon represents a weapon in the game
@@ -54,6 +54,8 @@ type Unit struct {
 	Rules            []Rule             `bson:"rules" json:"rules"`
 	AvailableWeapons []Weapon           `bson:"availableWeapons" json:"availableWeapons"`
 	AvailableWarGear []WarGear          `bson:"availableWarGear" json:"availableWarGear"`
+	Weapons          []Weapon           `bson:"weapons" json:"weapons"`
+	WarGear          []WarGear          `bson:"warGear" json:"warGear"`
 }
 
 // ArmyBook represents an army book
@@ -76,4 +78,3 @@ type ArmyList struct {
 	Units       []Unit             `bson:"units" json:"units"`
 	Description string             `bson:"description" json:"description"`
 }
-

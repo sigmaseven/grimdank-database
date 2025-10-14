@@ -52,9 +52,9 @@ func TestWeaponCRUD(t *testing.T) {
 
 		// Create multiple weapons
 		weapons := []*models.Weapon{
-			{Name: "Weapon 1", Type: "Ranged", Range: "12\"", Strength: "3", AP: "0", Attacks: 1, Points: 5},
-			{Name: "Weapon 2", Type: "Melee", Range: "Melee", Strength: "4", AP: "1", Attacks: 2, Points: 10},
-			{Name: "Weapon 3", Type: "Ranged", Range: "24\"", Strength: "5", AP: "2", Attacks: 3, Points: 15},
+			{Name: "Weapon 1", Type: "Ranged", Range: 12, AP: "0", Attacks: 1, Points: 5},
+			{Name: "Weapon 2", Type: "Melee", Range: 0, AP: "1", Attacks: 2, Points: 10},
+			{Name: "Weapon 3", Type: "Ranged", Range: 24, AP: "2", Attacks: 3, Points: 15},
 		}
 
 		for _, weapon := range weapons {
@@ -81,9 +81,9 @@ func TestWeaponCRUD(t *testing.T) {
 
 		// Create weapons with different names
 		weapons := []*models.Weapon{
-			{Name: "Fire Rifle", Type: "Ranged", Range: "24\"", Strength: "4", AP: "0", Attacks: 1, Points: 10},
-			{Name: "Ice Sword", Type: "Melee", Range: "Melee", Strength: "3", AP: "1", Attacks: 1, Points: 8},
-			{Name: "Fire Cannon", Type: "Ranged", Range: "36\"", Strength: "6", AP: "2", Attacks: 3, Points: 20},
+			{Name: "Fire Rifle", Type: "Ranged", Range: 24, AP: "0", Attacks: 1, Points: 10},
+			{Name: "Ice Sword", Type: "Melee", Range: 0, AP: "1", Attacks: 1, Points: 8},
+			{Name: "Fire Cannon", Type: "Ranged", Range: 36, AP: "2", Attacks: 3, Points: 20},
 		}
 
 		for _, weapon := range weapons {
@@ -158,13 +158,12 @@ func TestWeaponCRUD(t *testing.T) {
 
 	t.Run("Create Weapon With Empty Name Should Fail", func(t *testing.T) {
 		weapon := &models.Weapon{
-			Name:     "",
-			Type:     "Ranged",
-			Range:    "24\"",
-			Strength: "4",
-			AP:       "0",
-			Attacks:  1,
-			Points:   10,
+			Name:    "",
+			Type:    "Ranged",
+			Range:   24,
+			AP:      "0",
+			Attacks: 1,
+			Points:  10,
 		}
 
 		_, err := testServices.WeaponService.CreateWeapon(ctx, weapon)
@@ -246,9 +245,9 @@ func TestWeaponBulkImport(t *testing.T) {
 
 	t.Run("Bulk Import Weapons", func(t *testing.T) {
 		weapons := []models.Weapon{
-			{Name: "Bulk Weapon 1", Type: "Ranged", Range: "12\"", Strength: "3", AP: "0", Attacks: 1, Points: 5},
-			{Name: "Bulk Weapon 2", Type: "Melee", Range: "Melee", Strength: "4", AP: "1", Attacks: 2, Points: 10},
-			{Name: "Bulk Weapon 3", Type: "Ranged", Range: "24\"", Strength: "5", AP: "2", Attacks: 3, Points: 15},
+			{Name: "Bulk Weapon 1", Type: "Ranged", Range: 12, AP: "0", Attacks: 1, Points: 5},
+			{Name: "Bulk Weapon 2", Type: "Melee", Range: 0, AP: "1", Attacks: 2, Points: 10},
+			{Name: "Bulk Weapon 3", Type: "Ranged", Range: 24, AP: "2", Attacks: 3, Points: 15},
 		}
 
 		importedIDs, err := testServices.WeaponService.BulkImportWeapons(ctx, weapons)
@@ -276,8 +275,8 @@ func TestWeaponBulkImport(t *testing.T) {
 		CleanupTestDB(t)
 
 		weapons := []models.Weapon{
-			{Name: "Valid Weapon", Type: "Ranged", Range: "12\"", Strength: "3", AP: "0", Attacks: 1, Points: 5},
-			{Name: "", Type: "Melee", Range: "Melee", Strength: "4", AP: "1", Attacks: 2, Points: 10},
+			{Name: "Valid Weapon", Type: "Ranged", Range: 12, AP: "0", Attacks: 1, Points: 5},
+			{Name: "", Type: "Melee", Range: 0, AP: "1", Attacks: 2, Points: 10},
 		}
 
 		_, err := testServices.WeaponService.BulkImportWeapons(ctx, weapons)
@@ -310,13 +309,12 @@ func TestWeaponPagination(t *testing.T) {
 		// Create 5 weapons
 		for i := 1; i <= 5; i++ {
 			weapon := &models.Weapon{
-				Name:     fmt.Sprintf("Weapon %d", i),
-				Type:     "Ranged",
-				Range:    fmt.Sprintf("%d\"", i*6),
-				Strength: fmt.Sprintf("%d", i+2),
-				AP:       fmt.Sprintf("%d", i-1),
-				Attacks:  i,
-				Points:   i * 5,
+				Name:    fmt.Sprintf("Weapon %d", i),
+				Type:    "Ranged",
+				Range:   i * 6,
+				AP:      fmt.Sprintf("%d", i-1),
+				Attacks: i,
+				Points:  i * 5,
 			}
 			_, err := testServices.WeaponService.CreateWeapon(ctx, weapon)
 			if err != nil {

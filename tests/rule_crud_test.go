@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"grimdank-database/models"
@@ -63,9 +64,9 @@ func TestRuleCRUD(t *testing.T) {
 
 		// Create multiple rules
 		rules := []*models.Rule{
-			{Name: "Rule 1", Description: "First rule", Type: "Type A", Points: 5},
-			{Name: "Rule 2", Description: "Second rule", Type: "Type B", Points: 10},
-			{Name: "Rule 3", Description: "Third rule", Type: "Type A", Points: 15},
+			{Name: "Rule 1", Description: "First rule", Type: "Type A", Points: []int{5, 10, 15}},
+			{Name: "Rule 2", Description: "Second rule", Type: "Type B", Points: []int{10, 20, 30}},
+			{Name: "Rule 3", Description: "Third rule", Type: "Type A", Points: []int{15, 30, 45}},
 		}
 
 		var createdRuleIDs []string
@@ -99,9 +100,9 @@ func TestRuleCRUD(t *testing.T) {
 
 		// Create rules with different names
 		rules := []*models.Rule{
-			{Name: "Fire Rule", Description: "A fire rule", Type: "Special", Points: 5},
-			{Name: "Ice Rule", Description: "An ice rule", Type: "Special", Points: 5},
-			{Name: "Fire Shield", Description: "A fire shield rule", Type: "Defensive", Points: 10},
+			{Name: "Fire Rule", Description: "A fire rule", Type: "Special", Points: []int{5, 10, 15}},
+			{Name: "Ice Rule", Description: "An ice rule", Type: "Special", Points: []int{5, 10, 15}},
+			{Name: "Fire Shield", Description: "A fire shield rule", Type: "Defensive", Points: []int{10, 20, 30}},
 		}
 
 		for _, rule := range rules {
@@ -132,7 +133,7 @@ func TestRuleCRUD(t *testing.T) {
 
 		// Update the rule
 		createdRule.Description = "Updated description"
-		createdRule.Points = 20
+		createdRule.Points = []int{20, 40, 60}
 
 		err = testServices.RuleService.UpdateRule(ctx, createdRule.ID.Hex(), createdRule)
 		if err != nil {
@@ -148,8 +149,8 @@ func TestRuleCRUD(t *testing.T) {
 		if updatedRule.Description != "Updated description" {
 			t.Errorf("Expected description 'Updated description', got '%s'", updatedRule.Description)
 		}
-		if updatedRule.Points != 20 {
-			t.Errorf("Expected points 20, got %d", updatedRule.Points)
+		if !reflect.DeepEqual(updatedRule.Points, []int{20, 40, 60}) {
+			t.Errorf("Expected points [20, 40, 60], got %v", updatedRule.Points)
 		}
 	})
 
@@ -179,7 +180,7 @@ func TestRuleCRUD(t *testing.T) {
 			Name:        "",
 			Description: "A rule with empty name",
 			Type:        "Special",
-			Points:      5,
+			Points:      []int{5, 10, 15},
 		}
 
 		_, err := testServices.RuleService.CreateRule(ctx, rule)
@@ -261,9 +262,9 @@ func TestRuleBulkImport(t *testing.T) {
 
 	t.Run("Bulk Import Rules", func(t *testing.T) {
 		rules := []models.Rule{
-			{Name: "Bulk Rule 1", Description: "First bulk rule", Type: "Type A", Points: 5},
-			{Name: "Bulk Rule 2", Description: "Second bulk rule", Type: "Type B", Points: 10},
-			{Name: "Bulk Rule 3", Description: "Third bulk rule", Type: "Type C", Points: 15},
+			{Name: "Bulk Rule 1", Description: "First bulk rule", Type: "Type A", Points: []int{5, 10, 15}},
+			{Name: "Bulk Rule 2", Description: "Second bulk rule", Type: "Type B", Points: []int{10, 20, 30}},
+			{Name: "Bulk Rule 3", Description: "Third bulk rule", Type: "Type C", Points: []int{15, 30, 45}},
 		}
 
 		importedIDs, err := testServices.RuleService.BulkImportRules(ctx, rules)
@@ -291,8 +292,8 @@ func TestRuleBulkImport(t *testing.T) {
 		CleanupTestDB(t)
 
 		rules := []models.Rule{
-			{Name: "Valid Rule", Description: "A valid rule", Type: "Type A", Points: 5},
-			{Name: "", Description: "Invalid rule with empty name", Type: "Type B", Points: 10},
+			{Name: "Valid Rule", Description: "A valid rule", Type: "Type A", Points: []int{5, 10, 15}},
+			{Name: "", Description: "Invalid rule with empty name", Type: "Type B", Points: []int{10, 20, 30}},
 		}
 
 		_, err := testServices.RuleService.BulkImportRules(ctx, rules)
@@ -328,7 +329,7 @@ func TestRulePagination(t *testing.T) {
 				Name:        fmt.Sprintf("Rule %d", i),
 				Description: fmt.Sprintf("Description %d", i),
 				Type:        "Type A",
-				Points:      i * 5,
+				Points:      []int{i * 5, i * 10, i * 15},
 			}
 			_, err := testServices.RuleService.CreateRule(ctx, rule)
 			if err != nil {

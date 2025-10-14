@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -221,7 +222,7 @@ func CreateTestRule() *models.Rule {
 		Name:        "Test Rule",
 		Description: "A test rule for unit testing",
 		Type:        "Special Rule",
-		Points:      5,
+		Points:      []int{5, 10, 15},
 	}
 }
 
@@ -231,21 +232,20 @@ func CreateTestRuleWithName(name string) *models.Rule {
 		Name:        name,
 		Description: "A test rule for unit testing",
 		Type:        "Special Rule",
-		Points:      5,
+		Points:      []int{5, 10, 15},
 	}
 }
 
 // CreateTestWeapon creates a test weapon for testing
 func CreateTestWeapon() *models.Weapon {
 	return &models.Weapon{
-		Name:     "Test Weapon",
-		Type:     "Ranged",
-		Range:    "24\"",
-		Strength: "4",
-		AP:       "0",
-		Attacks:  1,
-		Points:   10,
-		Rules:    []models.Rule{},
+		Name:    "Test Weapon",
+		Type:    "Ranged",
+		Range:   24,
+		AP:      "0",
+		Attacks: 1,
+		Points:  10,
+		Rules:   []models.Rule{},
 	}
 }
 
@@ -257,7 +257,6 @@ func CreateTestWarGear() *models.WarGear {
 		Description: "A test wargear item",
 		Points:      15,
 		Rules:       []models.Rule{},
-		Weapons:     []models.Weapon{},
 	}
 }
 
@@ -319,8 +318,8 @@ func AssertEqualRules(t *testing.T, expected, actual *models.Rule, msg string) {
 	if expected.Type != actual.Type {
 		t.Errorf("%s: Expected type %s, got %s", msg, expected.Type, actual.Type)
 	}
-	if expected.Points != actual.Points {
-		t.Errorf("%s: Expected points %d, got %d", msg, expected.Points, actual.Points)
+	if !reflect.DeepEqual(expected.Points, actual.Points) {
+		t.Errorf("%s: Expected points %v, got %v", msg, expected.Points, actual.Points)
 	}
 }
 
@@ -333,19 +332,17 @@ func AssertEqualWeapons(t *testing.T, expected, actual *models.Weapon, msg strin
 		t.Errorf("%s: Expected type %s, got %s", msg, expected.Type, actual.Type)
 	}
 	if expected.Range != actual.Range {
-		t.Errorf("%s: Expected range %s, got %s", msg, expected.Range, actual.Range)
+		t.Errorf("%s: Expected range %d, got %d", msg, expected.Range, actual.Range)
 	}
-	if expected.Strength != actual.Strength {
-		t.Errorf("%s: Expected strength %s, got %s", msg, expected.Strength, actual.Strength)
-	}
+	// Strength field removed from Weapon model
 	if expected.AP != actual.AP {
 		t.Errorf("%s: Expected AP %s, got %s", msg, expected.AP, actual.AP)
 	}
 	if expected.Attacks != actual.Attacks {
 		t.Errorf("%s: Expected attacks %d, got %d", msg, expected.Attacks, actual.Attacks)
 	}
-	if expected.Points != actual.Points {
-		t.Errorf("%s: Expected points %d, got %d", msg, expected.Points, actual.Points)
+	if !reflect.DeepEqual(expected.Points, actual.Points) {
+		t.Errorf("%s: Expected points %v, got %v", msg, expected.Points, actual.Points)
 	}
 }
 
@@ -360,8 +357,8 @@ func AssertEqualWarGear(t *testing.T, expected, actual *models.WarGear, msg stri
 	if expected.Description != actual.Description {
 		t.Errorf("%s: Expected description %s, got %s", msg, expected.Description, actual.Description)
 	}
-	if expected.Points != actual.Points {
-		t.Errorf("%s: Expected points %d, got %d", msg, expected.Points, actual.Points)
+	if !reflect.DeepEqual(expected.Points, actual.Points) {
+		t.Errorf("%s: Expected points %v, got %v", msg, expected.Points, actual.Points)
 	}
 }
 
@@ -376,8 +373,8 @@ func AssertEqualUnits(t *testing.T, expected, actual *models.Unit, msg string) {
 	if expected.Movement != actual.Movement {
 		t.Errorf("%s: Expected movement %s, got %s", msg, expected.Movement, actual.Movement)
 	}
-	if expected.Points != actual.Points {
-		t.Errorf("%s: Expected points %d, got %d", msg, expected.Points, actual.Points)
+	if !reflect.DeepEqual(expected.Points, actual.Points) {
+		t.Errorf("%s: Expected points %v, got %v", msg, expected.Points, actual.Points)
 	}
 }
 
@@ -405,7 +402,7 @@ func AssertEqualArmyLists(t *testing.T, expected, actual *models.ArmyList, msg s
 	if expected.Faction != actual.Faction {
 		t.Errorf("%s: Expected faction %s, got %s", msg, expected.Faction, actual.Faction)
 	}
-	if expected.Points != actual.Points {
-		t.Errorf("%s: Expected points %d, got %d", msg, expected.Points, actual.Points)
+	if !reflect.DeepEqual(expected.Points, actual.Points) {
+		t.Errorf("%s: Expected points %v, got %v", msg, expected.Points, actual.Points)
 	}
 }

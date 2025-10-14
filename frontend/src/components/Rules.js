@@ -16,7 +16,7 @@ function Rules() {
     name: '',
     description: '',
     type: '',
-    points: 0
+    points: [0, 0, 0]
   });
 
   const [validationErrors, setValidationErrors] = useState({});
@@ -79,7 +79,7 @@ function Rules() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'points' ? parseInt(value) || 0 : value
+      [name]: value
     }));
     
     // Clear validation error for this field when user starts typing
@@ -87,6 +87,23 @@ function Rules() {
       setValidationErrors(prev => ({
         ...prev,
         [name]: ''
+      }));
+    }
+  };
+
+  const handlePointsChange = (index, value) => {
+    const newPoints = [...formData.points];
+    newPoints[index] = parseInt(value) || 0;
+    setFormData(prev => ({
+      ...prev,
+      points: newPoints
+    }));
+    
+    // Clear validation error for points when user starts typing
+    if (validationErrors.points) {
+      setValidationErrors(prev => ({
+        ...prev,
+        points: ''
       }));
     }
   };
@@ -106,8 +123,8 @@ function Rules() {
       errors.type = 'Type is required';
     }
     
-    if (formData.points === '' || formData.points === null || formData.points === undefined) {
-      errors.points = 'Points is required';
+    if (!formData.points || formData.points.length !== 3) {
+      errors.points = 'Points must have exactly 3 values';
     }
     
     setValidationErrors(errors);
@@ -145,7 +162,7 @@ function Rules() {
       name: rule.name,
       description: rule.description,
       type: rule.type,
-      points: rule.points
+      points: rule.points || [0, 0, 0]
     });
     setShowForm(true);
   };
@@ -167,7 +184,7 @@ function Rules() {
       name: '',
       description: '',
       type: '',
-      points: 0
+      points: [0, 0, 0]
     });
     setValidationErrors({});
   };
@@ -270,15 +287,39 @@ function Rules() {
               </div>
               
               <div className="form-group">
-                <label>Points *</label>
-                <input
-                  type="number"
-                  name="points"
-                  value={formData.points}
-                  onChange={handleInputChange}
-                  required
-                  className={validationErrors.points ? 'error' : ''}
-                />
+                <label>Points (3-tiered) *</label>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <label style={{ fontSize: '0.8rem', marginBottom: '0.25rem' }}>Tier 1</label>
+                    <input
+                      type="number"
+                      value={formData.points[0]}
+                      onChange={(e) => handlePointsChange(0, e.target.value)}
+                      min="0"
+                      style={{ width: '60px' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <label style={{ fontSize: '0.8rem', marginBottom: '0.25rem' }}>Tier 2</label>
+                    <input
+                      type="number"
+                      value={formData.points[1]}
+                      onChange={(e) => handlePointsChange(1, e.target.value)}
+                      min="0"
+                      style={{ width: '60px' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <label style={{ fontSize: '0.8rem', marginBottom: '0.25rem' }}>Tier 3</label>
+                    <input
+                      type="number"
+                      value={formData.points[2]}
+                      onChange={(e) => handlePointsChange(2, e.target.value)}
+                      min="0"
+                      style={{ width: '60px' }}
+                    />
+                  </div>
+                </div>
                 {validationErrors.points && (
                   <div className="error-message">{validationErrors.points}</div>
                 )}
@@ -324,7 +365,7 @@ function Rules() {
                 <tr key={rule.id}>
                   <td>{rule.name}</td>
                   <td>{rule.type}</td>
-                  <td>{rule.points}</td>
+                  <td>{rule.points ? rule.points.join(' / ') : '0 / 0 / 0'}</td>
                   <td>{rule.description}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

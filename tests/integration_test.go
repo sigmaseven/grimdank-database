@@ -231,13 +231,13 @@ func TestBulkImportIntegration(t *testing.T) {
 	t.Run("Bulk Import All Entity Types", func(t *testing.T) {
 		// Create test data for all entity types
 		rules := []models.Rule{
-			{Name: "Bulk Rule 1", Description: "First bulk rule", Type: "Type A", Points: 5},
-			{Name: "Bulk Rule 2", Description: "Second bulk rule", Type: "Type B", Points: 10},
+			{Name: "Bulk Rule 1", Description: "First bulk rule", Type: "Type A", Points: []int{5, 10, 15}},
+			{Name: "Bulk Rule 2", Description: "Second bulk rule", Type: "Type B", Points: []int{10, 20, 30}},
 		}
 
 		weapons := []models.Weapon{
-			{Name: "Bulk Weapon 1", Type: "Ranged", Range: "12\"", Strength: "3", AP: "0", Attacks: 1, Points: 5},
-			{Name: "Bulk Weapon 2", Type: "Melee", Range: "Melee", Strength: "4", AP: "1", Attacks: 2, Points: 10},
+			{Name: "Bulk Weapon 1", Type: "Ranged", Range: 12, AP: "0", Attacks: 1, Points: 5},
+			{Name: "Bulk Weapon 2", Type: "Melee", Range: 0, AP: "1", Attacks: 2, Points: 10},
 		}
 
 		wargear := []models.WarGear{
@@ -360,8 +360,8 @@ func TestSearchIntegration(t *testing.T) {
 
 	t.Run("Search Across All Entity Types", func(t *testing.T) {
 		// Create test data with searchable names
-		rule := &models.Rule{Name: "Fire Rule", Description: "A fire rule", Type: "Special", Points: 5}
-		weapon := &models.Weapon{Name: "Fire Weapon", Type: "Ranged", Range: "24\"", Strength: "4", AP: "0", Attacks: 1, Points: 10}
+		rule := &models.Rule{Name: "Fire Rule", Description: "A fire rule", Type: "Special", Points: []int{5, 10, 15}}
+		weapon := &models.Weapon{Name: "Fire Weapon", Type: "Ranged", Range: 24, AP: "0", Attacks: 1, Points: 10}
 		wargear := &models.WarGear{Name: "Fire Wargear", Type: "Equipment", Description: "Fire equipment", Points: 15}
 		unit := &models.Unit{
 			Name: "Fire Unit", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
@@ -463,8 +463,8 @@ func TestPaginationIntegration(t *testing.T) {
 	t.Run("Pagination Across All Entity Types", func(t *testing.T) {
 		// Create 10 entities of each type
 		for i := 1; i <= 10; i++ {
-			rule := &models.Rule{Name: fmt.Sprintf("Rule %d", i), Description: fmt.Sprintf("Description %d", i), Type: "Type A", Points: i * 5}
-			weapon := &models.Weapon{Name: fmt.Sprintf("Weapon %d", i), Type: "Ranged", Range: "24\"", Strength: "4", AP: "0", Attacks: 1, Points: i * 10}
+			rule := &models.Rule{Name: fmt.Sprintf("Rule %d", i), Description: fmt.Sprintf("Description %d", i), Type: "Type A", Points: []int{i * 5, i * 10, i * 15}}
+			weapon := &models.Weapon{Name: fmt.Sprintf("Weapon %d", i), Type: "Ranged", Range: 24, AP: "0", Attacks: 1, Points: i * 10}
 			wargear := &models.WarGear{Name: fmt.Sprintf("Wargear %d", i), Type: "Equipment", Description: fmt.Sprintf("Description %d", i), Points: i * 15}
 			unit := &models.Unit{
 				Name: fmt.Sprintf("Unit %d", i), Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
