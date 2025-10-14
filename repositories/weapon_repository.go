@@ -71,6 +71,20 @@ func (r *WeaponRepository) DeleteWeapon(ctx context.Context, id string) error {
 	return r.Delete(ctx, objectID)
 }
 
+func (r *WeaponRepository) CountWeapons(ctx context.Context) (int64, error) {
+	return r.Count(ctx, bson.M{})
+}
+
+func (r *WeaponRepository) CountWeaponsByName(ctx context.Context, name string) (int64, error) {
+	filter := bson.M{
+		"name": bson.M{
+			"$regex":   name,
+			"$options": "i",
+		},
+	}
+	return r.Count(ctx, filter)
+}
+
 func (r *WeaponRepository) BulkImportWeapons(ctx context.Context, weaponsList []models.Weapon) ([]string, error) {
 	if len(weaponsList) == 0 {
 		return []string{}, nil

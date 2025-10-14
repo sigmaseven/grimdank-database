@@ -59,6 +59,14 @@ func (s *WeaponService) DeleteWeapon(ctx context.Context, id string) error {
 	return s.repo.DeleteWeapon(ctx, id)
 }
 
+func (s *WeaponService) CountWeapons(ctx context.Context) (int64, error) {
+	return s.repo.CountWeapons(ctx)
+}
+
+func (s *WeaponService) CountWeaponsByName(ctx context.Context, name string) (int64, error) {
+	return s.repo.CountWeaponsByName(ctx, name)
+}
+
 func (s *WeaponService) BulkImportWeapons(ctx context.Context, weapons []models.Weapon) ([]string, error) {
 	// Validate all weapons before importing
 	for i, weapon := range weapons {

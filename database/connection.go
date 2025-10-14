@@ -14,12 +14,13 @@ type Database struct {
 	Database *mongo.Database
 }
 
-func Connect(uri, dbName string) (*Database, error) {
+func Connect(uri, dbName string, timeoutSeconds int) (*Database, error) {
 	log.Printf("Attempting to connect to MongoDB...")
 	log.Printf("URI: %s", maskURI(uri))
 	log.Printf("Database: %s", dbName)
+	log.Printf("Timeout: %d seconds", timeoutSeconds)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSeconds)*time.Second)
 	defer cancel()
 
 	// Create client options with better configuration

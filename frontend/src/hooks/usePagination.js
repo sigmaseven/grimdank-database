@@ -30,13 +30,14 @@ export const usePagination = (initialPageSize = 50, pageSizeOptions = [50, 100, 
     setTotalItems(total);
     // If current page is beyond the new total pages, reset to last valid page
     const newTotalPages = Math.ceil(total / pageSize);
-    if (currentPage > newTotalPages && newTotalPages > 0) {
-      setCurrentPage(newTotalPages);
-    } else if (newTotalPages === 0) {
+    if (newTotalPages === 0) {
       // If no pages, reset to page 1
       setCurrentPage(1);
+    } else if (currentPage > newTotalPages) {
+      // Reset to last valid page
+      setCurrentPage(newTotalPages);
     }
-  }, [currentPage, pageSize]);
+  }, [pageSize]); // Remove currentPage dependency to avoid circular dependency
 
   // Calculate skip value for API calls
   const skip = (currentPage - 1) * pageSize;

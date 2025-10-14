@@ -123,11 +123,21 @@ function ArmyBooks() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Prepare army book data with rules
+      const armyBookData = {
+        ...formData,
+        rules: formData.rules.map(rule => ({
+          ruleId: rule.id,
+          tier: rule.tier || 1
+        }))
+      };
+      
       if (editingArmyBook) {
-        await armyBooksAPI.update(editingArmyBook.id, formData);
+        await armyBooksAPI.update(editingArmyBook.id, armyBookData);
       } else {
-        await armyBooksAPI.create(formData);
+        await armyBooksAPI.create(armyBookData);
       }
+      setError(null); // Clear any previous errors
       setShowForm(false);
       setEditingArmyBook(null);
       resetForm();

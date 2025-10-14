@@ -71,6 +71,20 @@ func (r *RuleRepository) DeleteRule(ctx context.Context, id string) error {
 	return r.Delete(ctx, objectID)
 }
 
+func (r *RuleRepository) CountRules(ctx context.Context) (int64, error) {
+	return r.Count(ctx, bson.M{})
+}
+
+func (r *RuleRepository) CountRulesByName(ctx context.Context, name string) (int64, error) {
+	filter := bson.M{
+		"name": bson.M{
+			"$regex":   name,
+			"$options": "i",
+		},
+	}
+	return r.Count(ctx, filter)
+}
+
 func (r *RuleRepository) BulkImportRules(ctx context.Context, rulesList []models.Rule) ([]string, error) {
 	if len(rulesList) == 0 {
 		return []string{}, nil

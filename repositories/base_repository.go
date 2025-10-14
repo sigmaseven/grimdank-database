@@ -67,7 +67,8 @@ func (r *BaseRepository) GetAll(ctx context.Context, filter bson.M, results inte
 
 func (r *BaseRepository) Update(ctx context.Context, id primitive.ObjectID, update interface{}) error {
 	filter := bson.M{"_id": id}
-	result, err := r.Collection.ReplaceOne(ctx, filter, update)
+	updateDoc := bson.M{"$set": update}
+	result, err := r.Collection.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
 		return err
 	}
@@ -97,6 +98,14 @@ func (r *BaseRepository) SearchByName(ctx context.Context, name string, results 
 		},
 	}
 	return r.GetAll(ctx, filter, results, limit, skip)
+}
+
+func (r *BaseRepository) Count(ctx context.Context, filter bson.M) (int64, error) {
+	count, err := r.Collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 func (r *BaseRepository) BulkInsert(ctx context.Context, documents []interface{}) ([]primitive.ObjectID, error) {

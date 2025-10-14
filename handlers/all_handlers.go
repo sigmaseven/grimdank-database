@@ -93,8 +93,27 @@ func (h *WeaponHandler) GetWeapons(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get total count for pagination
+	var totalCount int64
+	if name != "" {
+		totalCount, err = h.service.CountWeaponsByName(r.Context(), name)
+	} else {
+		totalCount, err = h.service.CountWeapons(r.Context())
+	}
+	if err != nil {
+		http.Error(w, "Failed to get count", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"data":  weapons,
+		"total": totalCount,
+		"limit": limit,
+		"skip":  skip,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(weapons)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *WeaponHandler) UpdateWeapon(w http.ResponseWriter, r *http.Request) {

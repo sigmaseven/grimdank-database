@@ -93,7 +93,7 @@ function Units() {
 
   useEffect(() => {
     loadUnits(searchTerm);
-  }, [loadUnits, searchTerm]);
+  }, [searchTerm, pageSize, skip]); // Remove loadUnits dependency to avoid circular dependency
 
   // Cleanup timeout on unmount
   useEffect(() => {

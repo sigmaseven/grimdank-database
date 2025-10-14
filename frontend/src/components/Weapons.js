@@ -63,20 +63,23 @@ function Weapons() {
         skip: skip,
         ...(searchQuery ? { name: searchQuery } : {})
       };
-      const data = await weaponsAPI.getAll(params);
+      const response = await weaponsAPI.getAll(params);
+      const data = response.data || response; // Handle both new and old format
       setWeapons(Array.isArray(data) ? data : []);
       setError(null);
       
-      // Update total items count
-      if (data.length === 0) {
-        // If we got no results, the total is just the current skip value
-        updateTotalItems(skip);
-      } else if (data.length < pageSize) {
-        // If we got fewer results than page size, this is the last page
-        updateTotalItems(skip + data.length);
+      // Update total items count from API response
+      if (response.total !== undefined) {
+        updateTotalItems(response.total);
       } else {
-        // If we got a full page, there might be more
-        updateTotalItems(skip + data.length + 1);
+        // Fallback to old logic if total not provided
+        if (data.length === 0) {
+          updateTotalItems(skip);
+        } else if (data.length < pageSize) {
+          updateTotalItems(skip + data.length);
+        } else {
+          updateTotalItems(skip + data.length + 1);
+        }
       }
     } catch (err) {
       // Handle empty results gracefully - don't show error for empty lists
@@ -133,7 +136,7 @@ function Weapons() {
 
   useEffect(() => {
     loadWeapons(searchTerm);
-  }, [loadWeapons, searchTerm]);
+  }, [searchTerm, pageSize, skip]); // Remove loadWeapons dependency to avoid circular dependency
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -336,10 +339,20 @@ function Weapons() {
     e.preventDefault();
     try {
       console.log('Submitting weapon data:', formData);
+      
+      // Prepare weapon data with rules
+      const weaponData = {
+        ...formData,
+        rules: selectedRules.map(rule => ({
+          ruleId: rule.id,
+          tier: rule.tier || 1
+        }))
+      };
+      
       if (editingWeapon) {
-        await weaponsAPI.update(editingWeapon.id, formData);
+        await weaponsAPI.update(editingWeapon.id, weaponData);
       } else {
-        await weaponsAPI.create(formData);
+        await weaponsAPI.create(weaponData);
       }
       setError(null); // Clear any previous errors
       setShowForm(false);

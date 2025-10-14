@@ -21,7 +21,7 @@ func main() {
 
 	// Connect to database
 	log.Println("Initializing database connection...")
-	db, err := database.Connect(cfg.MongoURI, cfg.Database)
+	db, err := database.Connect(cfg.MongoURI, cfg.Database, cfg.DatabaseTimeout)
 	if err != nil {
 		log.Fatal("❌ Failed to connect to database:", err)
 	}

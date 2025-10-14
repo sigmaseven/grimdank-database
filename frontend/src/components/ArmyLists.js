@@ -135,10 +135,16 @@ function ArmyLists() {
     e.preventDefault();
     
     try {
+      // Prepare army list data with units
+      const armyListData = {
+        ...formData,
+        unitIds: formData.unitIds || []
+      };
+      
       if (editingArmyList) {
-        await armyListsAPI.update(editingArmyList.id, formData);
+        await armyListsAPI.update(editingArmyList.id, armyListData);
       } else {
-        await armyListsAPI.create(formData);
+        await armyListsAPI.create(armyListData);
       }
       
       setError(null); // Clear any previous errors

@@ -37,6 +37,8 @@ function WarGear() {
     rules: []
   });
 
+  const [selectedRules, setSelectedRules] = useState([]);
+
   const loadWargear = useCallback(async (searchQuery = '', showLoading = true) => {
     try {
       if (showLoading) {
@@ -127,16 +129,26 @@ function WarGear() {
       description: '',
       rules: []
     });
+    setSelectedRules([]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
+      // Prepare wargear data with rules
+      const wargearData = {
+        ...formData,
+        rules: selectedRules.map(rule => ({
+          ruleId: rule.id,
+          tier: rule.tier || 1
+        }))
+      };
+      
       if (editingWargear) {
-        await wargearAPI.update(editingWargear.id, formData);
+        await wargearAPI.update(editingWargear.id, wargearData);
       } else {
-        await wargearAPI.create(formData);
+        await wargearAPI.create(wargearData);
       }
       
       setError(null); // Clear any previous errors

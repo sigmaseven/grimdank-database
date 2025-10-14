@@ -31,7 +31,8 @@ export const updateEntity = async (endpoint, id, data) => {
 };
 
 export const deleteEntity = async (endpoint, id) => {
-  await api.delete(`/${endpoint}/${id}`);
+  const response = await api.delete(`/${endpoint}/${id}`);
+  return response.data;
 };
 
 // Specific entity services
