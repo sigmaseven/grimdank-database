@@ -43,21 +43,21 @@ type WarGear struct {
 
 // Unit represents a game unit
 type Unit struct {
-	ID               primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name             string             `bson:"name" json:"name" validate:"required"`
-	Type             string             `bson:"type" json:"type"`
-	Movement         string             `bson:"movement" json:"movement"`
-	WeaponSkill      string             `bson:"weaponSkill" json:"weaponSkill"`
-	BallisticSkill   string             `bson:"ballisticSkill" json:"ballisticSkill"`
-	Strength         string             `bson:"strength" json:"strength"`
-	Toughness        string             `bson:"toughness" json:"toughness"`
-	Wounds           string             `bson:"wounds" json:"wounds"`
-	Initiative       string             `bson:"initiative" json:"initiative"`
-	Attacks          string             `bson:"attacks" json:"attacks"`
-	Leadership       string             `bson:"leadership" json:"leadership"`
-	Save             string             `bson:"save" json:"save"`
-	Points           int                `bson:"points" json:"points"`
-	Rules            []RuleReference    `bson:"rules" json:"rules"`
+	ID               primitive.ObjectID   `bson:"_id,omitempty" json:"id"`
+	Name             string               `bson:"name" json:"name" validate:"required"`
+	Type             string               `bson:"type" json:"type"`
+	Movement         string               `bson:"movement" json:"movement"`
+	WeaponSkill      string               `bson:"weaponSkill" json:"weaponSkill"`
+	BallisticSkill   string               `bson:"ballisticSkill" json:"ballisticSkill"`
+	Strength         string               `bson:"strength" json:"strength"`
+	Toughness        string               `bson:"toughness" json:"toughness"`
+	Wounds           string               `bson:"wounds" json:"wounds"`
+	Initiative       string               `bson:"initiative" json:"initiative"`
+	Attacks          string               `bson:"attacks" json:"attacks"`
+	Leadership       string               `bson:"leadership" json:"leadership"`
+	Save             string               `bson:"save" json:"save"`
+	Points           int                  `bson:"points" json:"points"`
+	Rules            []RuleReference      `bson:"rules" json:"rules"`
 	AvailableWeapons []primitive.ObjectID `bson:"availableWeaponIds" json:"availableWeaponIds"`
 	AvailableWarGear []primitive.ObjectID `bson:"availableWarGearIds" json:"availableWarGearIds"`
 	Weapons          []primitive.ObjectID `bson:"weaponIds" json:"weaponIds"`
@@ -66,29 +66,35 @@ type Unit struct {
 
 // ArmyBook represents an army book
 type ArmyBook struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name        string             `bson:"name" json:"name" validate:"required"`
-	Faction     string             `bson:"faction" json:"faction"`
-	Description string             `bson:"description" json:"description"`
+	ID          primitive.ObjectID   `bson:"_id,omitempty" json:"id"`
+	Name        string               `bson:"name" json:"name" validate:"required"`
+	Faction     string               `bson:"faction" json:"faction"`
+	Description string               `bson:"description" json:"description"`
 	Units       []primitive.ObjectID `bson:"unitIds" json:"unitIds"`
-	Rules       []RuleReference    `bson:"rules" json:"rules"`
+	Rules       []RuleReference      `bson:"rules" json:"rules"`
 }
 
 // ArmyList represents a player's army list
 type ArmyList struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name        string             `bson:"name" json:"name" validate:"required"`
-	Player      string             `bson:"player" json:"player"`
-	Faction     string             `bson:"faction" json:"faction"`
-	Points      int                `bson:"points" json:"points"`
+	ID          primitive.ObjectID   `bson:"_id,omitempty" json:"id"`
+	Name        string               `bson:"name" json:"name" validate:"required"`
+	Player      string               `bson:"player" json:"player"`
+	Faction     string               `bson:"faction" json:"faction"`
+	Points      int                  `bson:"points" json:"points"`
 	Units       []primitive.ObjectID `bson:"unitIds" json:"unitIds"`
-	Description string             `bson:"description" json:"description"`
+	Description string               `bson:"description" json:"description"`
+}
+
+// RuleWithTier represents a rule with tier information
+type RuleWithTier struct {
+	Rule
+	Tier int `json:"tier"`
 }
 
 // Populated entities for API responses (when you need the full data)
 type PopulatedWeapon struct {
 	Weapon
-	PopulatedRules []Rule `json:"populatedRules"`
+	PopulatedRules []RuleWithTier `json:"populatedRules"`
 }
 
 type PopulatedWarGear struct {

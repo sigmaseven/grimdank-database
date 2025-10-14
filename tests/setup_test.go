@@ -12,6 +12,7 @@ import (
 	"grimdank-database/repositories"
 	"grimdank-database/services"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -245,7 +246,7 @@ func CreateTestWeapon() *models.Weapon {
 		AP:      "0",
 		Attacks: 1,
 		Points:  10,
-		Rules:   []models.Rule{},
+		Rules:   []models.RuleReference{},
 	}
 }
 
@@ -256,7 +257,7 @@ func CreateTestWarGear() *models.WarGear {
 		Type:        "Equipment",
 		Description: "A test wargear item",
 		Points:      15,
-		Rules:       []models.Rule{},
+		Rules:       []models.RuleReference{},
 	}
 }
 
@@ -276,11 +277,11 @@ func CreateTestUnit() *models.Unit {
 		Leadership:       "7",
 		Save:             "3+",
 		Points:           100,
-		Rules:            []models.Rule{},
-		AvailableWeapons: []models.Weapon{},
-		AvailableWarGear: []models.WarGear{},
-		Weapons:          []models.Weapon{},
-		WarGear:          []models.WarGear{},
+		Rules:            []models.RuleReference{},
+		AvailableWeapons: []primitive.ObjectID{},
+		AvailableWarGear: []primitive.ObjectID{},
+		Weapons:          []primitive.ObjectID{},
+		WarGear:          []primitive.ObjectID{},
 	}
 }
 
@@ -290,8 +291,8 @@ func CreateTestArmyBook() *models.ArmyBook {
 		Name:        "Test Army Book",
 		Faction:     "Test Faction",
 		Description: "A test army book",
-		Units:       []models.Unit{},
-		Rules:       []models.Rule{},
+		Units:       []primitive.ObjectID{},
+		Rules:       []models.RuleReference{},
 	}
 }
 
@@ -302,7 +303,7 @@ func CreateTestArmyList() *models.ArmyList {
 		Player:      "Test Player",
 		Faction:     "Test Faction",
 		Points:      1000,
-		Units:       []models.Unit{},
+		Units:       []primitive.ObjectID{},
 		Description: "A test army list",
 	}
 }

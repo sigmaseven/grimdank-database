@@ -261,7 +261,7 @@ function WarGear() {
             <tbody>
               {wargear && wargear.map(item => (
                 <tr key={item.id}>
-                  <td>{item.name}</td>
+                  <td><strong>{item.name}</strong></td>
                   <td>{item.type}</td>
                   <td>{item.points}</td>
                   <td>{item.description}</td>

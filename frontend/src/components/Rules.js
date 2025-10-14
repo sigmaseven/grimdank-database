@@ -11,6 +11,8 @@ function Rules() {
   const [showForm, setShowForm] = useState(false);
   const [editingRule, setEditingRule] = useState(null);
   const [showPointsCalculator, setShowPointsCalculator] = useState(false);
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
@@ -74,6 +76,45 @@ function Rules() {
         loadRules(value, false);
       }, 300);
     }
+  };
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortedRules = () => {
+    if (!rules || rules.length === 0) return [];
+    
+    return [...rules].sort((a, b) => {
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+      
+      // Handle numeric fields
+      if (sortField === 'points') {
+        // For points array, use the first tier for sorting
+        aValue = Array.isArray(aValue) ? (aValue[0] || 0) : 0;
+        bValue = Array.isArray(bValue) ? (bValue[0] || 0) : 0;
+      }
+      
+      // Handle string fields
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      
+      if (aValue < bValue) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
   };
 
 
@@ -290,7 +331,7 @@ function Rules() {
               
               <div className="form-group">
                 <label>Points (3-tiered) *</label>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', marginBottom: '0.5rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <label style={{ fontSize: '0.8rem', marginBottom: '0.25rem' }}>Tier 1</label>
                     <input
@@ -321,22 +362,26 @@ function Rules() {
                       style={{ width: '60px' }}
                     />
                   </div>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPointsCalculator(true)}
+                    style={{
+                      background: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 'bold',
+                      whiteSpace: 'nowrap',
+                      height: 'fit-content'
+                    }}
+                    title="Calculate points automatically"
+                  >
+                    🧮 Calculate
+                  </button>
                 </div>
-                <button 
-                  type="button" 
-                  onClick={() => setShowPointsCalculator(true)}
-                  style={{
-                    background: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem'
-                  }}
-                >
-                  🧮 Calculate Points Automatically
-                </button>
                 {validationErrors.points && (
                   <div className="error-message">{validationErrors.points}</div>
                 )}
@@ -348,7 +393,7 @@ function Rules() {
                 </button>
                 <button 
                   type="button" 
-                  className="btn" 
+                  className="btn btn-secondary" 
                   onClick={() => {
                     setShowForm(false);
                     setEditingRule(null);
@@ -370,19 +415,34 @@ function Rules() {
           <table className="table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Points</th>
+                <th 
+                  onClick={() => handleSort('name')}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  onClick={() => handleSort('type')}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  Type {sortField === 'type' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  onClick={() => handleSort('points')}
+                  style={{ cursor: 'pointer', userSelect: 'none', minWidth: '120px', width: '120px' }}
+                >
+                  Points {sortField === 'points' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
                 <th>Description</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {rules && rules.map(rule => (
+              {getSortedRules().map(rule => (
                 <tr key={rule.id}>
-                  <td>{rule.name}</td>
+                  <td><strong>{rule.name}</strong></td>
                   <td>{rule.type}</td>
-                  <td>{rule.points ? rule.points.join(' / ') : '0 / 0 / 0'}</td>
+                  <td style={{ minWidth: '120px', width: '120px' }}>{rule.points ? rule.points.join(' / ') : '0 / 0 / 0'}</td>
                   <td>{rule.description}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

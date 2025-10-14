@@ -275,7 +275,7 @@ function ArmyLists() {
             <tbody>
               {armyLists && armyLists.map(armyList => (
                 <tr key={armyList.id}>
-                  <td>{armyList.name}</td>
+                  <td><strong>{armyList.name}</strong></td>
                   <td>{armyList.player}</td>
                   <td>{armyList.faction}</td>
                   <td>{armyList.points}</td>

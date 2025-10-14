@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { weaponsAPI, rulesAPI } from '../services/api';
 import { Icon } from './Icons';
+import WeaponPointsCalculator from './WeaponPointsCalculator';
 
 function Weapons() {
   const [weapons, setWeapons] = useState([]);
@@ -33,6 +34,7 @@ function Weapons() {
   const [ruleSuggestions, setRuleSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const baseWeaponPointsRef = useRef(0);
+  const [showWeaponPointsCalculator, setShowWeaponPointsCalculator] = useState(false);
 
   const loadWeapons = useCallback(async (searchQuery = '', showLoading = true) => {
     try {
@@ -141,20 +143,22 @@ function Weapons() {
     }
   };
 
-  const handleRuleSelect = async (rule) => {
+  const handleRuleSelect = async (rule, tier = 1) => {
     try {
       // Add rule to weapon using the new API
       if (editingWeapon) {
-        await weaponsAPI.addRule(editingWeapon.id, rule._id, 1); // Default to tier 1
+        await weaponsAPI.addRule(editingWeapon.id, rule.id, tier);
         // Reload the weapon to get updated data
         const updatedWeapon = await weaponsAPI.getWithRules(editingWeapon.id);
         setFormData(prev => ({
           ...prev,
           points: updatedWeapon.totalPoints
         }));
+        // Update selected rules to show the newly added rule
+        setSelectedRules(updatedWeapon.weapon.populatedRules || []);
       } else {
-        // For new weapons, add to selected rules
-        setSelectedRules(prev => [...prev, rule]);
+        // For new weapons, add to selected rules with tier information
+        setSelectedRules(prev => [...prev, { ...rule, tier: tier }]);
       }
       setShowRuleSelector(false);
       setRuleSearchTerm('');
@@ -189,9 +193,11 @@ function Weapons() {
           ...prev,
           points: updatedWeapon.totalPoints
         }));
+        // Update selected rules to reflect the removal
+        setSelectedRules(updatedWeapon.weapon.populatedRules || []);
       } else {
         // For new weapons, remove from selected rules
-        setSelectedRules(prev => prev.filter(rule => rule._id !== ruleId));
+        setSelectedRules(prev => prev.filter(rule => rule.id !== ruleId));
       }
     } catch (err) {
       console.error('Failed to remove rule from weapon:', err);
@@ -202,9 +208,21 @@ function Weapons() {
     const basePoints = baseWeaponPointsRef.current || 0;
     const rulePoints = selectedRules.reduce((total, rule) => {
       const points = rule.points || [];
-      return total + (points[0] || 0); // Use tier 1 points
+      if (rule.tier && rule.tier >= 1 && rule.tier <= points.length) {
+        return total + (points[rule.tier - 1] || 0); // Use tier-specific points
+      } else {
+        return total + (points[0] || 0); // Default to tier 1
+      }
     }, 0);
     return basePoints + rulePoints;
+  };
+
+  const handleWeaponPointsCalculated = (points) => {
+    setFormData(prev => ({
+      ...prev,
+      points: points
+    }));
+    setShowWeaponPointsCalculator(false);
   };
 
   const handleSort = (field) => {
@@ -483,7 +501,7 @@ function Weapons() {
                     }}>
                       {selectedRules.map(rule => (
                         <div
-                          key={rule._id}
+                          key={rule.id}
                           style={{
                             backgroundColor: '#21262d',
                             border: '1px solid #30363d',
@@ -509,12 +527,30 @@ function Weapons() {
                               padding: '0.1rem 0.4rem',
                               borderRadius: '10px'
                             }}>
-                              {rule.points[0]}/{rule.points[1]}/{rule.points[2]}
+                              {(() => {
+                                if (rule.tier && rule.tier >= 1 && rule.tier <= rule.points.length) {
+                                  return rule.points[rule.tier - 1];
+                                } else {
+                                  return rule.points[0]; // Default to tier 1
+                                }
+                              })()}
+                            </span>
+                          )}
+                          {rule.tier && (
+                            <span style={{ 
+                              color: '#f0f6fc', 
+                              fontSize: '0.7rem',
+                              backgroundColor: '#30363d',
+                              padding: '0.1rem 0.3rem',
+                              borderRadius: '8px',
+                              marginLeft: '0.25rem'
+                            }}>
+                              T{rule.tier}
                             </span>
                           )}
                           <button
                             type="button"
-                            onClick={() => handleRuleRemove(rule._id)}
+                            onClick={() => handleRuleRemove(rule.id)}
                             style={{
                               backgroundColor: 'transparent',
                               border: 'none',
@@ -562,19 +598,40 @@ function Weapons() {
               
               <div className="form-group">
                 <label>Points</label>
-                <input
-                  type="number"
-                  name="points"
-                  value={formData.points}
-                  onChange={handleInputChange}
-                  style={{
-                    backgroundColor: selectedRules.length > 0 ? '#21262d' : undefined,
-                    color: selectedRules.length > 0 ? '#8b949e' : undefined,
-                    cursor: selectedRules.length > 0 ? 'not-allowed' : undefined
-                  }}
-                  readOnly={selectedRules.length > 0}
-                  title={selectedRules.length > 0 ? 'Points automatically calculated from base weapon + attached rules' : 'Enter base weapon points'}
-                />
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="number"
+                    name="points"
+                    value={formData.points}
+                    onChange={handleInputChange}
+                    style={{
+                      backgroundColor: selectedRules.length > 0 ? '#21262d' : undefined,
+                      color: selectedRules.length > 0 ? '#8b949e' : undefined,
+                      cursor: selectedRules.length > 0 ? 'not-allowed' : undefined,
+                      flex: 1
+                    }}
+                    readOnly={selectedRules.length > 0}
+                    title={selectedRules.length > 0 ? 'Points automatically calculated from base weapon + attached rules' : 'Enter base weapon points'}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowWeaponPointsCalculator(true)}
+                    style={{
+                      backgroundColor: '#58a6ff',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 'bold',
+                      whiteSpace: 'nowrap'
+                    }}
+                    title="Calculate points based on weapon stats"
+                  >
+                    Calculate
+                  </button>
+                </div>
                 {selectedRules.length > 0 && (
                   <div style={{ 
                     fontSize: '0.8rem', 
@@ -656,7 +713,7 @@ function Weapons() {
             <tbody>
               {getSortedWeapons().map(weapon => (
                 <tr key={weapon.id}>
-                  <td>{weapon.name}</td>
+                  <td><strong>{weapon.name}</strong></td>
                   <td>{weapon.type}</td>
                   <td>{weapon.range}"</td>
                   <td>{weapon.ap}</td>
@@ -815,7 +872,7 @@ function Weapons() {
                 }}>
                   {ruleSuggestions.map(rule => (
                     <div
-                      key={rule._id}
+                      key={rule.id}
                       onClick={() => handleSuggestionSelect(rule)}
                       style={{
                         padding: '0.75rem',
@@ -852,7 +909,7 @@ function Weapons() {
                 </div>
               ) : (
                 availableRules.map(rule => (
-                  <div key={rule._id} style={{
+                  <div key={rule.id} style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -875,27 +932,60 @@ function Weapons() {
                         </div>
                       )}
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRuleSelect(rule);
-                      }}
-                      style={{
-                        backgroundColor: '#238636',
-                        color: 'white',
-                        border: 'none',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '0.85rem',
-                        fontWeight: 'bold',
-                        transition: 'background-color 0.2s ease'
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#2ea043'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = '#238636'}
-                    >
-                      Attach
-                    </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
+                      {rule.points && rule.points.length > 0 ? (
+                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                          {[1, 2, 3].map(tier => (
+                            <button
+                              key={tier}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRuleSelect(rule, tier);
+                              }}
+                              style={{
+                                backgroundColor: '#238636',
+                                color: 'white',
+                                border: 'none',
+                                padding: '0.4rem 0.8rem',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '0.8rem',
+                                fontWeight: 'bold',
+                                transition: 'background-color 0.2s ease',
+                                minWidth: '40px'
+                              }}
+                              onMouseEnter={(e) => e.target.style.backgroundColor = '#2ea043'}
+                              onMouseLeave={(e) => e.target.style.backgroundColor = '#238636'}
+                              title={`Tier ${tier}: ${rule.points[tier-1]} points`}
+                            >
+                              T{tier}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRuleSelect(rule, 1);
+                          }}
+                          style={{
+                            backgroundColor: '#238636',
+                            color: 'white',
+                            border: 'none',
+                            padding: '0.4rem 0.8rem',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.8rem',
+                            fontWeight: 'bold',
+                            transition: 'background-color 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#2ea043'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = '#238636'}
+                        >
+                          Attach
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))
               )}
@@ -945,6 +1035,15 @@ function Weapons() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Weapon Points Calculator */}
+      {showWeaponPointsCalculator && (
+        <WeaponPointsCalculator
+          weapon={formData}
+          onPointsCalculated={handleWeaponPointsCalculated}
+          onClose={() => setShowWeaponPointsCalculator(false)}
+        />
       )}
     </div>
   );

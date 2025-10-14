@@ -8,6 +8,7 @@ import (
 	"grimdank-database/services"
 
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // Import Handler
@@ -213,7 +214,7 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 				Range:   24,
 				AP:      "0",
 				Attacks: 1,
-				Rules:   []models.Rule{},
+				Rules:   []models.RuleReference{},
 				Points:  0,
 			},
 		}
@@ -224,7 +225,7 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 				Type:        "Equipment",
 				Description: "This is an example wargear description",
 				Points:      5,
-				Rules:       []models.Rule{},
+				Rules:       []models.RuleReference{},
 			},
 		}
 	case "units":
@@ -243,9 +244,9 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 				Leadership:       "7",
 				Save:             "3+",
 				Points:           10,
-				Rules:            []models.Rule{},
-				AvailableWeapons: []models.Weapon{},
-				AvailableWarGear: []models.WarGear{},
+				Rules:            []models.RuleReference{},
+				AvailableWeapons: []primitive.ObjectID{},
+				AvailableWarGear: []primitive.ObjectID{},
 			},
 		}
 	case "armybooks":
@@ -254,8 +255,8 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 				Name:        "Example Army Book",
 				Faction:     "Space Marines",
 				Description: "This is an example army book",
-				Units:       []models.Unit{},
-				Rules:       []models.Rule{},
+				Units:       []primitive.ObjectID{},
+				Rules:       []models.RuleReference{},
 			},
 		}
 	case "armylists":
@@ -265,7 +266,7 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 				Player:      "Player Name",
 				Faction:     "Space Marines",
 				Points:      2000,
-				Units:       []models.Unit{},
+				Units:       []primitive.ObjectID{},
 				Description: "This is an example army list",
 			},
 		}

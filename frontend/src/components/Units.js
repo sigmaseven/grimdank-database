@@ -623,7 +623,7 @@ function Units() {
             <tbody>
               {units && units.map(unit => (
                 <tr key={unit.id}>
-                  <td>{unit.name}</td>
+                  <td><strong>{unit.name}</strong></td>
                   <td>{unit.type}</td>
                   <td>{unit.points}</td>
                   <td>

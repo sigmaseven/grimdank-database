@@ -50,10 +50,10 @@ func main() {
 
 	// Initialize points services
 	rulePointsService := services.NewRulePointsService(ruleService)
-	
+
 	// Initialize population service for reference-based operations
 	populationService := services.NewPopulationService(ruleService, weaponService, wargearService, unitService)
-	
+
 	// Initialize handlers
 	ruleHandler := handlers.NewRuleHandler(ruleService)
 	weaponHandler := handlers.NewWeaponHandler(weaponService)
@@ -64,6 +64,7 @@ func main() {
 	importHandler := handlers.NewImportHandler(ruleService, weaponService, wargearService, unitService, armyBookService, armyListService)
 	pointsHandler := handlers.NewPointsHandler(rulePointsService)
 	populatedWeaponHandler := handlers.NewPopulatedWeaponHandler(weaponService, populationService)
+	weaponPointsHandler := handlers.NewWeaponPointsHandler()
 
 	// Setup routes
 	router := mux.NewRouter()
@@ -150,6 +151,10 @@ func main() {
 	api.HandleFunc("/points/update/{id}", pointsHandler.UpdateRuleWithCalculatedPoints).Methods("PUT")
 	api.HandleFunc("/points/bulk", pointsHandler.BulkCalculatePoints).Methods("POST")
 	api.HandleFunc("/points/breakdown/{id}", pointsHandler.GetPointsBreakdown).Methods("GET")
+
+	// Weapon points calculation routes
+	api.HandleFunc("/weapon-points/calculate", weaponPointsHandler.CalculateWeaponPoints).Methods("POST")
+	api.HandleFunc("/weapon-points/breakdown", weaponPointsHandler.GetWeaponPointsBreakdown).Methods("POST")
 
 	// Add CORS middleware
 	router.Use(func(next http.Handler) http.Handler {

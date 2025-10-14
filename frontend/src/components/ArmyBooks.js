@@ -250,7 +250,7 @@ function ArmyBooks() {
             <tbody>
               {armyBooks && armyBooks.map(armyBook => (
                 <tr key={armyBook.id}>
-                  <td>{armyBook.name}</td>
+                  <td><strong>{armyBook.name}</strong></td>
                   <td>{armyBook.faction}</td>
                   <td>{armyBook.description}</td>
                   <td>

@@ -2,24 +2,25 @@ package services
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"grimdank-database/models"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // PopulationService handles populating referenced entities
 type PopulationService struct {
-	ruleService   *RuleService
-	weaponService *WeaponService
+	ruleService    *RuleService
+	weaponService  *WeaponService
 	wargearService *WarGearService
-	unitService   *UnitService
+	unitService    *UnitService
 }
 
 func NewPopulationService(ruleService *RuleService, weaponService *WeaponService, wargearService *WarGearService, unitService *UnitService) *PopulationService {
 	return &PopulationService{
-		ruleService:   ruleService,
-		weaponService: weaponService,
+		ruleService:    ruleService,
+		weaponService:  weaponService,
 		wargearService: wargearService,
-		unitService:   unitService,
+		unitService:    unitService,
 	}
 }
 
@@ -29,13 +30,18 @@ func (ps *PopulationService) PopulateWeaponRules(ctx context.Context, weapon *mo
 		Weapon: *weapon,
 	}
 
-	// Populate rules
+	// Populate rules with tier information
 	for _, ruleRef := range weapon.Rules {
 		rule, err := ps.ruleService.GetRuleByID(ctx, ruleRef.RuleID.Hex())
 		if err != nil {
 			return nil, err
 		}
-		populatedWeapon.PopulatedRules = append(populatedWeapon.PopulatedRules, *rule)
+		// Create a rule with tier information
+		ruleWithTier := models.RuleWithTier{
+			Rule: *rule,
+			Tier: ruleRef.Tier,
+		}
+		populatedWeapon.PopulatedRules = append(populatedWeapon.PopulatedRules, ruleWithTier)
 	}
 
 	return populatedWeapon, nil
@@ -123,13 +129,13 @@ func (ps *PopulationService) CalculateTotalPoints(ctx context.Context, weapon *m
 		if err != nil {
 			return 0, err
 		}
-		
+
 		// Use the specified tier (1, 2, or 3) or default to tier 1
 		tier := ruleRef.Tier
 		if tier < 1 || tier > 3 {
 			tier = 1
 		}
-		
+
 		if len(rule.Points) >= tier {
 			rulePoints += rule.Points[tier-1] // Convert to 0-based index
 		}
