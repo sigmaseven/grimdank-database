@@ -14,12 +14,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   });
   const [useCustom, setUseCustom] = useState(false);
 
-  useEffect(() => {
-    if (rule) {
-      calculatePoints();
-    }
-  }, [rule, calculatePoints]);
-
   const calculatePoints = useCallback(async () => {
     if (!rule) return;
 
@@ -54,6 +48,12 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
       setLoading(false);
     }
   }, [rule]);
+
+  useEffect(() => {
+    if (rule) {
+      calculatePoints();
+    }
+  }, [rule, calculatePoints]);
 
   const calculateCustomPoints = () => {
     // Calculate points based on custom effectiveness
