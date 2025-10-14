@@ -117,8 +117,15 @@ func (h *WeaponHandler) UpdateWeapon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch the updated weapon to return to client
+	updatedWeapon, err := h.service.GetWeaponByID(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Failed to fetch updated weapon", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(weapon)
+	json.NewEncoder(w).Encode(updatedWeapon)
 }
 
 func (h *WeaponHandler) DeleteWeapon(w http.ResponseWriter, r *http.Request) {
@@ -243,8 +250,15 @@ func (h *WarGearHandler) UpdateWarGear(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch the updated wargear to return to client
+	updatedWarGear, err := h.service.GetWarGearByID(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Failed to fetch updated wargear", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(wargear)
+	json.NewEncoder(w).Encode(updatedWarGear)
 }
 
 func (h *WarGearHandler) DeleteWarGear(w http.ResponseWriter, r *http.Request) {
@@ -369,8 +383,15 @@ func (h *UnitHandler) UpdateUnit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch the updated unit to return to client
+	updatedUnit, err := h.service.GetUnitByID(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Failed to fetch updated unit", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(unit)
+	json.NewEncoder(w).Encode(updatedUnit)
 }
 
 func (h *UnitHandler) DeleteUnit(w http.ResponseWriter, r *http.Request) {
@@ -495,8 +516,15 @@ func (h *ArmyBookHandler) UpdateArmyBook(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// Fetch the updated army book to return to client
+	updatedArmyBook, err := h.service.GetArmyBookByID(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Failed to fetch updated army book", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(armyBook)
+	json.NewEncoder(w).Encode(updatedArmyBook)
 }
 
 func (h *ArmyBookHandler) DeleteArmyBook(w http.ResponseWriter, r *http.Request) {
@@ -621,8 +649,15 @@ func (h *ArmyListHandler) UpdateArmyList(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// Fetch the updated army list to return to client
+	updatedArmyList, err := h.service.GetArmyListByID(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Failed to fetch updated army list", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(armyList)
+	json.NewEncoder(w).Encode(updatedArmyList)
 }
 
 func (h *ArmyListHandler) DeleteArmyList(w http.ResponseWriter, r *http.Request) {

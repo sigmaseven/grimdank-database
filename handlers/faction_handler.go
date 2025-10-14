@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -58,6 +59,7 @@ func (h *FactionHandler) GetFaction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *FactionHandler) GetFactions(w http.ResponseWriter, r *http.Request) {
+	log.Println("GetFactions handler called!")
 	// Parse query parameters
 	limitStr := r.URL.Query().Get("limit")
 	skipStr := r.URL.Query().Get("skip")
@@ -116,8 +118,15 @@ func (h *FactionHandler) UpdateFaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch the updated faction to return to client
+	updatedFaction, err := h.service.GetFactionByID(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Failed to fetch updated faction", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(faction)
+	json.NewEncoder(w).Encode(updatedFaction)
 }
 
 func (h *FactionHandler) DeleteFaction(w http.ResponseWriter, r *http.Request) {

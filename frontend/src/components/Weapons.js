@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { weaponsAPI, rulesAPI } from '../services/api';
 import { Icon } from './Icons';
 import WeaponPointsCalculator from './WeaponPointsCalculator';
+import Pagination from './Pagination';
+import { usePagination } from '../hooks/usePagination';
 
 function Weapons() {
   const [weapons, setWeapons] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -14,15 +15,31 @@ function Weapons() {
   const [sortDirection, setSortDirection] = useState('asc');
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  
+  // Pagination hook
+  const {
+    currentPage,
+    pageSize,
+    totalItems,
+    totalPages,
+    loading,
+    skip,
+    pageSizeOptions,
+    setLoading,
+    handlePageChange,
+    handlePageSizeChange,
+    resetPagination,
+    updateTotalItems,
+  } = usePagination(50, [50, 100, 200]);
 
   const [formData, setFormData] = useState({
     name: '',
     type: '',
     range: 0,
     ap: '',
-    attacks: '',
-    abilities: '',
-    points: 0
+    attacks: 0,
+    points: 0,
+    rules: []
   });
 
   // Rule attachment system
@@ -41,26 +58,50 @@ function Weapons() {
       if (showLoading) {
         setLoading(true);
       }
-      const params = searchQuery ? { name: searchQuery } : {};
+      const params = {
+        limit: pageSize,
+        skip: skip,
+        ...(searchQuery ? { name: searchQuery } : {})
+      };
       const data = await weaponsAPI.getAll(params);
       setWeapons(Array.isArray(data) ? data : []);
       setError(null);
+      
+      // Update total items count
+      if (data.length === 0) {
+        // If we got no results, the total is just the current skip value
+        updateTotalItems(skip);
+      } else if (data.length < pageSize) {
+        // If we got fewer results than page size, this is the last page
+        updateTotalItems(skip + data.length);
+      } else {
+        // If we got a full page, there might be more
+        updateTotalItems(skip + data.length + 1);
+      }
     } catch (err) {
-      setError('Failed to load weapons');
-      console.error(err);
+      // Handle empty results gracefully - don't show error for empty lists
+      console.log('Weapons API error:', err);
+      setWeapons([]);
+      setError(null);
+      updateTotalItems(0);
     } finally {
       if (showLoading) {
         setLoading(false);
       }
     }
-  }, []);
+  }, [pageSize, skip, updateTotalItems]);
 
   const loadRules = useCallback(async (searchQuery = '') => {
     try {
       setRuleLoading(true);
       const params = searchQuery ? { name: searchQuery } : {};
       const data = await rulesAPI.getAll(params);
-      setAvailableRules(Array.isArray(data) ? data : []);
+      // Filter rules for Weapons: primarily Offensive and Passive rules
+      const filteredRules = Array.isArray(data) ? data.filter(rule => 
+        rule.type === 'Offensive' || 
+        rule.type === 'Passive'
+      ) : [];
+      setAvailableRules(filteredRules);
     } catch (err) {
       console.error('Failed to load rules:', err);
       setAvailableRules([]);
@@ -74,7 +115,12 @@ function Weapons() {
       if (searchQuery.length >= 2) {
         const params = { name: searchQuery, limit: 5 };
         const data = await rulesAPI.getAll(params);
-        setRuleSuggestions(Array.isArray(data) ? data : []);
+        // Filter rules for Weapons: primarily Offensive and Passive rules
+        const filteredRules = Array.isArray(data) ? data.filter(rule => 
+          rule.type === 'Offensive' || 
+          rule.type === 'Passive'
+        ) : [];
+        setRuleSuggestions(filteredRules);
         setShowSuggestions(true);
       } else {
         setRuleSuggestions([]);
@@ -86,9 +132,8 @@ function Weapons() {
   }, []);
 
   useEffect(() => {
-    loadWeapons('');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    loadWeapons(searchTerm);
+  }, [loadWeapons, searchTerm]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -102,6 +147,9 @@ function Weapons() {
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
+    
+    // Reset pagination when searching
+    resetPagination();
     
     // Clear existing timeout
     if (searchTimeoutRef.current) {
@@ -124,7 +172,7 @@ function Weapons() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'points' || name === 'range' ? parseInt(value) || 0 : value
+      [name]: name === 'points' || name === 'range' || name === 'attacks' ? parseInt(value) || 0 : value
     }));
   };
 
@@ -287,18 +335,22 @@ function Weapons() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log('Submitting weapon data:', formData);
       if (editingWeapon) {
         await weaponsAPI.update(editingWeapon.id, formData);
       } else {
         await weaponsAPI.create(formData);
       }
+      setError(null); // Clear any previous errors
       setShowForm(false);
       setEditingWeapon(null);
       resetForm();
       loadWeapons(searchTerm, false);
     } catch (err) {
-      setError('Failed to save weapon');
-      console.error(err);
+      console.error('Weapon creation error:', err);
+      console.error('Error response:', err.response);
+      console.error('Error message:', err.message);
+      setError(`Failed to save weapon: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -314,8 +366,8 @@ function Weapons() {
         range: weapon.range,
         ap: weapon.ap,
         attacks: weapon.attacks,
-        abilities: weapon.abilities,
-        points: weaponWithRules.totalPoints
+        points: weaponWithRules.totalPoints,
+        rules: []
       });
       
       // Set selected rules from populated data
@@ -332,8 +384,8 @@ function Weapons() {
         range: weapon.range,
         ap: weapon.ap,
         attacks: weapon.attacks,
-        abilities: weapon.abilities,
-        points: weapon.points
+        points: weapon.points,
+        rules: []
       });
       setShowForm(true);
     }
@@ -343,6 +395,17 @@ function Weapons() {
     if (window.confirm('Are you sure you want to delete this weapon?')) {
       try {
         await weaponsAPI.delete(id);
+        setError(null); // Clear any previous errors
+        
+        // Check if we're on the last page and this is the only item
+        const isLastPage = currentPage === totalPages;
+        const isOnlyItemOnPage = weapons.length === 1;
+        
+        if (isLastPage && isOnlyItemOnPage && currentPage > 1) {
+          // Reset to first page when deleting the last item
+          resetPagination();
+        }
+        
         loadWeapons(searchTerm, false);
       } catch (err) {
         setError('Failed to delete weapon');
@@ -357,10 +420,11 @@ function Weapons() {
       type: '',
       range: 0,
       ap: '',
-      attacks: '',
-      abilities: '',
-      points: 0
+      attacks: 0,
+      points: 0,
+      rules: []
     });
+    setSelectedRules([]);
   };
 
   if (loading) return <div className="loading">Loading weapons...</div>;
@@ -578,22 +642,6 @@ function Weapons() {
                   </div>
                 )}
                 
-                {/* Applied Rules Display */}
-                {formData.abilities && formData.abilities.includes('(') && (
-                  <div style={{ marginBottom: '1rem' }}>
-                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', color: '#f0f6fc' }}>Applied Rules:</h4>
-                    <div style={{
-                      padding: '0.75rem',
-                      backgroundColor: '#0d1117',
-                      borderRadius: '6px',
-                      border: '1px solid #30363d',
-                      color: '#8b949e',
-                      fontSize: '0.85rem'
-                    }}>
-                      {formData.abilities}
-                    </div>
-                  </div>
-                )}
               </div>
               
               <div className="form-group">
@@ -767,6 +815,19 @@ function Weapons() {
               ))}
             </tbody>
           </table>
+        )}
+        
+        {/* Pagination */}
+        {weapons && weapons.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            totalItems={totalItems}
+            pageSizeOptions={pageSizeOptions}
+          />
         )}
       </div>
 

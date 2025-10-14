@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"grimdank-database/models"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func TestArmyListCRUD(t *testing.T) {
@@ -52,9 +54,9 @@ func TestArmyListCRUD(t *testing.T) {
 
 		// Create multiple army lists
 		armyLists := []*models.ArmyList{
-			{Name: "Army List 1", Player: "Player A", Faction: "Faction A", Points: 1000, Description: "First army list"},
-			{Name: "Army List 2", Player: "Player B", Faction: "Faction B", Points: 1500, Description: "Second army list"},
-			{Name: "Army List 3", Player: "Player C", Faction: "Faction C", Points: 2000, Description: "Third army list"},
+			{Name: "Army List 1", Player: "Player A", FactionID: primitive.NewObjectID(), Points: 1000, Description: "First army list"},
+			{Name: "Army List 2", Player: "Player B", FactionID: primitive.NewObjectID(), Points: 1500, Description: "Second army list"},
+			{Name: "Army List 3", Player: "Player C", FactionID: primitive.NewObjectID(), Points: 2000, Description: "Third army list"},
 		}
 
 		for _, armyList := range armyLists {
@@ -81,9 +83,9 @@ func TestArmyListCRUD(t *testing.T) {
 
 		// Create army lists with different names
 		armyLists := []*models.ArmyList{
-			{Name: "Fire Legion List", Player: "Player A", Faction: "Fire Legion", Points: 1000, Description: "A fire army list"},
-			{Name: "Ice Warriors List", Player: "Player B", Faction: "Ice Warriors", Points: 1500, Description: "An ice army list"},
-			{Name: "Fire Marines List", Player: "Player C", Faction: "Fire Marines", Points: 2000, Description: "Another fire army list"},
+			{Name: "Fire Legion List", Player: "Player A", FactionID: primitive.NewObjectID(), Points: 1000, Description: "A fire army list"},
+			{Name: "Ice Warriors List", Player: "Player B", FactionID: primitive.NewObjectID(), Points: 1500, Description: "An ice army list"},
+			{Name: "Fire Marines List", Player: "Player C", FactionID: primitive.NewObjectID(), Points: 2000, Description: "Another fire army list"},
 		}
 
 		for _, armyList := range armyLists {
@@ -160,7 +162,7 @@ func TestArmyListCRUD(t *testing.T) {
 		armyList := &models.ArmyList{
 			Name:        "",
 			Player:      "Test Player",
-			Faction:     "Test Faction",
+			FactionID:   primitive.NewObjectID(),
 			Points:      1000,
 			Description: "An army list with empty name",
 		}
@@ -244,9 +246,9 @@ func TestArmyListBulkImport(t *testing.T) {
 
 	t.Run("Bulk Import ArmyLists", func(t *testing.T) {
 		armyLists := []models.ArmyList{
-			{Name: "Bulk Army List 1", Player: "Player A", Faction: "Faction A", Points: 1000, Description: "First bulk army list"},
-			{Name: "Bulk Army List 2", Player: "Player B", Faction: "Faction B", Points: 1500, Description: "Second bulk army list"},
-			{Name: "Bulk Army List 3", Player: "Player C", Faction: "Faction C", Points: 2000, Description: "Third bulk army list"},
+			{Name: "Bulk Army List 1", Player: "Player A", FactionID: primitive.NewObjectID(), Points: 1000, Description: "First bulk army list"},
+			{Name: "Bulk Army List 2", Player: "Player B", FactionID: primitive.NewObjectID(), Points: 1500, Description: "Second bulk army list"},
+			{Name: "Bulk Army List 3", Player: "Player C", FactionID: primitive.NewObjectID(), Points: 2000, Description: "Third bulk army list"},
 		}
 
 		importedIDs, err := testServices.ArmyListService.BulkImportArmyLists(ctx, armyLists)
@@ -274,8 +276,8 @@ func TestArmyListBulkImport(t *testing.T) {
 		CleanupTestDB(t)
 
 		armyLists := []models.ArmyList{
-			{Name: "Valid Army List", Player: "Player A", Faction: "Faction A", Points: 1000, Description: "A valid army list"},
-			{Name: "", Player: "Player B", Faction: "Faction B", Points: 1500, Description: "Invalid army list with empty name"},
+			{Name: "Valid Army List", Player: "Player A", FactionID: primitive.NewObjectID(), Points: 1000, Description: "A valid army list"},
+			{Name: "", Player: "Player B", FactionID: primitive.NewObjectID(), Points: 1500, Description: "Invalid army list with empty name"},
 		}
 
 		_, err := testServices.ArmyListService.BulkImportArmyLists(ctx, armyLists)
@@ -310,7 +312,7 @@ func TestArmyListPagination(t *testing.T) {
 			armyList := &models.ArmyList{
 				Name:        fmt.Sprintf("Army List %d", i),
 				Player:      fmt.Sprintf("Player %d", i),
-				Faction:     fmt.Sprintf("Faction %d", i),
+				FactionID:   primitive.NewObjectID(),
 				Points:      i * 500,
 				Description: fmt.Sprintf("Description %d", i),
 			}

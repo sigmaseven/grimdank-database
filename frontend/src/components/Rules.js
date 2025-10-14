@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { rulesAPI } from '../services/api';
 import PointsCalculator from './PointsCalculator';
 import { Icon } from './Icons';
+import Pagination from './Pagination';
+import { usePagination } from '../hooks/usePagination';
 
 function Rules() {
   const [rules, setRules] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -15,6 +16,22 @@ function Rules() {
   const [sortDirection, setSortDirection] = useState('asc');
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  
+  // Pagination hook
+  const {
+    currentPage,
+    pageSize,
+    totalItems,
+    totalPages,
+    loading,
+    skip,
+    pageSizeOptions,
+    setLoading,
+    handlePageChange,
+    handlePageSizeChange,
+    resetPagination,
+    updateTotalItems,
+  } = usePagination(50, [50, 100, 200]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -30,24 +47,42 @@ function Rules() {
       if (showLoading) {
         setLoading(true);
       }
-      const params = searchQuery ? { name: searchQuery } : {};
+      const params = {
+        limit: pageSize,
+        skip: skip,
+        ...(searchQuery ? { name: searchQuery } : {})
+      };
       const data = await rulesAPI.getAll(params);
       setRules(Array.isArray(data) ? data : []);
       setError(null);
+      
+      // Update total items count
+      if (data.length === 0) {
+        // If we got no results, the total is just the current skip value
+        updateTotalItems(skip);
+      } else if (data.length < pageSize) {
+        // If we got fewer results than page size, this is the last page
+        updateTotalItems(skip + data.length);
+      } else {
+        // If we got a full page, there might be more
+        updateTotalItems(skip + data.length + 1);
+      }
     } catch (err) {
-      setError('Failed to load rules');
-      console.error(err);
+      // Handle empty results gracefully - don't show error for empty lists
+      console.log('Rules API error:', err);
+      setRules([]);
+      setError(null);
+      updateTotalItems(0);
     } finally {
       if (showLoading) {
         setLoading(false);
       }
     }
-  }, []);
+  }, [pageSize, skip, updateTotalItems]);
 
   useEffect(() => {
-    loadRules('');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    loadRules(searchTerm);
+  }, [loadRules, searchTerm]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -61,6 +96,9 @@ function Rules() {
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
+    
+    // Reset pagination when searching
+    resetPagination();
     
     // Clear existing timeout
     if (searchTimeoutRef.current) {
@@ -188,6 +226,7 @@ function Rules() {
       } else {
         await rulesAPI.create(formData);
       }
+      setError(null); // Clear any previous errors
       setShowForm(false);
       setEditingRule(null);
       resetForm();
@@ -214,6 +253,17 @@ function Rules() {
     if (window.confirm('Are you sure you want to delete this rule?')) {
       try {
         await rulesAPI.delete(id);
+        setError(null); // Clear any previous errors
+        
+        // Check if we're on the last page and this is the only item
+        const isLastPage = currentPage === totalPages;
+        const isOnlyItemOnPage = rules.length === 1;
+        
+        if (isLastPage && isOnlyItemOnPage && currentPage > 1) {
+          // Reset to first page when deleting the last item
+          resetPagination();
+        }
+        
         loadRules(searchTerm, false);
       } catch (err) {
         setError('Failed to delete rule');
@@ -492,6 +542,19 @@ function Rules() {
               ))}
             </tbody>
           </table>
+        )}
+        
+        {/* Pagination */}
+        {rules && rules.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            totalItems={totalItems}
+            pageSizeOptions={pageSizeOptions}
+          />
         )}
       </div>
 

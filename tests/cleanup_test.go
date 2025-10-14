@@ -156,6 +156,11 @@ func (tcm *TestCleanupManager) GetEntityCount(t *testing.T, collectionName strin
 	return int(count)
 }
 
+// GetTrackedEntities returns the list of tracked entity IDs for a collection
+func (tcm *TestCleanupManager) GetTrackedEntities(collectionName string) []string {
+	return tcm.createdEntities[collectionName]
+}
+
 // EnsureEmptyDatabase ensures the test database is completely empty
 func (tcm *TestCleanupManager) EnsureEmptyDatabase(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

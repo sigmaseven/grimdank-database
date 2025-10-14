@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -26,8 +27,14 @@ func (r *FactionRepository) CreateFaction(ctx context.Context, faction *models.F
 	faction.CreatedAt = time.Now()
 	faction.UpdatedAt = time.Now()
 
-	_, err := r.collection.InsertOne(ctx, faction)
-	return err
+	result, err := r.collection.InsertOne(ctx, faction)
+	if err != nil {
+		return err
+	}
+
+	// Set the ID from the inserted document
+	faction.ID = result.InsertedID.(primitive.ObjectID)
+	return nil
 }
 
 func (r *FactionRepository) GetFactionByID(ctx context.Context, id string) (*models.Faction, error) {
@@ -107,8 +114,16 @@ func (r *FactionRepository) UpdateFaction(ctx context.Context, id string, factio
 	}
 
 	faction.UpdatedAt = time.Now()
-	_, err = r.collection.ReplaceOne(ctx, bson.M{"_id": objectID}, faction)
-	return err
+	result, err := r.collection.ReplaceOne(ctx, bson.M{"_id": objectID}, faction)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("faction not found")
+	}
+
+	return nil
 }
 
 func (r *FactionRepository) DeleteFaction(ctx context.Context, id string) error {
@@ -117,8 +132,16 @@ func (r *FactionRepository) DeleteFaction(ctx context.Context, id string) error 
 		return err
 	}
 
-	_, err = r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
-	return err
+	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
+	if err != nil {
+		return err
+	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("faction not found")
+	}
+
+	return nil
 }
 
 func (r *FactionRepository) BulkImportFactions(ctx context.Context, factions []models.Faction) ([]primitive.ObjectID, error) {

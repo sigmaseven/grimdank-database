@@ -55,21 +55,15 @@ func TestUnitCRUD(t *testing.T) {
 		// Create multiple units
 		units := []*models.Unit{
 			{
-				Name: "Unit 1", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
-				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
-				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
+				Name: "Unit 1", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
-				Name: "Unit 2", Type: "Vehicle", Movement: "12\"", WeaponSkill: "4+",
-				BallisticSkill: "4+", Strength: "6", Toughness: "7", Wounds: "3",
-				Initiative: "2", Attacks: "2", Leadership: "8", Save: "3+", Points: 200,
+				Name: "Unit 2", Type: "Vehicle", Melee: 4, Ranged: 4, Morale: 8, Defense: 4, Points: 200,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
-				Name: "Unit 3", Type: "Monster", Movement: "8\"", WeaponSkill: "2+",
-				BallisticSkill: "5+", Strength: "8", Toughness: "8", Wounds: "6",
-				Initiative: "1", Attacks: "4", Leadership: "9", Save: "2+", Points: 300,
+				Name: "Unit 3", Type: "Monster", Melee: 5, Ranged: 2, Morale: 9, Defense: 5, Points: 300,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 		}
@@ -99,21 +93,15 @@ func TestUnitCRUD(t *testing.T) {
 		// Create units with different names
 		units := []*models.Unit{
 			{
-				Name: "Fire Marines", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
-				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
-				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
+				Name: "Fire Marines", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
-				Name: "Ice Warriors", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
-				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
-				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
+				Name: "Ice Warriors", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
-				Name: "Fire Tank", Type: "Vehicle", Movement: "12\"", WeaponSkill: "4+",
-				BallisticSkill: "4+", Strength: "6", Toughness: "7", Wounds: "3",
-				Initiative: "2", Attacks: "2", Leadership: "8", Save: "3+", Points: 200,
+				Name: "Fire Tank", Type: "Vehicle", Melee: 4, Ranged: 4, Morale: 8, Defense: 4, Points: 200,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 		}
@@ -145,7 +133,7 @@ func TestUnitCRUD(t *testing.T) {
 		}
 
 		// Update the unit
-		createdUnit.Movement = "12\""
+		createdUnit.Melee = 4
 		createdUnit.Points = 200
 
 		err = testServices.UnitService.UpdateUnit(ctx, createdUnit.ID.Hex(), createdUnit)
@@ -159,8 +147,8 @@ func TestUnitCRUD(t *testing.T) {
 			t.Fatalf("Failed to get updated unit: %v", err)
 		}
 
-		if updatedUnit.Movement != "12\"" {
-			t.Errorf("Expected movement '12\"', got '%s'", updatedUnit.Movement)
+		if updatedUnit.Melee != 4 {
+			t.Errorf("Expected melee 4, got %d", updatedUnit.Melee)
 		}
 		if updatedUnit.Points != 200 {
 			t.Errorf("Expected points 200, got %d", updatedUnit.Points)
@@ -190,9 +178,7 @@ func TestUnitCRUD(t *testing.T) {
 
 	t.Run("Create Unit With Empty Name Should Fail", func(t *testing.T) {
 		unit := &models.Unit{
-			Name: "", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
-			BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
-			Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
+			Name: "", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
 			Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 		}
 
@@ -276,21 +262,15 @@ func TestUnitBulkImport(t *testing.T) {
 	t.Run("Bulk Import Units", func(t *testing.T) {
 		units := []models.Unit{
 			{
-				Name: "Bulk Unit 1", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
-				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
-				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
+				Name: "Bulk Unit 1", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
-				Name: "Bulk Unit 2", Type: "Vehicle", Movement: "12\"", WeaponSkill: "4+",
-				BallisticSkill: "4+", Strength: "6", Toughness: "7", Wounds: "3",
-				Initiative: "2", Attacks: "2", Leadership: "8", Save: "3+", Points: 200,
+				Name: "Bulk Unit 2", Type: "Vehicle", Melee: 4, Ranged: 4, Morale: 8, Defense: 4, Points: 200,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
-				Name: "Bulk Unit 3", Type: "Monster", Movement: "8\"", WeaponSkill: "2+",
-				BallisticSkill: "5+", Strength: "8", Toughness: "8", Wounds: "6",
-				Initiative: "1", Attacks: "4", Leadership: "9", Save: "2+", Points: 300,
+				Name: "Bulk Unit 3", Type: "Monster", Melee: 5, Ranged: 2, Morale: 9, Defense: 5, Points: 300,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 		}
@@ -321,15 +301,11 @@ func TestUnitBulkImport(t *testing.T) {
 
 		units := []models.Unit{
 			{
-				Name: "Valid Unit", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
-				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
-				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
+				Name: "Valid Unit", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
-				Name: "", Type: "Vehicle", Movement: "12\"", WeaponSkill: "4+",
-				BallisticSkill: "4+", Strength: "6", Toughness: "7", Wounds: "3",
-				Initiative: "2", Attacks: "2", Leadership: "8", Save: "3+", Points: 200,
+				Name: "", Type: "Vehicle", Melee: 4, Ranged: 4, Morale: 8, Defense: 4, Points: 200,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 		}
@@ -364,9 +340,7 @@ func TestUnitPagination(t *testing.T) {
 		// Create 5 units
 		for i := 1; i <= 5; i++ {
 			unit := &models.Unit{
-				Name: fmt.Sprintf("Unit %d", i), Type: "Infantry", Movement: "6\"",
-				WeaponSkill: "3+", BallisticSkill: "3+", Strength: "3", Toughness: "3",
-				Wounds: "1", Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+",
+				Name: fmt.Sprintf("Unit %d", i), Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3,
 				Points: i * 50, Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			}
 			_, err := testServices.UnitService.CreateUnit(ctx, unit)

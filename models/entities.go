@@ -48,16 +48,10 @@ type Unit struct {
 	ID               primitive.ObjectID   `bson:"_id,omitempty" json:"id"`
 	Name             string               `bson:"name" json:"name" validate:"required"`
 	Type             string               `bson:"type" json:"type"`
-	Movement         string               `bson:"movement" json:"movement"`
-	WeaponSkill      string               `bson:"weaponSkill" json:"weaponSkill"`
-	BallisticSkill   string               `bson:"ballisticSkill" json:"ballisticSkill"`
-	Strength         string               `bson:"strength" json:"strength"`
-	Toughness        string               `bson:"toughness" json:"toughness"`
-	Wounds           string               `bson:"wounds" json:"wounds"`
-	Initiative       string               `bson:"initiative" json:"initiative"`
-	Attacks          string               `bson:"attacks" json:"attacks"`
-	Leadership       string               `bson:"leadership" json:"leadership"`
-	Save             string               `bson:"save" json:"save"`
+	Melee            int                  `bson:"melee" json:"melee"`
+	Ranged           int                  `bson:"ranged" json:"ranged"`
+	Morale           int                  `bson:"morale" json:"morale"`
+	Defense          int                  `bson:"defense" json:"defense"`
 	Points           int                  `bson:"points" json:"points"`
 	Rules            []RuleReference      `bson:"rules" json:"rules"`
 	AvailableWeapons []primitive.ObjectID `bson:"availableWeaponIds" json:"availableWeaponIds"`

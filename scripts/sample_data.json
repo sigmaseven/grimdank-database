@@ -1,0 +1,238 @@
+{
+  "factions": [
+    {
+      "name": "Space Marines",
+      "description": "Humanity's finest warriors",
+      "type": "Official",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "name": "Orks",
+      "description": "Brutal and cunning greenskins",
+      "type": "Official",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "name": "Eldar",
+      "description": "Ancient and graceful aliens",
+      "type": "Official",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "rules": [
+    {
+      "name": "Bolter Discipline",
+      "description": "Rapid fire weapons can fire twice at half range",
+      "type": "Offensive",
+      "points": [5, 10, 15]
+    },
+    {
+      "name": "Tactical Precision",
+      "description": "Re-roll hit rolls of 1",
+      "type": "Tactical",
+      "points": [3, 6, 9]
+    },
+    {
+      "name": "Iron Will",
+      "description": "Ignore morale penalties",
+      "type": "Defensive",
+      "points": [2, 4, 6]
+    },
+    {
+      "name": "Stealth",
+      "description": "Enemy units have -1 to hit this unit",
+      "type": "Passive",
+      "points": [4, 8, 12]
+    },
+    {
+      "name": "Furious Charge",
+      "description": "+1 to melee attacks on the charge",
+      "type": "Offensive",
+      "points": [3, 6, 9]
+    },
+    {
+      "name": "Feel No Pain",
+      "description": "Ignore wounds on a 5+",
+      "type": "Defensive",
+      "points": [2, 4, 6]
+    }
+  ],
+  "weapons": [
+    {
+      "name": "Bolter",
+      "type": "Rapid Fire",
+      "range": 24,
+      "ap": "0",
+      "attacks": 1,
+      "points": 0
+    },
+    {
+      "name": "Plasma Gun",
+      "type": "Assault",
+      "range": 18,
+      "ap": "-3",
+      "attacks": 1,
+      "points": 5
+    },
+    {
+      "name": "Power Sword",
+      "type": "Melee",
+      "range": 0,
+      "ap": "-3",
+      "attacks": 1,
+      "points": 3
+    },
+    {
+      "name": "Heavy Bolter",
+      "type": "Heavy",
+      "range": 36,
+      "ap": "-1",
+      "attacks": 3,
+      "points": 8
+    },
+    {
+      "name": "Flamer",
+      "type": "Assault",
+      "range": 8,
+      "ap": "0",
+      "attacks": 1,
+      "points": 4
+    },
+    {
+      "name": "Melta Gun",
+      "type": "Assault",
+      "range": 12,
+      "ap": "-4",
+      "attacks": 1,
+      "points": 7
+    }
+  ],
+  "wargear": [
+    {
+      "name": "Frag Grenades",
+      "type": "Grenade",
+      "description": "Blast weapon for clearing enemies",
+      "points": 2
+    },
+    {
+      "name": "Krak Grenades",
+      "type": "Grenade",
+      "description": "Anti-tank grenades",
+      "points": 3
+    },
+    {
+      "name": "Medi-pack",
+      "type": "Equipment",
+      "description": "Heal wounded models",
+      "points": 5
+    },
+    {
+      "name": "Auspex",
+      "type": "Equipment",
+      "description": "Detect hidden enemies",
+      "points": 4
+    },
+    {
+      "name": "Comms Array",
+      "type": "Equipment",
+      "description": "Coordinate with other units",
+      "points": 6
+    },
+    {
+      "name": "Jump Pack",
+      "type": "Equipment",
+      "description": "Allows deep strike and increased movement",
+      "points": 8
+    }
+  ],
+  "units": [
+    {
+      "name": "Tactical Marine",
+      "type": "Infantry",
+      "melee": 3,
+      "ranged": 3,
+      "morale": 7,
+      "defense": 3,
+      "points": 13
+    },
+    {
+      "name": "Assault Marine",
+      "type": "Infantry",
+      "melee": 4,
+      "ranged": 2,
+      "morale": 7,
+      "defense": 3,
+      "points": 15
+    },
+    {
+      "name": "Devastator Marine",
+      "type": "Infantry",
+      "melee": 2,
+      "ranged": 4,
+      "morale": 7,
+      "defense": 3,
+      "points": 16
+    },
+    {
+      "name": "Terminator",
+      "type": "Elite",
+      "melee": 4,
+      "ranged": 3,
+      "morale": 8,
+      "defense": 2,
+      "points": 25
+    },
+    {
+      "name": "Scout",
+      "type": "Infantry",
+      "melee": 3,
+      "ranged": 3,
+      "morale": 6,
+      "defense": 4,
+      "points": 10
+    },
+    {
+      "name": "Ork Boy",
+      "type": "Infantry",
+      "melee": 3,
+      "ranged": 2,
+      "morale": 6,
+      "defense": 5,
+      "points": 8
+    }
+  ],
+  "armybooks": [
+    {
+      "name": "Codex: Space Marines",
+      "description": "Official Space Marine army book"
+    },
+    {
+      "name": "Codex: Orks",
+      "description": "Official Ork army book"
+    },
+    {
+      "name": "Codex: Craftworlds",
+      "description": "Official Eldar army book"
+    }
+  ],
+  "armylists": [
+    {
+      "name": "Ultramarines 3rd Company",
+      "player": "Commander Titus",
+      "points": 2000
+    },
+    {
+      "name": "Goff Waaagh!",
+      "player": "Warboss Gork",
+      "points": 1500
+    },
+    {
+      "name": "Biel-Tan Warhost",
+      "player": "Farseer Eldrad",
+      "points": 1800
+    }
+  ]
+}

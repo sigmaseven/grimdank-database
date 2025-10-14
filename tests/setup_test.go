@@ -31,16 +31,19 @@ type TestRepositories struct {
 	UnitRepo     *repositories.UnitRepository
 	ArmyBookRepo *repositories.ArmyBookRepository
 	ArmyListRepo *repositories.ArmyListRepository
+	FactionRepo  *repositories.FactionRepository
 }
 
 // TestServices holds all service instances for testing
 type TestServices struct {
-	RuleService     *services.RuleService
-	WeaponService   *services.WeaponService
-	WarGearService  *services.WarGearService
-	UnitService     *services.UnitService
-	ArmyBookService *services.ArmyBookService
-	ArmyListService *services.ArmyListService
+	RuleService       *services.RuleService
+	WeaponService     *services.WeaponService
+	WarGearService    *services.WarGearService
+	UnitService       *services.UnitService
+	ArmyBookService   *services.ArmyBookService
+	ArmyListService   *services.ArmyListService
+	FactionService    *services.FactionService
+	PopulationService *services.PopulationService
 }
 
 var (
@@ -48,7 +51,7 @@ var (
 	testRepos           *TestRepositories
 	testServices        *TestServices
 	testCollectionNames = []string{
-		"rules", "weapons", "wargear", "units", "armybooks", "armylists",
+		"rules", "weapons", "wargear", "units", "armybooks", "armylists", "factions",
 	}
 	// Track created entities for cleanup
 	createdEntities = make(map[string][]string) // collection -> []entityIDs
@@ -59,7 +62,8 @@ func SetupTestDB(t *testing.T) *TestDB {
 	// Use the same MONGODB_URI environment variable as the main application
 	mongoURI := os.Getenv("MONGODB_URI")
 	if mongoURI == "" {
-		mongoURI = "mongodb://localhost:27017"
+		// Use the same credentials as docker-compose.yml
+		mongoURI = "mongodb://admin:password@localhost:27017/grimdank_db?authSource=admin"
 	}
 
 	testDBName := "grimdank_db"
@@ -98,6 +102,7 @@ func SetupTestRepositories(t *testing.T) *TestRepositories {
 		UnitRepo:     repositories.NewUnitRepository(testDB.Collections["units"]),
 		ArmyBookRepo: repositories.NewArmyBookRepository(testDB.Collections["armybooks"]),
 		ArmyListRepo: repositories.NewArmyListRepository(testDB.Collections["armylists"]),
+		FactionRepo:  repositories.NewFactionRepository(testDB.Collections["factions"]),
 	}
 
 	return testRepos
@@ -109,6 +114,9 @@ func SetupTestServices(t *testing.T) *TestServices {
 		SetupTestRepositories(t)
 	}
 
+	// Clean up any existing data before starting tests
+	CleanupTestDB(t)
+
 	testServices = &TestServices{
 		RuleService:     services.NewRuleService(testRepos.RuleRepo),
 		WeaponService:   services.NewWeaponService(testRepos.WeaponRepo),
@@ -116,6 +124,13 @@ func SetupTestServices(t *testing.T) *TestServices {
 		UnitService:     services.NewUnitService(testRepos.UnitRepo),
 		ArmyBookService: services.NewArmyBookService(testRepos.ArmyBookRepo),
 		ArmyListService: services.NewArmyListService(testRepos.ArmyListRepo),
+		FactionService:  services.NewFactionService(testRepos.FactionRepo),
+		PopulationService: services.NewPopulationService(
+			services.NewRuleService(testRepos.RuleRepo),
+			services.NewWeaponService(testRepos.WeaponRepo),
+			services.NewWarGearService(testRepos.WarGearRepo),
+			services.NewUnitService(testRepos.UnitRepo),
+		),
 	}
 
 	return testServices
@@ -266,16 +281,10 @@ func CreateTestUnit() *models.Unit {
 	return &models.Unit{
 		Name:             "Test Unit",
 		Type:             "Infantry",
-		Movement:         "6\"",
-		WeaponSkill:      "3+",
-		BallisticSkill:   "3+",
-		Strength:         "3",
-		Toughness:        "3",
-		Wounds:           "1",
-		Initiative:       "3",
-		Attacks:          "1",
-		Leadership:       "7",
-		Save:             "3+",
+		Melee:            3,
+		Ranged:           3,
+		Morale:           7,
+		Defense:          3,
 		Points:           100,
 		Rules:            []models.RuleReference{},
 		AvailableWeapons: []primitive.ObjectID{},
@@ -289,7 +298,7 @@ func CreateTestUnit() *models.Unit {
 func CreateTestArmyBook() *models.ArmyBook {
 	return &models.ArmyBook{
 		Name:        "Test Army Book",
-		Faction:     "Test Faction",
+		FactionID:   primitive.NewObjectID(),
 		Description: "A test army book",
 		Units:       []primitive.ObjectID{},
 		Rules:       []models.RuleReference{},
@@ -301,10 +310,19 @@ func CreateTestArmyList() *models.ArmyList {
 	return &models.ArmyList{
 		Name:        "Test Army List",
 		Player:      "Test Player",
-		Faction:     "Test Faction",
+		FactionID:   primitive.NewObjectID(),
 		Points:      1000,
 		Units:       []primitive.ObjectID{},
 		Description: "A test army list",
+	}
+}
+
+// CreateTestFaction creates a test faction for testing
+func CreateTestFaction() *models.Faction {
+	return &models.Faction{
+		Name:        "Test Faction",
+		Description: "A test faction",
+		Type:        "Official",
 	}
 }
 
@@ -371,8 +389,17 @@ func AssertEqualUnits(t *testing.T, expected, actual *models.Unit, msg string) {
 	if expected.Type != actual.Type {
 		t.Errorf("%s: Expected type %s, got %s", msg, expected.Type, actual.Type)
 	}
-	if expected.Movement != actual.Movement {
-		t.Errorf("%s: Expected movement %s, got %s", msg, expected.Movement, actual.Movement)
+	if expected.Melee != actual.Melee {
+		t.Errorf("%s: Expected melee %d, got %d", msg, expected.Melee, actual.Melee)
+	}
+	if expected.Ranged != actual.Ranged {
+		t.Errorf("%s: Expected ranged %d, got %d", msg, expected.Ranged, actual.Ranged)
+	}
+	if expected.Morale != actual.Morale {
+		t.Errorf("%s: Expected morale %d, got %d", msg, expected.Morale, actual.Morale)
+	}
+	if expected.Defense != actual.Defense {
+		t.Errorf("%s: Expected defense %d, got %d", msg, expected.Defense, actual.Defense)
 	}
 	if !reflect.DeepEqual(expected.Points, actual.Points) {
 		t.Errorf("%s: Expected points %v, got %v", msg, expected.Points, actual.Points)
@@ -384,8 +411,8 @@ func AssertEqualArmyBooks(t *testing.T, expected, actual *models.ArmyBook, msg s
 	if expected.Name != actual.Name {
 		t.Errorf("%s: Expected name %s, got %s", msg, expected.Name, actual.Name)
 	}
-	if expected.Faction != actual.Faction {
-		t.Errorf("%s: Expected faction %s, got %s", msg, expected.Faction, actual.Faction)
+	if expected.FactionID != actual.FactionID {
+		t.Errorf("%s: Expected faction ID %s, got %s", msg, expected.FactionID.Hex(), actual.FactionID.Hex())
 	}
 	if expected.Description != actual.Description {
 		t.Errorf("%s: Expected description %s, got %s", msg, expected.Description, actual.Description)
@@ -400,10 +427,23 @@ func AssertEqualArmyLists(t *testing.T, expected, actual *models.ArmyList, msg s
 	if expected.Player != actual.Player {
 		t.Errorf("%s: Expected player %s, got %s", msg, expected.Player, actual.Player)
 	}
-	if expected.Faction != actual.Faction {
-		t.Errorf("%s: Expected faction %s, got %s", msg, expected.Faction, actual.Faction)
+	if expected.FactionID != actual.FactionID {
+		t.Errorf("%s: Expected faction ID %s, got %s", msg, expected.FactionID.Hex(), actual.FactionID.Hex())
 	}
 	if !reflect.DeepEqual(expected.Points, actual.Points) {
 		t.Errorf("%s: Expected points %v, got %v", msg, expected.Points, actual.Points)
+	}
+}
+
+// AssertEqualFactions compares two factions and fails the test if they're not equal
+func AssertEqualFactions(t *testing.T, expected, actual *models.Faction, msg string) {
+	if expected.Name != actual.Name {
+		t.Errorf("%s: Expected name %s, got %s", msg, expected.Name, actual.Name)
+	}
+	if expected.Description != actual.Description {
+		t.Errorf("%s: Expected description %s, got %s", msg, expected.Description, actual.Description)
+	}
+	if expected.Type != actual.Type {
+		t.Errorf("%s: Expected type %s, got %s", msg, expected.Type, actual.Type)
 	}
 }

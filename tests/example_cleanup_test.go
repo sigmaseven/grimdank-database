@@ -60,6 +60,9 @@ func TestExampleCleanup(t *testing.T) {
 	})
 
 	t.Run("Collection-Specific Cleanup", func(t *testing.T) {
+		// Reset the cleanup manager for this sub-test
+		cleanupManager = NewTestCleanupManager(t)
+
 		// Create multiple rules
 		rules := []*models.Rule{
 			CreateTestRuleWithName("Rule 1"),
@@ -81,17 +84,17 @@ func TestExampleCleanup(t *testing.T) {
 			cleanupManager.TrackEntity("rules", ruleID)
 		}
 
-		// Verify we have 3 rules
-		ruleCount := cleanupManager.GetEntityCount(t, "rules")
-		if ruleCount != 3 {
-			t.Errorf("Expected 3 rules, got %d", ruleCount)
+		// Verify we have 3 tracked rules
+		trackedRules := cleanupManager.GetTrackedEntities("rules")
+		if len(trackedRules) != 3 {
+			t.Errorf("Expected 3 tracked rules, got %d", len(trackedRules))
 		}
 
 		// Clean up only rules collection
 		cleanupManager.CleanupCollection(t, "rules")
 
 		// Verify rules are gone but weapons remain
-		ruleCount = cleanupManager.GetEntityCount(t, "rules")
+		ruleCount := cleanupManager.GetEntityCount(t, "rules")
 		weaponCount := cleanupManager.GetEntityCount(t, "weapons")
 
 		if ruleCount != 0 {

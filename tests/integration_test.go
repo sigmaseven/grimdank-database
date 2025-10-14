@@ -124,7 +124,7 @@ func TestIntegrationCRUD(t *testing.T) {
 			t.Fatalf("Failed to update wargear: %v", err)
 		}
 
-		createdUnit.Movement = "12\""
+		createdUnit.Melee = 4
 		err = testServices.UnitService.UpdateUnit(ctx, createdUnit.ID.Hex(), createdUnit)
 		if err != nil {
 			t.Fatalf("Failed to update unit: %v", err)
@@ -249,27 +249,23 @@ func TestBulkImportIntegration(t *testing.T) {
 
 		units := []models.Unit{
 			{
-				Name: "Bulk Unit 1", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
-				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
-				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
+				Name: "Bulk Unit 1", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 			{
-				Name: "Bulk Unit 2", Type: "Vehicle", Movement: "12\"", WeaponSkill: "4+",
-				BallisticSkill: "4+", Strength: "6", Toughness: "7", Wounds: "3",
-				Initiative: "2", Attacks: "2", Leadership: "8", Save: "3+", Points: 200,
+				Name: "Bulk Unit 2", Type: "Vehicle", Melee: 4, Ranged: 4, Morale: 8, Defense: 4, Points: 200,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			},
 		}
 
 		armyBooks := []models.ArmyBook{
-			{Name: "Bulk Army Book 1", Faction: "Faction A", Description: "First bulk army book"},
-			{Name: "Bulk Army Book 2", Faction: "Faction B", Description: "Second bulk army book"},
+			{Name: "Bulk Army Book 1", FactionID: primitive.NewObjectID(), Description: "First bulk army book"},
+			{Name: "Bulk Army Book 2", FactionID: primitive.NewObjectID(), Description: "Second bulk army book"},
 		}
 
 		armyLists := []models.ArmyList{
-			{Name: "Bulk Army List 1", Player: "Player A", Faction: "Faction A", Points: 1000, Description: "First bulk army list"},
-			{Name: "Bulk Army List 2", Player: "Player B", Faction: "Faction B", Points: 1500, Description: "Second bulk army list"},
+			{Name: "Bulk Army List 1", Player: "Player A", FactionID: primitive.NewObjectID(), Points: 1000, Description: "First bulk army list"},
+			{Name: "Bulk Army List 2", Player: "Player B", FactionID: primitive.NewObjectID(), Points: 1500, Description: "Second bulk army list"},
 		}
 
 		// Import all data
@@ -366,13 +362,11 @@ func TestSearchIntegration(t *testing.T) {
 		weapon := &models.Weapon{Name: "Fire Weapon", Type: "Ranged", Range: 24, AP: "0", Attacks: 1, Points: 10}
 		wargear := &models.WarGear{Name: "Fire Wargear", Type: "Equipment", Description: "Fire equipment", Points: 15}
 		unit := &models.Unit{
-			Name: "Fire Unit", Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
-			BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
-			Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: 100,
+			Name: "Fire Unit", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
 			Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 		}
-		armyBook := &models.ArmyBook{Name: "Fire Army Book", Faction: "Fire Faction", Description: "A fire army book"}
-		armyList := &models.ArmyList{Name: "Fire Army List", Player: "Fire Player", Faction: "Fire Faction", Points: 1000, Description: "A fire army list"}
+		armyBook := &models.ArmyBook{Name: "Fire Army Book", FactionID: primitive.NewObjectID(), Description: "A fire army book"}
+		armyList := &models.ArmyList{Name: "Fire Army List", Player: "Fire Player", FactionID: primitive.NewObjectID(), Points: 1000, Description: "A fire army list"}
 
 		// Create all entities
 		_, err := testServices.RuleService.CreateRule(ctx, rule)
@@ -469,13 +463,11 @@ func TestPaginationIntegration(t *testing.T) {
 			weapon := &models.Weapon{Name: fmt.Sprintf("Weapon %d", i), Type: "Ranged", Range: 24, AP: "0", Attacks: 1, Points: i * 10}
 			wargear := &models.WarGear{Name: fmt.Sprintf("Wargear %d", i), Type: "Equipment", Description: fmt.Sprintf("Description %d", i), Points: i * 15}
 			unit := &models.Unit{
-				Name: fmt.Sprintf("Unit %d", i), Type: "Infantry", Movement: "6\"", WeaponSkill: "3+",
-				BallisticSkill: "3+", Strength: "3", Toughness: "3", Wounds: "1",
-				Initiative: "3", Attacks: "1", Leadership: "7", Save: "3+", Points: i * 100,
+				Name: fmt.Sprintf("Unit %d", i), Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: i * 100,
 				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
 			}
-			armyBook := &models.ArmyBook{Name: fmt.Sprintf("Army Book %d", i), Faction: fmt.Sprintf("Faction %d", i), Description: fmt.Sprintf("Description %d", i)}
-			armyList := &models.ArmyList{Name: fmt.Sprintf("Army List %d", i), Player: fmt.Sprintf("Player %d", i), Faction: fmt.Sprintf("Faction %d", i), Points: i * 1000, Description: fmt.Sprintf("Description %d", i)}
+			armyBook := &models.ArmyBook{Name: fmt.Sprintf("Army Book %d", i), FactionID: primitive.NewObjectID(), Description: fmt.Sprintf("Description %d", i)}
+			armyList := &models.ArmyList{Name: fmt.Sprintf("Army List %d", i), Player: fmt.Sprintf("Player %d", i), FactionID: primitive.NewObjectID(), Points: i * 1000, Description: fmt.Sprintf("Description %d", i)}
 
 			_, err := testServices.RuleService.CreateRule(ctx, rule)
 			if err != nil {

@@ -1,20 +1,37 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { armyBooksAPI } from '../services/api';
 import { Icon } from './Icons';
+import Pagination from './Pagination';
+import { usePagination } from '../hooks/usePagination';
 
 function ArmyBooks() {
   const [armyBooks, setArmyBooks] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingArmyBook, setEditingArmyBook] = useState(null);
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  
+  // Pagination hook
+  const {
+    currentPage,
+    pageSize,
+    totalItems,
+    totalPages,
+    loading,
+    skip,
+    pageSizeOptions,
+    setLoading,
+    handlePageChange,
+    handlePageSizeChange,
+    resetPagination,
+    updateTotalItems,
+  } = usePagination(50, [50, 100, 200]);
 
   const [formData, setFormData] = useState({
     name: '',
-    faction: '',
+    factionId: '',
     description: '',
     units: [],
     rules: []
@@ -25,24 +42,42 @@ function ArmyBooks() {
       if (showLoading) {
         setLoading(true);
       }
-      const params = searchQuery ? { name: searchQuery } : {};
+      const params = {
+        limit: pageSize,
+        skip: skip,
+        ...(searchQuery ? { name: searchQuery } : {})
+      };
       const data = await armyBooksAPI.getAll(params);
       setArmyBooks(Array.isArray(data) ? data : []);
       setError(null);
+      
+      // Update total items count
+      if (data.length === 0) {
+        // If we got no results, the total is just the current skip value
+        updateTotalItems(skip);
+      } else if (data.length < pageSize) {
+        // If we got fewer results than page size, this is the last page
+        updateTotalItems(skip + data.length);
+      } else {
+        // If we got a full page, there might be more
+        updateTotalItems(skip + data.length + 1);
+      }
     } catch (err) {
-      setError('Failed to load army books');
-      console.error(err);
+      // Handle empty results gracefully - don't show error for empty lists
+      console.log('ArmyBooks API error:', err);
+      setArmyBooks([]);
+      setError(null);
+      updateTotalItems(0);
     } finally {
       if (showLoading) {
         setLoading(false);
       }
     }
-  }, []);
+  }, [pageSize, skip, updateTotalItems]);
 
   useEffect(() => {
-    loadArmyBooks('');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    loadArmyBooks(searchTerm);
+  }, [loadArmyBooks, searchTerm]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -56,6 +91,9 @@ function ArmyBooks() {
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
+    
+    // Reset pagination when searching
+    resetPagination();
     
     // Clear existing timeout
     if (searchTimeoutRef.current) {
@@ -104,7 +142,7 @@ function ArmyBooks() {
     setEditingArmyBook(armyBook);
     setFormData({
       name: armyBook.name,
-      faction: armyBook.faction,
+      factionId: armyBook.factionId,
       description: armyBook.description,
       units: armyBook.units || [],
       rules: armyBook.rules || []
@@ -116,6 +154,17 @@ function ArmyBooks() {
     if (window.confirm('Are you sure you want to delete this army book?')) {
       try {
         await armyBooksAPI.delete(id);
+        setError(null); // Clear any previous errors
+        
+        // Check if we're on the last page and this is the only item
+        const isLastPage = currentPage === totalPages;
+        const isOnlyItemOnPage = armyBooks.length === 1;
+        
+        if (isLastPage && isOnlyItemOnPage && currentPage > 1) {
+          // Reset to first page when deleting the last item
+          resetPagination();
+        }
+        
         loadArmyBooks(searchTerm, false);
       } catch (err) {
         setError('Failed to delete army book');
@@ -127,7 +176,7 @@ function ArmyBooks() {
   const resetForm = () => {
     setFormData({
       name: '',
-      faction: '',
+      factionId: '',
       description: '',
       units: [],
       rules: []
@@ -197,8 +246,8 @@ function ArmyBooks() {
                 <label>Faction</label>
                 <input
                   type="text"
-                  name="faction"
-                  value={formData.faction}
+                  name="factionId"
+                  value={formData.factionId}
                   onChange={handleInputChange}
                 />
               </div>
@@ -251,7 +300,7 @@ function ArmyBooks() {
               {armyBooks && armyBooks.map(armyBook => (
                 <tr key={armyBook.id}>
                   <td><strong>{armyBook.name}</strong></td>
-                  <td>{armyBook.faction}</td>
+                  <td>{armyBook.factionId}</td>
                   <td>{armyBook.description}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
@@ -301,6 +350,19 @@ function ArmyBooks() {
               ))}
             </tbody>
           </table>
+        )}
+        
+        {/* Pagination */}
+        {armyBooks && armyBooks.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            totalItems={totalItems}
+            pageSizeOptions={pageSizeOptions}
+          />
         )}
       </div>
     </div>

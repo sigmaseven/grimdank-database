@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"grimdank-database/models"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func TestArmyBookCRUD(t *testing.T) {
@@ -52,9 +54,9 @@ func TestArmyBookCRUD(t *testing.T) {
 
 		// Create multiple army books
 		armyBooks := []*models.ArmyBook{
-			{Name: "Army Book 1", Faction: "Faction A", Description: "First army book"},
-			{Name: "Army Book 2", Faction: "Faction B", Description: "Second army book"},
-			{Name: "Army Book 3", Faction: "Faction C", Description: "Third army book"},
+			{Name: "Army Book 1", FactionID: primitive.NewObjectID(), Description: "First army book"},
+			{Name: "Army Book 2", FactionID: primitive.NewObjectID(), Description: "Second army book"},
+			{Name: "Army Book 3", FactionID: primitive.NewObjectID(), Description: "Third army book"},
 		}
 
 		for _, armyBook := range armyBooks {
@@ -81,9 +83,9 @@ func TestArmyBookCRUD(t *testing.T) {
 
 		// Create army books with different names
 		armyBooks := []*models.ArmyBook{
-			{Name: "Fire Legion Codex", Faction: "Fire Legion", Description: "A fire army book"},
-			{Name: "Ice Warriors Codex", Faction: "Ice Warriors", Description: "An ice army book"},
-			{Name: "Fire Marines Codex", Faction: "Fire Marines", Description: "Another fire army book"},
+			{Name: "Fire Legion Codex", FactionID: primitive.NewObjectID(), Description: "A fire army book"},
+			{Name: "Ice Warriors Codex", FactionID: primitive.NewObjectID(), Description: "An ice army book"},
+			{Name: "Fire Marines Codex", FactionID: primitive.NewObjectID(), Description: "Another fire army book"},
 		}
 
 		for _, armyBook := range armyBooks {
@@ -114,7 +116,7 @@ func TestArmyBookCRUD(t *testing.T) {
 
 		// Update the army book
 		createdArmyBook.Description = "Updated description"
-		createdArmyBook.Faction = "Updated Faction"
+		createdArmyBook.FactionID = primitive.NewObjectID()
 
 		err = testServices.ArmyBookService.UpdateArmyBook(ctx, createdArmyBook.ID.Hex(), createdArmyBook)
 		if err != nil {
@@ -130,8 +132,8 @@ func TestArmyBookCRUD(t *testing.T) {
 		if updatedArmyBook.Description != "Updated description" {
 			t.Errorf("Expected description 'Updated description', got '%s'", updatedArmyBook.Description)
 		}
-		if updatedArmyBook.Faction != "Updated Faction" {
-			t.Errorf("Expected faction 'Updated Faction', got '%s'", updatedArmyBook.Faction)
+		if updatedArmyBook.FactionID != createdArmyBook.FactionID {
+			t.Errorf("Expected faction ID to match updated faction ID")
 		}
 	})
 
@@ -159,7 +161,7 @@ func TestArmyBookCRUD(t *testing.T) {
 	t.Run("Create ArmyBook With Empty Name Should Fail", func(t *testing.T) {
 		armyBook := &models.ArmyBook{
 			Name:        "",
-			Faction:     "Test Faction",
+			FactionID:   primitive.NewObjectID(),
 			Description: "An army book with empty name",
 		}
 
@@ -242,9 +244,9 @@ func TestArmyBookBulkImport(t *testing.T) {
 
 	t.Run("Bulk Import ArmyBooks", func(t *testing.T) {
 		armyBooks := []models.ArmyBook{
-			{Name: "Bulk Army Book 1", Faction: "Faction A", Description: "First bulk army book"},
-			{Name: "Bulk Army Book 2", Faction: "Faction B", Description: "Second bulk army book"},
-			{Name: "Bulk Army Book 3", Faction: "Faction C", Description: "Third bulk army book"},
+			{Name: "Bulk Army Book 1", FactionID: primitive.NewObjectID(), Description: "First bulk army book"},
+			{Name: "Bulk Army Book 2", FactionID: primitive.NewObjectID(), Description: "Second bulk army book"},
+			{Name: "Bulk Army Book 3", FactionID: primitive.NewObjectID(), Description: "Third bulk army book"},
 		}
 
 		importedIDs, err := testServices.ArmyBookService.BulkImportArmyBooks(ctx, armyBooks)
@@ -272,8 +274,8 @@ func TestArmyBookBulkImport(t *testing.T) {
 		CleanupTestDB(t)
 
 		armyBooks := []models.ArmyBook{
-			{Name: "Valid Army Book", Faction: "Faction A", Description: "A valid army book"},
-			{Name: "", Faction: "Faction B", Description: "Invalid army book with empty name"},
+			{Name: "Valid Army Book", FactionID: primitive.NewObjectID(), Description: "A valid army book"},
+			{Name: "", FactionID: primitive.NewObjectID(), Description: "Invalid army book with empty name"},
 		}
 
 		_, err := testServices.ArmyBookService.BulkImportArmyBooks(ctx, armyBooks)
@@ -307,7 +309,7 @@ func TestArmyBookPagination(t *testing.T) {
 		for i := 1; i <= 5; i++ {
 			armyBook := &models.ArmyBook{
 				Name:        fmt.Sprintf("Army Book %d", i),
-				Faction:     fmt.Sprintf("Faction %d", i),
+				FactionID:   primitive.NewObjectID(),
 				Description: fmt.Sprintf("Description %d", i),
 			}
 			_, err := testServices.ArmyBookService.CreateArmyBook(ctx, armyBook)

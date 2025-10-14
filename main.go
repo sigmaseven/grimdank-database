@@ -136,19 +136,21 @@ func main() {
 	api.HandleFunc("/armybooks/{id}", armyBookHandler.UpdateArmyBook).Methods("PUT")
 	api.HandleFunc("/armybooks/{id}", armyBookHandler.DeleteArmyBook).Methods("DELETE")
 
+	// Faction routes
+	log.Println("Registering faction routes...")
+	api.HandleFunc("/factions", factionHandler.CreateFaction).Methods("POST")
+	api.HandleFunc("/factions", factionHandler.GetFactions).Methods("GET")
+	api.HandleFunc("/factions/{id}", factionHandler.GetFaction).Methods("GET")
+	api.HandleFunc("/factions/{id}", factionHandler.UpdateFaction).Methods("PUT")
+	api.HandleFunc("/factions/{id}", factionHandler.DeleteFaction).Methods("DELETE")
+	log.Println("Faction routes registered successfully")
+
 	// ArmyList routes
 	api.HandleFunc("/armylists", armyListHandler.CreateArmyList).Methods("POST")
 	api.HandleFunc("/armylists", armyListHandler.GetArmyLists).Methods("GET")
 	api.HandleFunc("/armylists/{id}", armyListHandler.GetArmyList).Methods("GET")
 	api.HandleFunc("/armylists/{id}", armyListHandler.UpdateArmyList).Methods("PUT")
 	api.HandleFunc("/armylists/{id}", armyListHandler.DeleteArmyList).Methods("DELETE")
-
-	// Faction routes
-	api.HandleFunc("/factions", factionHandler.CreateFaction).Methods("POST")
-	api.HandleFunc("/factions", factionHandler.GetFactions).Methods("GET")
-	api.HandleFunc("/factions/{id}", factionHandler.GetFaction).Methods("GET")
-	api.HandleFunc("/factions/{id}", factionHandler.UpdateFaction).Methods("PUT")
-	api.HandleFunc("/factions/{id}", factionHandler.DeleteFaction).Methods("DELETE")
 
 	// Import routes
 	api.HandleFunc("/import/rules", importHandler.ImportRules).Methods("POST")

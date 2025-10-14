@@ -1,23 +1,40 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { armyListsAPI } from '../services/api';
 import { Icon } from './Icons';
+import Pagination from './Pagination';
+import { usePagination } from '../hooks/usePagination';
 
 function ArmyLists() {
   const [armyLists, setArmyLists] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingArmyList, setEditingArmyList] = useState(null);
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  
+  // Pagination hook
+  const {
+    currentPage,
+    pageSize,
+    totalItems,
+    totalPages,
+    loading,
+    skip,
+    pageSizeOptions,
+    setLoading,
+    handlePageChange,
+    handlePageSizeChange,
+    resetPagination,
+    updateTotalItems,
+  } = usePagination(50, [50, 100, 200]);
 
   const [formData, setFormData] = useState({
     name: '',
     player: '',
-    faction: '',
+    factionId: '',
     points: 0,
-    units: [],
+    unitIds: [],
     description: ''
   });
 
@@ -26,24 +43,42 @@ function ArmyLists() {
       if (showLoading) {
         setLoading(true);
       }
-      const params = searchQuery ? { name: searchQuery } : {};
+      const params = {
+        limit: pageSize,
+        skip: skip,
+        ...(searchQuery ? { name: searchQuery } : {})
+      };
       const data = await armyListsAPI.getAll(params);
       setArmyLists(Array.isArray(data) ? data : []);
       setError(null);
+      
+      // Update total items count
+      if (data.length === 0) {
+        // If we got no results, the total is just the current skip value
+        updateTotalItems(skip);
+      } else if (data.length < pageSize) {
+        // If we got fewer results than page size, this is the last page
+        updateTotalItems(skip + data.length);
+      } else {
+        // If we got a full page, there might be more
+        updateTotalItems(skip + data.length + 1);
+      }
     } catch (err) {
-      setError('Failed to load army lists');
-      console.error(err);
+      // Handle empty results gracefully - don't show error for empty lists
+      console.log('ArmyLists API error:', err);
+      setArmyLists([]);
+      setError(null);
+      updateTotalItems(0);
     } finally {
       if (showLoading) {
         setLoading(false);
       }
     }
-  }, []);
+  }, [pageSize, skip, updateTotalItems]);
 
   useEffect(() => {
-    loadArmyLists('');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    loadArmyLists(searchTerm);
+  }, [loadArmyLists, searchTerm]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -57,6 +92,9 @@ function ArmyLists() {
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
+    
+    // Reset pagination when searching
+    resetPagination();
     
     // Clear existing timeout
     if (searchTimeoutRef.current) {
@@ -74,7 +112,6 @@ function ArmyLists() {
     }
   };
 
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -83,33 +120,47 @@ function ArmyLists() {
     }));
   };
 
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      player: '',
+      factionId: '',
+      points: 0,
+      unitIds: [],
+      description: ''
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     try {
       if (editingArmyList) {
         await armyListsAPI.update(editingArmyList.id, formData);
       } else {
         await armyListsAPI.create(formData);
       }
+      
+      setError(null); // Clear any previous errors
+      loadArmyLists(searchTerm, false);
       setShowForm(false);
       setEditingArmyList(null);
       resetForm();
-      loadArmyLists(searchTerm, false);
     } catch (err) {
+      console.error('Failed to save army list:', err);
       setError('Failed to save army list');
-      console.error(err);
     }
   };
 
   const handleEdit = (armyList) => {
     setEditingArmyList(armyList);
     setFormData({
-      name: armyList.name,
-      player: armyList.player,
-      faction: armyList.faction,
-      points: armyList.points,
-      units: armyList.units || [],
-      description: armyList.description
+      name: armyList.name || '',
+      player: armyList.player || '',
+      factionId: armyList.factionId || '',
+      points: armyList.points || 0,
+      unitIds: armyList.unitIds || [],
+      description: armyList.description || ''
     });
     setShowForm(true);
   };
@@ -118,23 +169,23 @@ function ArmyLists() {
     if (window.confirm('Are you sure you want to delete this army list?')) {
       try {
         await armyListsAPI.delete(id);
+        setError(null); // Clear any previous errors
+        
+        // Check if we're on the last page and this is the only item
+        const isLastPage = currentPage === totalPages;
+        const isOnlyItemOnPage = armyLists.length === 1;
+        
+        if (isLastPage && isOnlyItemOnPage && currentPage > 1) {
+          // Reset to first page when deleting the last item
+          resetPagination();
+        }
+        
         loadArmyLists(searchTerm, false);
       } catch (err) {
+        console.error('Failed to delete army list:', err);
         setError('Failed to delete army list');
-        console.error(err);
       }
     }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      player: '',
-      faction: '',
-      points: 0,
-      units: [],
-      description: ''
-    });
   };
 
   if (loading) return <div className="loading">Loading army lists...</div>;
@@ -197,22 +248,24 @@ function ArmyLists() {
               </div>
               
               <div className="form-group">
-                <label>Player</label>
+                <label>Player *</label>
                 <input
                   type="text"
                   name="player"
                   value={formData.player}
                   onChange={handleInputChange}
+                  required
                 />
               </div>
               
               <div className="form-group">
-                <label>Faction</label>
+                <label>Faction *</label>
                 <input
                   type="text"
-                  name="faction"
-                  value={formData.faction}
+                  name="factionId"
+                  value={formData.factionId}
                   onChange={handleInputChange}
+                  required
                 />
               </div>
               
@@ -223,6 +276,7 @@ function ArmyLists() {
                   name="points"
                   value={formData.points}
                   onChange={handleInputChange}
+                  min="0"
                 />
               </div>
               
@@ -235,14 +289,14 @@ function ArmyLists() {
                   rows="3"
                 />
               </div>
-
-              <div style={{ marginTop: '1rem' }}>
-                <button type="submit" className="btn btn-success">
-                  {editingArmyList ? 'Update Army List' : 'Create Army List'}
+              
+              <div className="form-actions">
+                <button type="submit" className="btn btn-primary">
+                  {editingArmyList ? 'Update' : 'Create'} Army List
                 </button>
                 <button 
                   type="button" 
-                  className="btn" 
+                  className="btn btn-secondary"
                   onClick={() => {
                     setShowForm(false);
                     setEditingArmyList(null);
@@ -273,61 +327,48 @@ function ArmyLists() {
               </tr>
             </thead>
             <tbody>
-              {armyLists && armyLists.map(armyList => (
+              {armyLists.map((armyList) => (
                 <tr key={armyList.id}>
-                  <td><strong>{armyList.name}</strong></td>
+                  <td>{armyList.name}</td>
                   <td>{armyList.player}</td>
-                  <td>{armyList.faction}</td>
+                  <td>{armyList.factionId}</td>
                   <td>{armyList.points}</td>
                   <td>{armyList.description}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                      <div 
+                    <div className="action-buttons">
+                      <button
                         onClick={() => handleEdit(armyList)}
-                        style={{ 
-                          cursor: 'pointer', 
-                          padding: '0.25rem',
-                          borderRadius: '4px',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = '#21262d';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = 'transparent';
-                        }}
+                        className="btn btn-sm btn-primary"
+                        title="Edit"
                       >
-                        <Icon name="edit" size={20} color="#8b949e" />
-                      </div>
-                      <div 
+                        <Icon name="edit" />
+                      </button>
+                      <button
                         onClick={() => handleDelete(armyList.id)}
-                        style={{ 
-                          cursor: 'pointer', 
-                          padding: '0.25rem',
-                          borderRadius: '4px',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = '#21262d';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = 'transparent';
-                        }}
+                        className="btn btn-sm btn-danger"
+                        title="Delete"
                       >
-                        <Icon name="delete" size={20} color="#f85149" />
-                      </div>
+                        <Icon name="delete" />
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        )}
+        
+        {/* Pagination */}
+        {armyLists && armyLists.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            totalItems={totalItems}
+            pageSizeOptions={pageSizeOptions}
+          />
         )}
       </div>
     </div>

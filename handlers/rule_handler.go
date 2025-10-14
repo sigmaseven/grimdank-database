@@ -117,8 +117,15 @@ func (h *RuleHandler) UpdateRule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch the updated rule to return to client
+	updatedRule, err := h.service.GetRuleByID(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Failed to fetch updated rule", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(rule)
+	json.NewEncoder(w).Encode(updatedRule)
 }
 
 func (h *RuleHandler) DeleteRule(w http.ResponseWriter, r *http.Request) {

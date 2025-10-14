@@ -1,21 +1,38 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { factionsAPI } from '../services/api';
 import { Icon } from './Icons';
+import Pagination from './Pagination';
+import { usePagination } from '../hooks/usePagination';
 
 function Factions() {
   const [factions, setFactions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingFaction, setEditingFaction] = useState(null);
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  
+  // Pagination hook
+  const {
+    currentPage,
+    pageSize,
+    totalItems,
+    totalPages,
+    loading,
+    skip,
+    pageSizeOptions,
+    setLoading,
+    handlePageChange,
+    handlePageSizeChange,
+    resetPagination,
+    updateTotalItems,
+  } = usePagination(50, [50, 100, 200]);
 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    type: 'Official'
+    type: ''
   });
 
   const loadFactions = useCallback(async (searchQuery = '', showLoading = true) => {
@@ -23,24 +40,42 @@ function Factions() {
       if (showLoading) {
         setLoading(true);
       }
-      const params = searchQuery ? { name: searchQuery } : {};
+      const params = {
+        limit: pageSize,
+        skip: skip,
+        ...(searchQuery ? { name: searchQuery } : {})
+      };
       const data = await factionsAPI.getAll(params);
       setFactions(Array.isArray(data) ? data : []);
       setError(null);
+      
+      // Update total items count
+      if (data.length === 0) {
+        // If we got no results, the total is just the current skip value
+        updateTotalItems(skip);
+      } else if (data.length < pageSize) {
+        // If we got fewer results than page size, this is the last page
+        updateTotalItems(skip + data.length);
+      } else {
+        // If we got a full page, there might be more
+        updateTotalItems(skip + data.length + 1);
+      }
     } catch (err) {
-      setError('Failed to load factions');
-      console.error(err);
+      // Handle empty results gracefully - don't show error for empty lists
+      console.log('Factions API error:', err);
+      setFactions([]);
+      setError(null);
+      updateTotalItems(0);
     } finally {
       if (showLoading) {
         setLoading(false);
       }
     }
-  }, []);
+  }, [pageSize, skip, updateTotalItems]);
 
   useEffect(() => {
-    loadFactions('');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    loadFactions(searchTerm);
+  }, [loadFactions, searchTerm]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -52,18 +87,26 @@ function Factions() {
   }, []);
 
   const handleSearch = (e) => {
-    const query = e.target.value;
-    setSearchTerm(query);
-
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // Reset pagination when searching
+    resetPagination();
+    
     // Clear existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-
-    // Set new timeout for search
-    searchTimeoutRef.current = setTimeout(() => {
-      loadFactions(query, false);
-    }, 300);
+    
+    // If search is empty, load immediately
+    if (value === '') {
+      loadFactions('', false);
+    } else {
+      // Debounce search by 300ms
+      searchTimeoutRef.current = setTimeout(() => {
+        loadFactions(value, false);
+      }, 300);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -74,30 +117,41 @@ function Factions() {
     }));
   };
 
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      type: ''
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     try {
       if (editingFaction) {
         await factionsAPI.update(editingFaction.id, formData);
       } else {
         await factionsAPI.create(formData);
       }
+      
+      setError(null); // Clear any previous errors
+      loadFactions(searchTerm, false);
       setShowForm(false);
       setEditingFaction(null);
       resetForm();
-      loadFactions(searchTerm, false);
     } catch (err) {
+      console.error('Failed to save faction:', err);
       setError('Failed to save faction');
-      console.error(err);
     }
   };
 
   const handleEdit = (faction) => {
     setEditingFaction(faction);
     setFormData({
-      name: faction.name,
-      description: faction.description,
-      type: faction.type
+      name: faction.name || '',
+      description: faction.description || '',
+      type: faction.type || ''
     });
     setShowForm(true);
   };
@@ -106,21 +160,23 @@ function Factions() {
     if (window.confirm('Are you sure you want to delete this faction?')) {
       try {
         await factionsAPI.delete(id);
+        setError(null); // Clear any previous errors
+        
+        // Check if we're on the last page and this is the only item
+        const isLastPage = currentPage === totalPages;
+        const isOnlyItemOnPage = factions.length === 1;
+        
+        if (isLastPage && isOnlyItemOnPage && currentPage > 1) {
+          // Reset to first page when deleting the last item
+          resetPagination();
+        }
+        
         loadFactions(searchTerm, false);
       } catch (err) {
-        setError('Failed to delete faction');
-        console.error(err);
+        console.error('Failed to delete faction:', err);
+        setError('Failed to delete faction. Please try again.');
       }
     }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      type: 'Official'
-    });
-    setEditingFaction(null);
   };
 
   if (loading) return <div className="loading">Loading factions...</div>;
@@ -128,7 +184,7 @@ function Factions() {
   return (
     <div>
       <div className="card">
-        <h2>Faction Management</h2>
+        <h2>Factions Management</h2>
         
         {error && <div className="error">{error}</div>}
         
@@ -143,60 +199,15 @@ function Factions() {
         </div>
         
         <button 
-          className="btn btn-success"
+          className="btn" 
           onClick={() => {
-            resetForm();
             setShowForm(true);
+            setEditingFaction(null);
+            resetForm();
           }}
         >
           Add New Faction
         </button>
-      </div>
-
-      <div className="card">
-        <h3>Factions List</h3>
-        {!factions || factions.length === 0 ? (
-          <p>No factions found.</p>
-        ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {factions.map(faction => (
-                <tr key={faction.id}>
-                  <td><strong>{faction.name}</strong></td>
-                  <td>
-                    <span className={`badge ${faction.type === 'Official' ? 'badge-primary' : 'badge-secondary'}`}>
-                      {faction.type}
-                    </span>
-                  </td>
-                  <td>{faction.description}</td>
-                  <td>
-                    <button
-                      className="btn btn-sm btn-primary"
-                      onClick={() => handleEdit(faction)}
-                      style={{ marginRight: '0.5rem' }}
-                    >
-                      <Icon name="edit" />
-                    </button>
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => handleDelete(faction.id)}
-                    >
-                      <Icon name="delete" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
       </div>
 
       {showForm && (
@@ -228,18 +239,6 @@ function Factions() {
               </div>
               
               <div className="form-group">
-                <label>Type</label>
-                <select
-                  name="type"
-                  value={formData.type}
-                  onChange={handleInputChange}
-                >
-                  <option value="Official">Official</option>
-                  <option value="Custom">Custom</option>
-                </select>
-              </div>
-              
-              <div className="form-group">
                 <label>Description</label>
                 <textarea
                   name="description"
@@ -248,14 +247,28 @@ function Factions() {
                   rows="3"
                 />
               </div>
-
+              
+              <div className="form-group">
+                <label>Type</label>
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Select Type</option>
+                  <option value="Official">Official</option>
+                  <option value="Custom">Custom</option>
+                  <option value="Homebrew">Homebrew</option>
+                </select>
+              </div>
+              
               <div className="form-actions">
-                <button type="submit" className="btn btn-success">
-                  {editingFaction ? 'Update Faction' : 'Create Faction'}
+                <button type="submit" className="btn">
+                  {editingFaction ? 'Update' : 'Create'} Faction
                 </button>
                 <button 
                   type="button" 
-                  className="btn btn-secondary" 
+                  className="btn btn-secondary"
                   onClick={() => {
                     setShowForm(false);
                     setEditingFaction(null);
@@ -268,6 +281,92 @@ function Factions() {
           </div>
         </div>
       )}
+
+      <div className="card">
+        <h3>Factions List</h3>
+        {!factions || factions.length === 0 ? (
+          <p>No factions found.</p>
+        ) : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {factions.map((faction) => (
+                <tr key={faction.id}>
+                  <td>{faction.name}</td>
+                  <td>{faction.description}</td>
+                  <td>{faction.type}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div 
+                        onClick={() => handleEdit(faction)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                        title="Edit"
+                      >
+                        <Icon name="edit" size={20} color="#8b949e" />
+                      </div>
+                      <div
+                        onClick={() => handleDelete(faction.id)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#21262d';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                        title="Delete"
+                      >
+                        <Icon name="delete" size={20} color="#f85149" />
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        
+        {/* Pagination */}
+        {factions && factions.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            totalItems={totalItems}
+            pageSizeOptions={pageSizeOptions}
+          />
+        )}
+      </div>
     </div>
   );
 }
