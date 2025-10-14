@@ -81,7 +81,6 @@ func (rps *RulePointsService) GetPointsBreakdown(rule *models.Rule) map[string]i
 		"effectiveness": map[string]interface{}{
 			"base_value":  effectiveness.BaseValue,
 			"multiplier":  effectiveness.Multiplier,
-			"game_impact": effectiveness.GameImpact,
 			"frequency":   effectiveness.Frequency,
 		},
 		"explanation": rps.pointsCalculator.GetPointsExplanation(effectiveness),

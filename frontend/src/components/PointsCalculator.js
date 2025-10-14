@@ -9,7 +9,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   const [customEffectiveness, setCustomEffectiveness] = useState({
     baseValue: 'moderate',
     multiplier: 1.0,
-    gameImpact: 'strategic',
     frequency: 'conditional'
   });
   const [useCustom, setUseCustom] = useState(false);
@@ -58,9 +57,8 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   const calculateCustomPoints = () => {
     // Calculate points based on custom effectiveness
     const baseWeight = getBaseEffectivenessWeight(customEffectiveness.baseValue);
-    const impactWeight = getGameImpactWeight(customEffectiveness.gameImpact);
     
-    const combinedScore = baseWeight + impactWeight;
+    const combinedScore = baseWeight;
     const finalScore = combinedScore * customEffectiveness.multiplier;
     
     // Apply frequency multiplier
@@ -123,15 +121,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
     }
   };
 
-  const getGameImpactWeight = (gameImpact) => {
-    switch (gameImpact) {
-      case 'tactical': return 1.0;       // Minimal impact - small tactical edge
-      case 'strategic': return 3.0;      // Moderate impact - noticeable advantage
-      case 'battle-changing': return 5.0; // Significant impact - major battlefield advantage
-      case 'game-winning': return 8.0;   // Maximum impact - game-breaking advantage
-      default: return 3.0;
-    }
-  };
 
   const getPointsColor = (points) => {
     if (points <= 3) return '#4CAF50'; // Green for very cheap
@@ -224,18 +213,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
                   />
                 </div>
                 <div className="input-group">
-                  <label>Game Impact</label>
-                  <select
-                    value={customEffectiveness.gameImpact}
-                    onChange={(e) => handleCustomChange('gameImpact', e.target.value)}
-                  >
-                    <option value="tactical">Tactical (Minimal Impact)</option>
-                    <option value="strategic">Strategic (Moderate Impact)</option>
-                    <option value="battle-changing">Battle-Changing (Significant Impact)</option>
-                    <option value="game-winning">Game-Winning (Maximum Impact)</option>
-                  </select>
-                </div>
-                <div className="input-group">
                   <label>Frequency</label>
                   <select
                     value={customEffectiveness.frequency}
@@ -301,10 +278,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
                 <div className="breakdown-item">
                   <span className="label">Multiplier:</span>
                   <span className="value">{breakdown.effectiveness?.multiplier}x</span>
-                </div>
-                <div className="breakdown-item">
-                  <span className="label">Game Impact:</span>
-                  <span className="value">{breakdown.effectiveness?.game_impact}/5</span>
                 </div>
                 <div className="breakdown-item">
                   <span className="label">Frequency:</span>

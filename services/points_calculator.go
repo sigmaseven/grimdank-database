@@ -18,7 +18,6 @@ func NewPointsCalculator() *PointsCalculator {
 type RuleEffectiveness struct {
 	BaseValue  string  `json:"baseValue"`  // Base effectiveness: "minimal", "moderate", "strong", "overpowered"
 	Multiplier float64 `json:"multiplier"` // Additional multiplier (0.1-2.0)
-	GameImpact string  `json:"gameImpact"` // Game impact level: "tactical", "strategic", "battle-changing", "game-winning"
 	Frequency  string  `json:"frequency"`  // Rule frequency: "passive", "conditional", "limited"
 }
 
@@ -29,10 +28,9 @@ func (pc *PointsCalculator) CalculatePoints(effectiveness RuleEffectiveness) []i
 
 	// Base calculation using weighted effectiveness states
 	baseWeight := pc.getBaseEffectivenessWeight(effectiveness.BaseValue)
-	impactWeight := pc.getGameImpactWeight(effectiveness.GameImpact)
 
-	// Combined effectiveness score with weighted base and game impact
-	combinedScore := baseWeight + impactWeight
+	// Combined effectiveness score (base effectiveness only)
+	combinedScore := baseWeight
 
 	// Apply multiplier
 	finalScore := combinedScore * effectiveness.Multiplier
@@ -112,22 +110,6 @@ func (pc *PointsCalculator) getBaseEffectivenessWeight(baseValue string) float64
 	}
 }
 
-// getGameImpactWeight returns the weight based on game impact level
-func (pc *PointsCalculator) getGameImpactWeight(gameImpact string) float64 {
-	switch gameImpact {
-	case "tactical":
-		return 1.0 // Minimal impact - small tactical edge
-	case "strategic":
-		return 3.0 // Moderate impact - noticeable advantage
-	case "battle-changing":
-		return 5.0 // Significant impact - major battlefield advantage
-	case "game-winning":
-		return 8.0 // Maximum impact - game-breaking advantage
-	default:
-		return 3.0 // Default to strategic if not specified
-	}
-}
-
 // CalculatePointsFromDescription attempts to calculate points from rule description
 func (pc *PointsCalculator) CalculatePointsFromDescription(ruleName, description, ruleType string) []int {
 	effectiveness := pc.analyzeRuleText(ruleName, description, ruleType)
@@ -140,7 +122,6 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 	baseValue := "moderate" // Default moderate effectiveness
 	multiplier := 1.0
 	complexity := 2
-	gameImpact := "strategic" // Default to strategic impact
 
 	// Convert to lowercase for analysis
 	text := strings.ToLower(name + " " + description + " " + ruleType)
@@ -185,13 +166,10 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 	// Adjust base value based on keyword count
 	if highImpactCount >= 3 {
 		baseValue = "overpowered"
-		gameImpact = "game-winning"
 	} else if highImpactCount >= 2 {
 		baseValue = "strong"
-		gameImpact = "battle-changing"
 	} else if highImpactCount >= 1 {
 		baseValue = "moderate"
-		gameImpact = "strategic"
 	}
 
 	// Analyze for complexity indicators
@@ -239,9 +217,8 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 		multiplier = 1.2
 	}
 
-	// Analyze frequency, game impact, and base effectiveness based on text patterns
+	// Analyze frequency and base effectiveness based on text patterns
 	frequency := pc.analyzeFrequency(text)
-	gameImpact = pc.analyzeGameImpact(text)
 	baseValue = pc.analyzeBaseEffectiveness(text)
 
 	// Analyze for numerical values that might indicate power level
@@ -279,7 +256,6 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 	return RuleEffectiveness{
 		BaseValue:  baseValue,
 		Multiplier: multiplier,
-		GameImpact: gameImpact,
 		Frequency:  frequency,
 	}
 }
@@ -369,90 +345,6 @@ func (pc *PointsCalculator) analyzeFrequency(text string) string {
 		return "passive"
 	} else {
 		return "conditional" // Default to conditional
-	}
-}
-
-// analyzeGameImpact analyzes rule text to determine game impact level
-func (pc *PointsCalculator) analyzeGameImpact(text string) string {
-	// Convert to lowercase for analysis
-	text = strings.ToLower(text)
-
-	// Game-winning indicators - rules that can win games
-	gameWinningKeywords := []string{
-		"immune to all", "ignore all", "unlimited", "automatic", "always pass",
-		"cannot be", "immune to", "invulnerable to", "eternal", "immortal",
-		"unbreakable", "unstoppable", "overpowered", "broken", "overpowered",
-		"win the game", "instant win", "guaranteed", "certain", "absolute",
-	}
-
-	// Battle-changing indicators - significant battlefield impact
-	battleChangingKeywords := []string{
-		"invulnerable save", "feel no pain", "eternal warrior", "fearless",
-		"preferred enemy", "hate", "rage", "furious charge", "counter-attack",
-		"stubborn", "unbreakable", "stealth", "concealed", "hidden",
-		"regeneration", "tough", "hardy", "resilient", "durable", "sturdy",
-		"ward save", "shield", "protection", "armour", "cover", "concealment",
-		"preferred enemy", "hate", "rage", "furious charge", "counter-attack",
-	}
-
-	// Strategic indicators - noticeable battlefield advantages
-	strategicKeywords := []string{
-		"all friendly", "all units", "within", "range", "distance", "inches",
-		"leadership", "morale", "fear", "terror", "awe", "inspiring",
-		"command", "officer", "sergeant", "leader", "commander", "captain",
-		"lieutenant", "major", "colonel", "general", "marshal", "lord",
-		"reroll", "rerolls", "bonus", "penalty", "modifier", "adjustment",
-		"difficult", "dangerous", "hazardous", "perilous", "challenging",
-	}
-
-	// Tactical indicators - minor tactical advantages
-	tacticalKeywords := []string{
-		"+1", "+2", "+3", "-1", "-2", "-3", "bonus", "penalty", "modifier",
-		"reroll", "rerolls", "dice", "roll", "rolls", "d6", "d3", "2d6", "3d6",
-		"hit", "wound", "save", "armour", "cover", "concealment", "stealth",
-		"move", "movement", "advance", "charge", "assault", "close combat",
-		"melee", "shooting", "ranged", "fire", "shoot", "gun", "weapon",
-	}
-
-	// Count keyword matches
-	gameWinningCount := 0
-	battleChangingCount := 0
-	strategicCount := 0
-	tacticalCount := 0
-
-	for _, keyword := range gameWinningKeywords {
-		if strings.Contains(text, keyword) {
-			gameWinningCount++
-		}
-	}
-
-	for _, keyword := range battleChangingKeywords {
-		if strings.Contains(text, keyword) {
-			battleChangingCount++
-		}
-	}
-
-	for _, keyword := range strategicKeywords {
-		if strings.Contains(text, keyword) {
-			strategicCount++
-		}
-	}
-
-	for _, keyword := range tacticalKeywords {
-		if strings.Contains(text, keyword) {
-			tacticalCount++
-		}
-	}
-
-	// Determine game impact based on keyword counts
-	if gameWinningCount >= 2 || (gameWinningCount >= 1 && battleChangingCount == 0) {
-		return "game-winning"
-	} else if battleChangingCount >= 2 || (battleChangingCount >= 1 && strategicCount == 0) {
-		return "battle-changing"
-	} else if strategicCount >= 2 || (strategicCount >= 1 && tacticalCount == 0) {
-		return "strategic"
-	} else {
-		return "tactical" // Default to tactical
 	}
 }
 
@@ -551,21 +443,20 @@ func (pc *PointsCalculator) GetPointsExplanation(effectiveness RuleEffectiveness
 
 	// Get the actual values used in calculation
 	baseWeight := pc.getBaseEffectivenessWeight(effectiveness.BaseValue)
-	impactWeight := pc.getGameImpactWeight(effectiveness.GameImpact)
 	frequencyMultiplier := pc.getFrequencyMultiplier(effectiveness.Frequency)
 
 	// Calculate the intermediate values
-	combinedScore := baseWeight + impactWeight
+	combinedScore := baseWeight
 	finalScore := combinedScore * effectiveness.Multiplier
 	adjustedScore := finalScore * frequencyMultiplier
 	basePoints := math.Pow(2, (adjustedScore-1)/2)
 	clampedPoints := math.Max(1, math.Min(75, basePoints))
 
 	explanation := "Points Calculation Formula:\n\n"
-	explanation += "Step 1: Combined Score = Base Weight + Game Impact Weight\n"
-	explanation += "        = " + strconv.FormatFloat(baseWeight, 'f', 1, 64) + " + " + strconv.FormatFloat(impactWeight, 'f', 1, 64) + " = " + strconv.FormatFloat(combinedScore, 'f', 1, 64) + "\n\n"
+	explanation += "Step 1: Base Score = Base Effectiveness Weight\n"
+	explanation += "        = " + strconv.FormatFloat(baseWeight, 'f', 1, 64) + "\n\n"
 
-	explanation += "Step 2: Final Score = Combined Score × Multiplier\n"
+	explanation += "Step 2: Final Score = Base Score × Multiplier\n"
 	explanation += "        = " + strconv.FormatFloat(combinedScore, 'f', 1, 64) + " × " + strconv.FormatFloat(effectiveness.Multiplier, 'f', 1, 64) + " = " + strconv.FormatFloat(finalScore, 'f', 1, 64) + "\n\n"
 
 	explanation += "Step 3: Adjusted Score = Final Score × Frequency Multiplier\n"
