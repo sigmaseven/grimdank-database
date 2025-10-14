@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"time"
 
 	"grimdank-database/config"
 	"grimdank-database/database"
@@ -18,11 +20,17 @@ func main() {
 	cfg := config.LoadConfig()
 
 	// Connect to database
+	log.Println("Initializing database connection...")
 	db, err := database.Connect(cfg.MongoURI, cfg.Database)
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatal("❌ Failed to connect to database:", err)
 	}
-	defer db.Disconnect()
+	defer func() {
+		log.Println("Disconnecting from database...")
+		if err := db.Disconnect(); err != nil {
+			log.Printf("Error disconnecting from database: %v", err)
+		}
+	}()
 
 	// Initialize repositories
 	ruleRepo := repositories.NewRuleRepository(db.Database.Collection("rules"))
@@ -50,6 +58,24 @@ func main() {
 
 	// Setup routes
 	router := mux.NewRouter()
+	
+	// Health check endpoint
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		// Test database connection
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		
+		if err := db.Client.Ping(ctx, nil); err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte(`{"status":"unhealthy","database":"disconnected"}`))
+			return
+		}
+		
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"healthy","database":"connected"}`))
+	}).Methods("GET")
+	
 	api := router.PathPrefix("/api/v1").Subrouter()
 
 	// Rule routes
