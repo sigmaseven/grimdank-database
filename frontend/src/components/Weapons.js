@@ -430,6 +430,23 @@ function Weapons() {
                   </div>
                 )}
                 
+                {/* Applied Rules Display */}
+                {formData.abilities && formData.abilities.includes('(') && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', color: '#f0f6fc' }}>Applied Rules:</h4>
+                    <div style={{
+                      padding: '0.75rem',
+                      backgroundColor: '#0d1117',
+                      borderRadius: '6px',
+                      border: '1px solid #30363d',
+                      color: '#8b949e',
+                      fontSize: '0.85rem'
+                    }}>
+                      {formData.abilities}
+                    </div>
+                  </div>
+                )}
+                
                 <textarea
                   name="abilities"
                   value={formData.abilities}
@@ -751,11 +768,12 @@ function Weapons() {
               )}
             </div>
             
-            {/* Close Button */}
+            {/* Action Buttons */}
             <div style={{ 
               marginTop: '1rem', 
               display: 'flex', 
-              justifyContent: 'flex-end' 
+              justifyContent: 'space-between',
+              gap: '0.5rem'
             }}>
               <button
                 onClick={() => setShowRuleSelector(false)}
@@ -768,12 +786,43 @@ function Weapons() {
                   cursor: 'pointer',
                   fontSize: '0.85rem',
                   fontWeight: 'bold',
-                  transition: 'background-color 0.2s ease'
+                  transition: 'background-color 0.2s ease',
+                  flex: 1
                 }}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#8b949e'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#6e7681'}
               >
-                Close
+                Cancel
+              </button>
+              
+              <button
+                onClick={() => {
+                  // Apply the selected rules to the weapon
+                  setFormData(prev => ({
+                    ...prev,
+                    // Update the abilities field with rule information
+                    abilities: selectedRules.map(rule => 
+                      `${rule.name}${rule.points && rule.points.length > 0 ? ` (${rule.points[0]}/${rule.points[1]}/${rule.points[2]} pts)` : ''}`
+                    ).join(', ')
+                  }));
+                  setShowRuleSelector(false);
+                }}
+                style={{
+                  backgroundColor: '#238636',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: 'bold',
+                  transition: 'background-color 0.2s ease',
+                  flex: 1
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#2ea043'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#238636'}
+              >
+                Apply Rules ({selectedRules.length})
               </button>
             </div>
           </div>
