@@ -46,26 +46,26 @@ func (rps *RulePointsService) UpdateRuleWithCalculatedPoints(ctx context.Context
 	// Calculate points
 	calculatedPoints := rps.CalculateRulePoints(rule)
 	rule.Points = calculatedPoints
-	
+
 	// Update the rule in the database
 	err := rps.ruleService.UpdateRule(ctx, ruleID, rule)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return rule, nil
 }
 
 // BulkCalculatePoints calculates points for multiple rules
 func (rps *RulePointsService) BulkCalculatePoints(rules []models.Rule) []models.Rule {
 	updatedRules := make([]models.Rule, len(rules))
-	
+
 	for i, rule := range rules {
 		calculatedPoints := rps.CalculateRulePoints(&rule)
 		rule.Points = calculatedPoints
 		updatedRules[i] = rule
 	}
-	
+
 	return updatedRules
 }
 
@@ -73,10 +73,10 @@ func (rps *RulePointsService) BulkCalculatePoints(rules []models.Rule) []models.
 func (rps *RulePointsService) GetPointsBreakdown(rule *models.Rule) map[string]interface{} {
 	effectiveness := rps.pointsCalculator.analyzeRuleText(rule.Name, rule.Description, rule.Type)
 	points := rps.pointsCalculator.CalculatePoints(effectiveness)
-	
+
 	return map[string]interface{}{
-		"rule_id":      rule.ID.Hex(),
-		"rule_name":    rule.Name,
+		"rule_id":           rule.ID.Hex(),
+		"rule_name":         rule.Name,
 		"calculated_points": points,
 		"effectiveness": map[string]interface{}{
 			"base_value":  effectiveness.BaseValue,
@@ -86,9 +86,9 @@ func (rps *RulePointsService) GetPointsBreakdown(rule *models.Rule) map[string]i
 		},
 		"explanation": rps.pointsCalculator.GetPointsExplanation(effectiveness),
 		"tier_scaling": map[string]interface{}{
-			"tier_1": points[0],
-			"tier_2": points[1],
-			"tier_3": points[2],
+			"tier_1":            points[0],
+			"tier_2":            points[1],
+			"tier_3":            points[2],
 			"tier_2_multiplier": 1.1,
 			"tier_3_multiplier": 1.21,
 		},

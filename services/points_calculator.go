@@ -16,50 +16,50 @@ func NewPointsCalculator() *PointsCalculator {
 
 // RuleEffectiveness represents the effectiveness level of a rule
 type RuleEffectiveness struct {
-	BaseValue    int     `json:"baseValue"`    // Base effectiveness (1-10 scale)
-	Multiplier   float64 `json:"multiplier"`    // Additional multiplier (0.1-2.0)
-	GameImpact   int     `json:"gameImpact"`    // Game impact level (1-5 scale)
-	Frequency    string  `json:"frequency"`     // Rule frequency: "passive", "conditional", "limited"
+	BaseValue  int     `json:"baseValue"`  // Base effectiveness (1-10 scale)
+	Multiplier float64 `json:"multiplier"` // Additional multiplier (0.1-2.0)
+	GameImpact string  `json:"gameImpact"` // Game impact level: "tactical", "strategic", "battle-changing", "game-winning"
+	Frequency  string  `json:"frequency"`  // Rule frequency: "passive", "conditional", "limited"
 }
 
 // CalculatePoints calculates the points for a rule based on effectiveness
 func (pc *PointsCalculator) CalculatePoints(effectiveness RuleEffectiveness) []int {
 	// Calculate base points using logarithmic scaling
 	// This ensures we get reasonable point ranges from 2 to ~150
-	
+
 	// Base calculation: 2^((effectiveness - 1) / 2) gives us exponential growth
 	baseEffectiveness := float64(effectiveness.BaseValue)
-	impactBonus := float64(effectiveness.GameImpact) * 0.3
+	impactWeight := pc.getGameImpactWeight(effectiveness.GameImpact)
 	
-	// Combined effectiveness score (without complexity)
-	combinedScore := baseEffectiveness + impactBonus
-	
+	// Combined effectiveness score with weighted game impact
+	combinedScore := baseEffectiveness + impactWeight
+
 	// Apply multiplier
 	finalScore := combinedScore * effectiveness.Multiplier
-	
+
 	// Apply frequency multiplier
 	frequencyMultiplier := pc.getFrequencyMultiplier(effectiveness.Frequency)
 	finalScore = finalScore * frequencyMultiplier
-	
+
 	// Calculate base points using logarithmic scaling
 	// This gives us: 1 point at score 1, ~75 points at score 10
 	basePoints := math.Pow(2, (finalScore-1)/2)
-	
+
 	// Ensure minimum of 1 point
 	if basePoints < 1 {
 		basePoints = 1
 	}
-	
+
 	// Ensure maximum of 75 points
 	if basePoints > 75 {
 		basePoints = 75
 	}
-	
+
 	// Calculate tier points with 10% scaling
 	tier1 := int(math.Round(basePoints))
 	tier2 := int(math.Round(basePoints * 1.1))
 	tier3 := int(math.Round(basePoints * 1.21)) // 1.1 * 1.1 = 1.21
-	
+
 	return []int{tier1, tier2, tier3}
 }
 
@@ -67,13 +67,29 @@ func (pc *PointsCalculator) CalculatePoints(effectiveness RuleEffectiveness) []i
 func (pc *PointsCalculator) getFrequencyMultiplier(frequency string) float64 {
 	switch frequency {
 	case "passive":
-		return 1.0  // Full cost - always active
+		return 1.0 // Full cost - always active
 	case "conditional":
-		return 0.7  // 30% discount - triggered by conditions
+		return 0.7 // 30% discount - triggered by conditions
 	case "limited":
-		return 0.4  // 60% discount - limited uses
+		return 0.4 // 60% discount - limited uses
 	default:
-		return 0.7  // Default to conditional if not specified
+		return 0.7 // Default to conditional if not specified
+	}
+}
+
+// getGameImpactWeight returns the weight based on game impact level
+func (pc *PointsCalculator) getGameImpactWeight(gameImpact string) float64 {
+	switch gameImpact {
+	case "tactical":
+		return 1.0  // Minimal impact - small tactical edge
+	case "strategic":
+		return 3.0  // Moderate impact - noticeable advantage
+	case "battle-changing":
+		return 5.0  // Significant impact - major battlefield advantage
+	case "game-winning":
+		return 8.0  // Maximum impact - game-breaking advantage
+	default:
+		return 3.0  // Default to strategic if not specified
 	}
 }
 
@@ -89,11 +105,11 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 	baseValue := 3 // Default moderate effectiveness
 	multiplier := 1.0
 	complexity := 2
-	gameImpact := 2
-	
+	gameImpact := "strategic" // Default to strategic impact
+
 	// Convert to lowercase for analysis
 	text := strings.ToLower(name + " " + description + " " + ruleType)
-	
+
 	// Analyze for high-impact keywords
 	highImpactKeywords := []string{
 		"invulnerable", "eternal", "immortal", "regeneration", "feel no pain",
@@ -122,7 +138,7 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 		"movement", "advance", "charge", "run", "fleet",
 		"leadership", "morale", "break", "flee", "rout",
 	}
-	
+
 	// Count high-impact keywords
 	highImpactCount := 0
 	for _, keyword := range highImpactKeywords {
@@ -130,19 +146,19 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 			highImpactCount++
 		}
 	}
-	
+
 	// Adjust base value based on keyword count
 	if highImpactCount >= 3 {
 		baseValue = 8
-		gameImpact = 5
+		gameImpact = "game-winning"
 	} else if highImpactCount >= 2 {
 		baseValue = 6
-		gameImpact = 4
+		gameImpact = "battle-changing"
 	} else if highImpactCount >= 1 {
 		baseValue = 4
-		gameImpact = 3
+		gameImpact = "strategic"
 	}
-	
+
 	// Analyze for complexity indicators
 	complexityKeywords := []string{
 		"if", "when", "unless", "but", "however", "except",
@@ -155,14 +171,14 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 		"difficult", "dangerous", "hazardous", "perilous",
 		"special", "unique", "rare", "legendary", "epic",
 	}
-	
+
 	complexityCount := 0
 	for _, keyword := range complexityKeywords {
 		if strings.Contains(text, keyword) {
 			complexityCount++
 		}
 	}
-	
+
 	// Adjust complexity based on keyword count
 	if complexityCount >= 5 {
 		complexity = 5
@@ -171,28 +187,27 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 	} else if complexityCount >= 1 {
 		complexity = 3
 	}
-	
+
 	// Analyze rule type for additional modifiers
 	switch ruleType {
 	case "Special Rule", "Special Ability", "Special Power":
 		multiplier = 1.2
 	case "Psychic Power", "Magic", "Warp":
 		multiplier = 1.5
-		gameImpact = 5
 	case "Equipment", "Wargear", "Gear":
 		multiplier = 0.8
 	case "Tactical", "Strategic", "Command":
 		multiplier = 1.3
-		gameImpact = 4
 	case "Defensive", "Protection", "Armour":
 		multiplier = 1.1
 	case "Offensive", "Attack", "Weapon":
 		multiplier = 1.2
 	}
 	
-	// Analyze frequency based on text patterns
+	// Analyze frequency and game impact based on text patterns
 	frequency := pc.analyzeFrequency(text)
-	
+	gameImpact = pc.analyzeGameImpact(text)
+
 	// Analyze for numerical values that might indicate power level
 	numbers := pc.extractNumbers(text)
 	if len(numbers) > 0 {
@@ -203,7 +218,7 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 				maxNumber = num
 			}
 		}
-		
+
 		if maxNumber >= 6 {
 			baseValue += 1
 		}
@@ -214,7 +229,7 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 			baseValue += 1
 		}
 	}
-	
+
 	// Ensure values are within reasonable bounds
 	if baseValue > 10 {
 		baseValue = 10
@@ -228,19 +243,13 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 	if complexity < 1 {
 		complexity = 1
 	}
-	if gameImpact > 5 {
-		gameImpact = 5
-	}
-	if gameImpact < 1 {
-		gameImpact = 1
-	}
 	if multiplier > 2.0 {
 		multiplier = 2.0
 	}
 	if multiplier < 0.1 {
 		multiplier = 0.1
 	}
-	
+
 	return RuleEffectiveness{
 		BaseValue:  baseValue,
 		Multiplier: multiplier,
@@ -253,7 +262,7 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 func (pc *PointsCalculator) extractNumbers(text string) []int {
 	var numbers []int
 	words := strings.Fields(text)
-	
+
 	for _, word := range words {
 		// Remove common suffixes
 		cleanWord := strings.TrimSuffix(word, "s")
@@ -261,13 +270,13 @@ func (pc *PointsCalculator) extractNumbers(text string) []int {
 		cleanWord = strings.TrimSuffix(cleanWord, "st")
 		cleanWord = strings.TrimSuffix(cleanWord, "nd")
 		cleanWord = strings.TrimSuffix(cleanWord, "rd")
-		
+
 		// Try to convert to number
 		if num, err := strconv.Atoi(cleanWord); err == nil {
 			numbers = append(numbers, num)
 		}
 	}
-	
+
 	return numbers
 }
 
@@ -275,7 +284,7 @@ func (pc *PointsCalculator) extractNumbers(text string) []int {
 func (pc *PointsCalculator) analyzeFrequency(text string) string {
 	// Convert to lowercase for analysis
 	text = strings.ToLower(text)
-	
+
 	// Passive indicators - always active rules
 	passiveKeywords := []string{
 		"always", "permanent", "constant", "immune", "invulnerable",
@@ -284,7 +293,7 @@ func (pc *PointsCalculator) analyzeFrequency(text string) string {
 		"tough", "hardy", "resilient", "durable", "sturdy", "save",
 		"ward", "shield", "protection", "armour", "cover", "concealment",
 	}
-	
+
 	// Limited indicators - restricted use rules
 	limitedKeywords := []string{
 		"once per game", "once per turn", "once per battle", "once",
@@ -292,7 +301,7 @@ func (pc *PointsCalculator) analyzeFrequency(text string) string {
 		"command point", "cp", "spend", "cost", "pay", "sacrifice",
 		"lose", "remove", "destroy", "kill", "wound", "damage",
 	}
-	
+
 	// Conditional indicators - triggered rules
 	conditionalKeywords := []string{
 		"if", "when", "unless", "but", "however", "except", "provided",
@@ -303,30 +312,30 @@ func (pc *PointsCalculator) analyzeFrequency(text string) string {
 		"difficult", "dangerous", "hazardous", "perilous", "turn",
 		"phase", "round", "battle", "game", "model", "unit", "army",
 	}
-	
+
 	// Count keyword matches
 	passiveCount := 0
 	limitedCount := 0
 	conditionalCount := 0
-	
+
 	for _, keyword := range passiveKeywords {
 		if strings.Contains(text, keyword) {
 			passiveCount++
 		}
 	}
-	
+
 	for _, keyword := range limitedKeywords {
 		if strings.Contains(text, keyword) {
 			limitedCount++
 		}
 	}
-	
+
 	for _, keyword := range conditionalKeywords {
 		if strings.Contains(text, keyword) {
 			conditionalCount++
 		}
 	}
-	
+
 	// Determine frequency based on keyword counts
 	if limitedCount >= 2 || (limitedCount >= 1 && conditionalCount == 0) {
 		return "limited"
@@ -337,18 +346,102 @@ func (pc *PointsCalculator) analyzeFrequency(text string) string {
 	}
 }
 
+// analyzeGameImpact analyzes rule text to determine game impact level
+func (pc *PointsCalculator) analyzeGameImpact(text string) string {
+	// Convert to lowercase for analysis
+	text = strings.ToLower(text)
+	
+	// Game-winning indicators - rules that can win games
+	gameWinningKeywords := []string{
+		"immune to all", "ignore all", "unlimited", "automatic", "always pass",
+		"cannot be", "immune to", "invulnerable to", "eternal", "immortal",
+		"unbreakable", "unstoppable", "overpowered", "broken", "overpowered",
+		"win the game", "instant win", "guaranteed", "certain", "absolute",
+	}
+	
+	// Battle-changing indicators - significant battlefield impact
+	battleChangingKeywords := []string{
+		"invulnerable save", "feel no pain", "eternal warrior", "fearless",
+		"preferred enemy", "hate", "rage", "furious charge", "counter-attack",
+		"stubborn", "unbreakable", "stealth", "concealed", "hidden",
+		"regeneration", "tough", "hardy", "resilient", "durable", "sturdy",
+		"ward save", "shield", "protection", "armour", "cover", "concealment",
+		"preferred enemy", "hate", "rage", "furious charge", "counter-attack",
+	}
+	
+	// Strategic indicators - noticeable battlefield advantages
+	strategicKeywords := []string{
+		"all friendly", "all units", "within", "range", "distance", "inches",
+		"leadership", "morale", "fear", "terror", "awe", "inspiring",
+		"command", "officer", "sergeant", "leader", "commander", "captain",
+		"lieutenant", "major", "colonel", "general", "marshal", "lord",
+		"reroll", "rerolls", "bonus", "penalty", "modifier", "adjustment",
+		"difficult", "dangerous", "hazardous", "perilous", "challenging",
+	}
+	
+	// Tactical indicators - minor tactical advantages
+	tacticalKeywords := []string{
+		"+1", "+2", "+3", "-1", "-2", "-3", "bonus", "penalty", "modifier",
+		"reroll", "rerolls", "dice", "roll", "rolls", "d6", "d3", "2d6", "3d6",
+		"hit", "wound", "save", "armour", "cover", "concealment", "stealth",
+		"move", "movement", "advance", "charge", "assault", "close combat",
+		"melee", "shooting", "ranged", "fire", "shoot", "gun", "weapon",
+	}
+	
+	// Count keyword matches
+	gameWinningCount := 0
+	battleChangingCount := 0
+	strategicCount := 0
+	tacticalCount := 0
+	
+	for _, keyword := range gameWinningKeywords {
+		if strings.Contains(text, keyword) {
+			gameWinningCount++
+		}
+	}
+	
+	for _, keyword := range battleChangingKeywords {
+		if strings.Contains(text, keyword) {
+			battleChangingCount++
+		}
+	}
+	
+	for _, keyword := range strategicKeywords {
+		if strings.Contains(text, keyword) {
+			strategicCount++
+		}
+	}
+	
+	for _, keyword := range tacticalKeywords {
+		if strings.Contains(text, keyword) {
+			tacticalCount++
+		}
+	}
+	
+	// Determine game impact based on keyword counts
+	if gameWinningCount >= 2 || (gameWinningCount >= 1 && battleChangingCount == 0) {
+		return "game-winning"
+	} else if battleChangingCount >= 2 || (battleChangingCount >= 1 && strategicCount == 0) {
+		return "battle-changing"
+	} else if strategicCount >= 2 || (strategicCount >= 1 && tacticalCount == 0) {
+		return "strategic"
+	} else {
+		return "tactical" // Default to tactical
+	}
+}
+
 // GetPointsExplanation returns a human-readable explanation of the points calculation
 func (pc *PointsCalculator) GetPointsExplanation(effectiveness RuleEffectiveness) string {
 	points := pc.CalculatePoints(effectiveness)
-	
+
 	explanation := "Points Calculation:\n"
 	explanation += "• Base Effectiveness: " + strconv.Itoa(effectiveness.BaseValue) + "/10\n"
-	explanation += "• Game Impact: " + strconv.Itoa(effectiveness.GameImpact) + "/5\n"
-	explanation += "• Frequency: " + strings.Title(effectiveness.Frequency) + "\n"
+	explanation += "• Game Impact: " + strings.Title(effectiveness.GameImpact) + " (Weight: " + strconv.FormatFloat(pc.getGameImpactWeight(effectiveness.GameImpact), 'f', 1, 64) + ")\n"
+	explanation += "• Frequency: " + strings.Title(effectiveness.Frequency) + " (Multiplier: " + strconv.FormatFloat(pc.getFrequencyMultiplier(effectiveness.Frequency), 'f', 1, 64) + "x)\n"
 	explanation += "• Multiplier: " + strconv.FormatFloat(effectiveness.Multiplier, 'f', 1, 64) + "x\n"
 	explanation += "• Calculated Points: " + strconv.Itoa(points[0]) + " / " + strconv.Itoa(points[1]) + " / " + strconv.Itoa(points[2]) + "\n"
 	explanation += "• Tier scaling: +10% per tier\n"
 	explanation += "• Range: 1-75 points per model"
-	
+
 	return explanation
 }

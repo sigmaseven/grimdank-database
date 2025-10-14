@@ -9,7 +9,7 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   const [customEffectiveness, setCustomEffectiveness] = useState({
     baseValue: 3,
     multiplier: 1.0,
-    gameImpact: 2,
+    gameImpact: 'strategic',
     frequency: 'conditional'
   });
   const [useCustom, setUseCustom] = useState(false);
@@ -58,9 +58,9 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   const calculateCustomPoints = () => {
     // Calculate points based on custom effectiveness
     const baseEffectiveness = customEffectiveness.baseValue;
-    const impactBonus = customEffectiveness.gameImpact * 0.3;
+    const impactWeight = getGameImpactWeight(customEffectiveness.gameImpact);
     
-    const combinedScore = baseEffectiveness + impactBonus;
+    const combinedScore = baseEffectiveness + impactWeight;
     const finalScore = combinedScore * customEffectiveness.multiplier;
     
     // Apply frequency multiplier
@@ -97,6 +97,16 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
       case 'conditional': return 0.7; // 30% discount - triggered by conditions
       case 'limited': return 0.4;   // 60% discount - limited uses
       default: return 0.7;
+    }
+  };
+
+  const getGameImpactWeight = (gameImpact) => {
+    switch (gameImpact) {
+      case 'tactical': return 1.0;       // Minimal impact - small tactical edge
+      case 'strategic': return 3.0;      // Moderate impact - noticeable advantage
+      case 'battle-changing': return 5.0; // Significant impact - major battlefield advantage
+      case 'game-winning': return 8.0;   // Maximum impact - game-breaking advantage
+      default: return 3.0;
     }
   };
 
@@ -185,14 +195,16 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
                   />
                 </div>
                 <div className="input-group">
-                  <label>Game Impact (1-5)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="5"
+                  <label>Game Impact</label>
+                  <select
                     value={customEffectiveness.gameImpact}
                     onChange={(e) => handleCustomChange('gameImpact', e.target.value)}
-                  />
+                  >
+                    <option value="tactical">Tactical (Minimal Impact)</option>
+                    <option value="strategic">Strategic (Moderate Impact)</option>
+                    <option value="battle-changing">Battle-Changing (Significant Impact)</option>
+                    <option value="game-winning">Game-Winning (Maximum Impact)</option>
+                  </select>
                 </div>
                 <div className="input-group">
                   <label>Frequency</label>
