@@ -776,25 +776,22 @@ function Weapons() {
               )}
             </div>
             
-            <div style={{
-              marginTop: '1rem',
-              padding: '1rem',
-              backgroundColor: '#21262d',
-              borderRadius: '6px',
-              border: '1px solid #30363d'
-            }}>
-              <div style={{ color: '#f0f6fc', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                <strong>Selected Rules: {selectedRules.length}</strong>
-              </div>
-              {selectedRules.length > 0 && (
+            {selectedRules.length > 0 && (
+              <div style={{
+                marginTop: '1rem',
+                padding: '1rem',
+                backgroundColor: '#21262d',
+                borderRadius: '6px',
+                border: '1px solid #30363d'
+              }}>
                 <div style={{ color: '#58a6ff', fontSize: '0.85rem' }}>
                   <div>Rule Points: +{selectedRules.reduce((total, rule) => total + (rule.points?.[0] || 0), 0)}</div>
                   <div style={{ color: '#f0f6fc', marginTop: '0.25rem' }}>
                     Total Weapon Points: {calculateTotalPoints()}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
             
             {/* Back Button */}
             <div style={{ 
