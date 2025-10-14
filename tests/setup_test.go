@@ -69,7 +69,7 @@ func SetupTestDB(t *testing.T) *TestDB {
 	testDBName := "grimdank_db"
 
 	// Connect to database using the same method as main application
-	db, err := database.Connect(mongoURI, testDBName)
+	db, err := database.Connect(mongoURI, testDBName, 10)
 	if err != nil {
 		t.Fatalf("Failed to connect to test database: %v", err)
 	}
