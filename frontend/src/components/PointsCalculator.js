@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { rulesAPI } from '../services/api';
+import React, { useState, useEffect, useCallback } from 'react';
 
 function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   const [calculatedPoints, setCalculatedPoints] = useState([0, 0, 0]);
@@ -19,9 +18,9 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
     if (rule) {
       calculatePoints();
     }
-  }, [rule]);
+  }, [rule, calculatePoints]);
 
-  const calculatePoints = async () => {
+  const calculatePoints = useCallback(async () => {
     if (!rule) return;
 
     setLoading(true);
@@ -54,7 +53,7 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [rule]);
 
   const calculateCustomPoints = () => {
     // Calculate points based on custom effectiveness
