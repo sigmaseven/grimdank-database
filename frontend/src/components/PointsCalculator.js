@@ -7,7 +7,7 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [customEffectiveness, setCustomEffectiveness] = useState({
-    baseValue: 3,
+    baseValue: 'moderate',
     multiplier: 1.0,
     gameImpact: 'strategic',
     frequency: 'conditional'
@@ -57,10 +57,10 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
 
   const calculateCustomPoints = () => {
     // Calculate points based on custom effectiveness
-    const baseEffectiveness = customEffectiveness.baseValue;
+    const baseWeight = getBaseEffectivenessWeight(customEffectiveness.baseValue);
     const impactWeight = getGameImpactWeight(customEffectiveness.gameImpact);
     
-    const combinedScore = baseEffectiveness + impactWeight;
+    const combinedScore = baseWeight + impactWeight;
     const finalScore = combinedScore * customEffectiveness.multiplier;
     
     // Apply frequency multiplier
@@ -97,6 +97,16 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
       case 'conditional': return 0.7; // 30% discount - triggered by conditions
       case 'limited': return 0.4;   // 60% discount - limited uses
       default: return 0.7;
+    }
+  };
+
+  const getBaseEffectivenessWeight = (baseValue) => {
+    switch (baseValue) {
+      case 'minimal': return 1.0;       // Minimal effectiveness - weak rules
+      case 'moderate': return 3.0;      // Moderate effectiveness - decent rules
+      case 'strong': return 5.0;        // Strong effectiveness - powerful rules
+      case 'overpowered': return 8.0;   // Overpowered effectiveness - game-breaking rules
+      default: return 3.0;
     }
   };
 
@@ -174,14 +184,16 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
               <h4>Custom Effectiveness Values</h4>
               <div className="effectiveness-inputs">
                 <div className="input-group">
-                  <label>Base Effectiveness (1-10)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
+                  <label>Base Effectiveness</label>
+                  <select
                     value={customEffectiveness.baseValue}
                     onChange={(e) => handleCustomChange('baseValue', e.target.value)}
-                  />
+                  >
+                    <option value="minimal">Minimal (Weak Rules)</option>
+                    <option value="moderate">Moderate (Decent Rules)</option>
+                    <option value="strong">Strong (Powerful Rules)</option>
+                    <option value="overpowered">Overpowered (Game-Breaking Rules)</option>
+                  </select>
                 </div>
                 <div className="input-group">
                   <label>Multiplier (0.1-2.0)</label>
