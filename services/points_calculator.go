@@ -530,14 +530,40 @@ func (pc *PointsCalculator) analyzeBaseEffectiveness(text string) string {
 func (pc *PointsCalculator) GetPointsExplanation(effectiveness RuleEffectiveness) string {
 	points := pc.CalculatePoints(effectiveness)
 
-	explanation := "Points Calculation:\n"
-	explanation += "• Base Effectiveness: " + strings.Title(effectiveness.BaseValue) + " (Weight: " + strconv.FormatFloat(pc.getBaseEffectivenessWeight(effectiveness.BaseValue), 'f', 1, 64) + ")\n"
-	explanation += "• Game Impact: " + strings.Title(effectiveness.GameImpact) + " (Weight: " + strconv.FormatFloat(pc.getGameImpactWeight(effectiveness.GameImpact), 'f', 1, 64) + ")\n"
-	explanation += "• Frequency: " + strings.Title(effectiveness.Frequency) + " (Multiplier: " + strconv.FormatFloat(pc.getFrequencyMultiplier(effectiveness.Frequency), 'f', 1, 64) + "x)\n"
-	explanation += "• Multiplier: " + strconv.FormatFloat(effectiveness.Multiplier, 'f', 1, 64) + "x\n"
-	explanation += "• Calculated Points: " + strconv.Itoa(points[0]) + " / " + strconv.Itoa(points[1]) + " / " + strconv.Itoa(points[2]) + "\n"
-	explanation += "• Tier scaling: +10% per tier\n"
-	explanation += "• Range: 1-75 points per model"
+	// Get the actual values used in calculation
+	baseWeight := pc.getBaseEffectivenessWeight(effectiveness.BaseValue)
+	impactWeight := pc.getGameImpactWeight(effectiveness.GameImpact)
+	frequencyMultiplier := pc.getFrequencyMultiplier(effectiveness.Frequency)
+
+	// Calculate the intermediate values
+	combinedScore := baseWeight + impactWeight
+	finalScore := combinedScore * effectiveness.Multiplier
+	adjustedScore := finalScore * frequencyMultiplier
+	basePoints := math.Pow(2, (adjustedScore-1)/2)
+	clampedPoints := math.Max(1, math.Min(75, basePoints))
+
+	explanation := "Points Calculation Formula:\n\n"
+	explanation += "Step 1: Combined Score = Base Weight + Game Impact Weight\n"
+	explanation += "        = " + strconv.FormatFloat(baseWeight, 'f', 1, 64) + " + " + strconv.FormatFloat(impactWeight, 'f', 1, 64) + " = " + strconv.FormatFloat(combinedScore, 'f', 1, 64) + "\n\n"
+
+	explanation += "Step 2: Final Score = Combined Score × Multiplier\n"
+	explanation += "        = " + strconv.FormatFloat(combinedScore, 'f', 1, 64) + " × " + strconv.FormatFloat(effectiveness.Multiplier, 'f', 1, 64) + " = " + strconv.FormatFloat(finalScore, 'f', 1, 64) + "\n\n"
+
+	explanation += "Step 3: Adjusted Score = Final Score × Frequency Multiplier\n"
+	explanation += "        = " + strconv.FormatFloat(finalScore, 'f', 1, 64) + " × " + strconv.FormatFloat(frequencyMultiplier, 'f', 1, 64) + " = " + strconv.FormatFloat(adjustedScore, 'f', 1, 64) + "\n\n"
+
+	explanation += "Step 4: Base Points = 2^((Adjusted Score - 1) / 2)\n"
+	explanation += "        = 2^((" + strconv.FormatFloat(adjustedScore, 'f', 1, 64) + " - 1) / 2) = 2^(" + strconv.FormatFloat((adjustedScore-1)/2, 'f', 1, 64) + ") = " + strconv.FormatFloat(basePoints, 'f', 1, 64) + "\n\n"
+
+	explanation += "Step 5: Clamp to Range (1-75)\n"
+	explanation += "        = max(1, min(75, " + strconv.FormatFloat(basePoints, 'f', 1, 64) + ")) = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + "\n\n"
+
+	explanation += "Step 6: Calculate Tiers\n"
+	explanation += "        Tier 1 = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + " = " + strconv.Itoa(points[0]) + " points\n"
+	explanation += "        Tier 2 = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + " × 1.1 = " + strconv.FormatFloat(clampedPoints*1.1, 'f', 1, 64) + " = " + strconv.Itoa(points[1]) + " points\n"
+	explanation += "        Tier 3 = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + " × 1.21 = " + strconv.FormatFloat(clampedPoints*1.21, 'f', 1, 64) + " = " + strconv.Itoa(points[2]) + " points\n\n"
+
+	explanation += "Final Result: " + strconv.Itoa(points[0]) + " / " + strconv.Itoa(points[1]) + " / " + strconv.Itoa(points[2]) + " points (Tier 1/2/3)"
 
 	return explanation
 }
