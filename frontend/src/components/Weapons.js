@@ -694,12 +694,10 @@ function Weapons() {
                     backgroundColor: '#21262d',
                     borderRadius: '6px',
                     border: '1px solid #30363d',
-                    cursor: 'pointer',
                     transition: 'border-color 0.2s ease'
                   }}
-                  onClick={() => handleRuleSelect(rule)}
-                  onMouseEnter={(e) => e.target.style.borderColor = '#58a6ff'}
-                  onMouseLeave={(e) => e.target.style.borderColor = '#30363d'}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = '#58a6ff'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = '#30363d'}
                   >
                     <div style={{ flex: 1 }}>
                       <div style={{ color: '#f0f6fc', fontWeight: 'bold', marginBottom: '0.25rem' }}>{rule.name}</div>
@@ -711,6 +709,10 @@ function Weapons() {
                       )}
                     </div>
                     <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRuleSelect(rule);
+                      }}
                       style={{
                         backgroundColor: '#238636',
                         color: 'white',
@@ -747,6 +749,32 @@ function Weapons() {
                   Total Additional Points: {selectedRules.reduce((total, rule) => total + (rule.points?.[0] || 0), 0)}
                 </div>
               )}
+            </div>
+            
+            {/* Close Button */}
+            <div style={{ 
+              marginTop: '1rem', 
+              display: 'flex', 
+              justifyContent: 'flex-end' 
+            }}>
+              <button
+                onClick={() => setShowRuleSelector(false)}
+                style={{
+                  backgroundColor: '#6e7681',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: 'bold',
+                  transition: 'background-color 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#8b949e'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#6e7681'}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
