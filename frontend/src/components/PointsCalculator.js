@@ -66,7 +66,7 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
     
     // Calculate base points using logarithmic scaling
     const basePoints = Math.pow(2, (finalScore - 1) / 2);
-    const clampedPoints = Math.max(2, Math.min(150, basePoints));
+    const clampedPoints = Math.max(1, Math.min(75, basePoints));
     
     const tier1 = Math.round(clampedPoints);
     const tier2 = Math.round(clampedPoints * 1.1);
@@ -89,17 +89,18 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   };
 
   const getPointsColor = (points) => {
-    if (points <= 5) return '#4CAF50'; // Green for cheap
-    if (points <= 15) return '#FF9800'; // Orange for moderate
+    if (points <= 3) return '#4CAF50'; // Green for very cheap
+    if (points <= 10) return '#8BC34A'; // Light green for cheap
+    if (points <= 25) return '#FF9800'; // Orange for moderate
     if (points <= 50) return '#FF5722'; // Red for expensive
-    return '#9C27B0'; // Purple for very expensive
+    return '#9C27B0'; // Purple for very expensive (50-75)
   };
 
   const getTierDescription = (tier) => {
     const descriptions = [
-      'Basic - Minimal impact on gameplay',
-      'Enhanced - Noticeable tactical advantage',
-      'Advanced - Significant strategic benefit'
+      'Basic - Minimal impact (1-25 pts)',
+      'Enhanced - Moderate advantage (26-50 pts)',
+      'Advanced - Elite capability (51-75 pts)'
     ];
     return descriptions[tier] || '';
   };
@@ -213,7 +214,7 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
           )}
 
           <div className="calculated-points">
-            <h4>Calculated Points</h4>
+            <h4>Calculated Points (Range: 1-75 per model)</h4>
             <div className="points-display">
               {calculatedPoints.map((points, index) => (
                 <div key={index} className="tier-points">

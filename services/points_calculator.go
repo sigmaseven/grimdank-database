@@ -39,17 +39,17 @@ func (pc *PointsCalculator) CalculatePoints(effectiveness RuleEffectiveness) []i
 	finalScore := combinedScore * effectiveness.Multiplier
 	
 	// Calculate base points using logarithmic scaling
-	// This gives us: 2 points at score 1, ~150 points at score 10
+	// This gives us: 1 point at score 1, ~75 points at score 10
 	basePoints := math.Pow(2, (finalScore-1)/2)
 	
-	// Ensure minimum of 2 points
-	if basePoints < 2 {
-		basePoints = 2
+	// Ensure minimum of 1 point
+	if basePoints < 1 {
+		basePoints = 1
 	}
 	
-	// Ensure maximum of 150 points
-	if basePoints > 150 {
-		basePoints = 150
+	// Ensure maximum of 75 points
+	if basePoints > 75 {
+		basePoints = 75
 	}
 	
 	// Calculate tier points with 10% scaling
@@ -261,7 +261,8 @@ func (pc *PointsCalculator) GetPointsExplanation(effectiveness RuleEffectiveness
 	explanation += "• Game Impact: " + strconv.Itoa(effectiveness.GameImpact) + "/5\n"
 	explanation += "• Multiplier: " + strconv.FormatFloat(effectiveness.Multiplier, 'f', 1, 64) + "x\n"
 	explanation += "• Calculated Points: " + strconv.Itoa(points[0]) + " / " + strconv.Itoa(points[1]) + " / " + strconv.Itoa(points[2]) + "\n"
-	explanation += "• Tier scaling: +10% per tier"
+	explanation += "• Tier scaling: +10% per tier\n"
+	explanation += "• Range: 1-75 points per model"
 	
 	return explanation
 }
