@@ -353,7 +353,7 @@ function Units() {
     try {
       setRuleLoading(true);
       // Filter rules for Units: only show rules with type "Unit"
-      const rules = await rulesAPI.getAll({ name: query, limit: 100 });
+      const rules = await rulesAPI.getAll({ name: query, limit: 20 });
       const filteredRules = Array.isArray(rules) ? rules.filter(rule => 
         rule.type === 'Unit'
       ) : [];
@@ -423,7 +423,7 @@ function Units() {
   const loadWeapons = useCallback(async (query = '', type = '') => {
     try {
       setWeaponLoading(true);
-      const response = await weaponsAPI.getAll({ name: query, limit: 100 });
+      const response = await weaponsAPI.getAll({ name: query, limit: 20 });
       const weapons = response.data || response; // Handle both new and old format
       
       // Filter by weapon type if specified (case-insensitive)

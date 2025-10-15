@@ -30,18 +30,33 @@ func (ps *PopulationService) PopulateWeaponRules(ctx context.Context, weapon *mo
 		Weapon: *weapon,
 	}
 
-	// Populate rules with tier information
+	// Collect all rule IDs for batch query
+	ruleIDs := make([]primitive.ObjectID, len(weapon.Rules))
+	for i, ruleRef := range weapon.Rules {
+		ruleIDs[i] = ruleRef.RuleID
+	}
+
+	// Single batch query instead of N individual queries
+	rules, err := ps.ruleService.GetRulesByIDs(ctx, ruleIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create lookup map for O(1) access
+	rulesMap := make(map[primitive.ObjectID]*models.Rule)
+	for i := range rules {
+		rulesMap[rules[i].ID] = &rules[i]
+	}
+
+	// Populate rules using map lookup
 	for _, ruleRef := range weapon.Rules {
-		rule, err := ps.ruleService.GetRuleByID(ctx, ruleRef.RuleID.Hex())
-		if err != nil {
-			return nil, err
+		if rule, exists := rulesMap[ruleRef.RuleID]; exists {
+			ruleWithTier := models.RuleWithTier{
+				Rule: *rule,
+				Tier: ruleRef.Tier,
+			}
+			populatedWeapon.PopulatedRules = append(populatedWeapon.PopulatedRules, ruleWithTier)
 		}
-		// Create a rule with tier information
-		ruleWithTier := models.RuleWithTier{
-			Rule: *rule,
-			Tier: ruleRef.Tier,
-		}
-		populatedWeapon.PopulatedRules = append(populatedWeapon.PopulatedRules, ruleWithTier)
 	}
 
 	return populatedWeapon, nil
@@ -53,13 +68,29 @@ func (ps *PopulationService) PopulateWarGearRules(ctx context.Context, wargear *
 		WarGear: *wargear,
 	}
 
-	// Populate rules
+	// Collect all rule IDs for batch query
+	ruleIDs := make([]primitive.ObjectID, len(wargear.Rules))
+	for i, ruleRef := range wargear.Rules {
+		ruleIDs[i] = ruleRef.RuleID
+	}
+
+	// Single batch query instead of N individual queries
+	rules, err := ps.ruleService.GetRulesByIDs(ctx, ruleIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create lookup map for O(1) access
+	rulesMap := make(map[primitive.ObjectID]*models.Rule)
+	for i := range rules {
+		rulesMap[rules[i].ID] = &rules[i]
+	}
+
+	// Populate rules using map lookup
 	for _, ruleRef := range wargear.Rules {
-		rule, err := ps.ruleService.GetRuleByID(ctx, ruleRef.RuleID.Hex())
-		if err != nil {
-			return nil, err
+		if rule, exists := rulesMap[ruleRef.RuleID]; exists {
+			populatedWarGear.PopulatedRules = append(populatedWarGear.PopulatedRules, *rule)
 		}
-		populatedWarGear.PopulatedRules = append(populatedWarGear.PopulatedRules, *rule)
 	}
 
 	return populatedWarGear, nil

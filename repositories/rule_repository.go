@@ -107,3 +107,10 @@ func (r *RuleRepository) BulkImportRules(ctx context.Context, rulesList []models
 
 	return hexIDs, nil
 }
+
+func (r *RuleRepository) GetRulesByIDs(ctx context.Context, ids []primitive.ObjectID) ([]models.Rule, error) {
+	var rules []models.Rule
+	filter := bson.M{"_id": bson.M{"$in": ids}}
+	err := r.GetAll(ctx, filter, &rules, 0, 0)
+	return rules, err
+}

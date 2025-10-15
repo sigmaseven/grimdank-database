@@ -70,3 +70,7 @@ func (s *RuleService) BulkImportRules(ctx context.Context, rules []models.Rule) 
 
 	return s.repo.BulkImportRules(ctx, rules)
 }
+
+func (s *RuleService) GetRulesByIDs(ctx context.Context, ids []primitive.ObjectID) ([]models.Rule, error) {
+	return s.repo.GetRulesByIDs(ctx, ids)
+}
