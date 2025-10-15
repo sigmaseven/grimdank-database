@@ -262,7 +262,7 @@ function Units() {
     }
   };
 
-  const handleEdit = (unit) => {
+  const handleEdit = async (unit) => {
     setEditingUnit(unit);
     setFormData({
       name: unit.name || '',
@@ -281,8 +281,25 @@ function Units() {
       warGear: unit.warGear || []
     });
     
-    // Load selected rules for editing
-    setSelectedRules(unit.rules || []);
+    // Load selected rules for editing - populate with full rule data
+    if (unit.rules && unit.rules.length > 0) {
+      try {
+        const rulePromises = unit.rules.map(async (ruleRef) => {
+          const fullRule = await rulesAPI.getById(ruleRef.ruleId || ruleRef.id);
+          return {
+            ...fullRule,
+            tier: ruleRef.tier || 1
+          };
+        });
+        const populatedRules = await Promise.all(rulePromises);
+        setSelectedRules(populatedRules);
+      } catch (err) {
+        console.error('Failed to load rule details:', err);
+        setSelectedRules([]);
+      }
+    } else {
+      setSelectedRules([]);
+    }
     
     // Load selected weapons for editing (handle both ID arrays and populated objects)
     if (unit.weapons && unit.weapons.length > 0) {
