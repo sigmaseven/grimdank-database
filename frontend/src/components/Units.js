@@ -110,7 +110,7 @@ function Units() {
 
   useEffect(() => {
     loadUnits(searchTerm);
-  }, [searchTerm, pageSize, skip]); // Remove loadUnits dependency to avoid circular dependency
+  }, [searchTerm, pageSize, skip, loadUnits]); // Include loadUnits dependency
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -368,26 +368,6 @@ function Units() {
     }
   }, []);
 
-  // Load initial rules when dialog opens
-  useEffect(() => {
-    if (showRuleSelector) {
-      loadRules(''); // Load all rules initially
-    }
-  }, [showRuleSelector, loadRules]);
-
-  // Load initial weapons when dialog opens
-  useEffect(() => {
-    if (showWeaponSelector) {
-      loadWeapons('', weaponSelectorType); // Load weapons of the selected type initially
-    }
-  }, [showWeaponSelector, weaponSelectorType, loadWeapons]);
-
-  // Load initial wargear when dialog opens
-  useEffect(() => {
-    if (showWarGearSelector) {
-      loadWarGear(''); // Load all wargear initially
-    }
-  }, [showWarGearSelector, loadWarGear]);
 
   const handleRuleSelect = async (rule, tier = 1) => {
     try {
@@ -458,12 +438,6 @@ function Units() {
   }, []);
 
 
-  // Load initial weapons when dialog opens
-  useEffect(() => {
-    if (showWeaponSelector) {
-      loadWeapons('', weaponSelectorType); // Load weapons filtered by type
-    }
-  }, [showWeaponSelector, weaponSelectorType, loadWeapons]);
 
 
   const handleWeaponSelect = async (weapon, quantity = 1) => {
@@ -582,7 +556,12 @@ function Units() {
     }
   }, []);
 
-  const warGearSuggestionTimeoutRef = useRef(null);
+  // Load initial rules when dialog opens
+  useEffect(() => {
+    if (showRuleSelector) {
+      loadRules(''); // Load all rules initially
+    }
+  }, [showRuleSelector, loadRules]);
 
   // Load initial wargear when dialog opens
   useEffect(() => {
@@ -590,6 +569,15 @@ function Units() {
       loadWarGear(''); // Load all wargear initially
     }
   }, [showWarGearSelector, loadWarGear]);
+
+  const warGearSuggestionTimeoutRef = useRef(null);
+
+  // Load initial weapons when dialog opens
+  useEffect(() => {
+    if (showWeaponSelector) {
+      loadWeapons('', weaponSelectorType); // Load weapons of the selected type initially
+    }
+  }, [showWeaponSelector, weaponSelectorType, loadWeapons]);
 
   const handleWarGearSelect = async (wargear) => {
     try {
