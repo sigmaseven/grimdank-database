@@ -269,7 +269,6 @@ func CreateTestWeapon() *models.Weapon {
 func CreateTestWarGear() *models.WarGear {
 	return &models.WarGear{
 		Name:        "Test WarGear",
-		Type:        "Equipment",
 		Description: "A test wargear item",
 		Points:      15,
 		Rules:       []models.RuleReference{},
@@ -289,7 +288,7 @@ func CreateTestUnit() *models.Unit {
 		Rules:            []models.RuleReference{},
 		AvailableWeapons: []primitive.ObjectID{},
 		AvailableWarGear: []primitive.ObjectID{},
-		Weapons:          []primitive.ObjectID{},
+		Weapons:          []models.WeaponReference{},
 		WarGear:          []primitive.ObjectID{},
 	}
 }
@@ -370,14 +369,11 @@ func AssertEqualWarGear(t *testing.T, expected, actual *models.WarGear, msg stri
 	if expected.Name != actual.Name {
 		t.Errorf("%s: Expected name %s, got %s", msg, expected.Name, actual.Name)
 	}
-	if expected.Type != actual.Type {
-		t.Errorf("%s: Expected type %s, got %s", msg, expected.Type, actual.Type)
-	}
 	if expected.Description != actual.Description {
 		t.Errorf("%s: Expected description %s, got %s", msg, expected.Description, actual.Description)
 	}
-	if !reflect.DeepEqual(expected.Points, actual.Points) {
-		t.Errorf("%s: Expected points %v, got %v", msg, expected.Points, actual.Points)
+	if expected.Points != actual.Points {
+		t.Errorf("%s: Expected points %d, got %d", msg, expected.Points, actual.Points)
 	}
 }
 

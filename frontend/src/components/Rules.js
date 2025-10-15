@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { rulesAPI } from '../services/api';
 import PointsCalculator from './PointsCalculator';
 import { Icon } from './Icons';
@@ -82,7 +82,7 @@ function Rules() {
 
   useEffect(() => {
     loadRules(searchTerm);
-  }, [loadRules, searchTerm]);
+  }, [searchTerm, pageSize, skip, loadRules]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -125,7 +125,7 @@ function Rules() {
     }
   };
 
-  const getSortedRules = () => {
+  const getSortedRules = useMemo(() => {
     if (!rules || rules.length === 0) return [];
     
     return [...rules].sort((a, b) => {
@@ -153,7 +153,7 @@ function Rules() {
       }
       return 0;
     });
-  };
+  }, [rules, sortField, sortDirection]);
 
 
   const handleInputChange = (e) => {
@@ -306,6 +306,8 @@ function Rules() {
           onClick={() => {
             setShowForm(true);
             setEditingRule(null);
+            setError(null);
+            setValidationErrors({});
             resetForm();
           }}
         >
@@ -488,7 +490,7 @@ function Rules() {
               </tr>
             </thead>
             <tbody>
-              {getSortedRules().map(rule => (
+              {getSortedRules.map(rule => (
                 <tr key={rule.id}>
                   <td><strong>{rule.name}</strong></td>
                   <td>{rule.type}</td>

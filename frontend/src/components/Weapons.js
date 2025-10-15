@@ -13,6 +13,7 @@ function Weapons() {
   const [editingWeapon, setEditingWeapon] = useState(null);
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
+  const [validationErrors, setValidationErrors] = useState({});
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   
@@ -48,8 +49,6 @@ function Weapons() {
   const [ruleSearchTerm, setRuleSearchTerm] = useState('');
   const [showRuleSelector, setShowRuleSelector] = useState(false);
   const [ruleLoading, setRuleLoading] = useState(false);
-  const [ruleSuggestions, setRuleSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const baseWeaponPointsRef = useRef(0);
   const [showWeaponPointsCalculator, setShowWeaponPointsCalculator] = useState(false);
 
@@ -97,12 +96,11 @@ function Weapons() {
   const loadRules = useCallback(async (searchQuery = '') => {
     try {
       setRuleLoading(true);
-      const params = searchQuery ? { name: searchQuery } : {};
+      const params = searchQuery ? { name: searchQuery, limit: 100 } : { limit: 100 };
       const data = await rulesAPI.getAll(params);
-      // Filter rules for Weapons: primarily Offensive and Passive rules
+      // Filter rules for Weapons: only show rules with type "Weapon"
       const filteredRules = Array.isArray(data) ? data.filter(rule => 
-        rule.type === 'Offensive' || 
-        rule.type === 'Passive'
+        rule.type === 'Weapon'
       ) : [];
       setAvailableRules(filteredRules);
     } catch (err) {
@@ -113,30 +111,10 @@ function Weapons() {
     }
   }, []);
 
-  const loadRuleSuggestions = useCallback(async (searchQuery = '') => {
-    try {
-      if (searchQuery.length >= 2) {
-        const params = { name: searchQuery, limit: 5 };
-        const data = await rulesAPI.getAll(params);
-        // Filter rules for Weapons: primarily Offensive and Passive rules
-        const filteredRules = Array.isArray(data) ? data.filter(rule => 
-          rule.type === 'Offensive' || 
-          rule.type === 'Passive'
-        ) : [];
-        setRuleSuggestions(filteredRules);
-        setShowSuggestions(true);
-      } else {
-        setRuleSuggestions([]);
-        setShowSuggestions(false);
-      }
-    } catch (err) {
-      console.error('Failed to load rule suggestions:', err);
-    }
-  }, []);
 
   useEffect(() => {
     loadWeapons(searchTerm);
-  }, [searchTerm, pageSize, skip]); // Remove loadWeapons dependency to avoid circular dependency
+  }, [searchTerm, pageSize, skip, loadWeapons]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -183,13 +161,15 @@ function Weapons() {
     const query = e.target.value;
     setRuleSearchTerm(query);
     
-    // Load suggestions for autocomplete
-    loadRuleSuggestions(query);
-    
-    // Load full results if query is long enough
-    if (query.length > 2) {
+    // Load full results based on query length
+    if (query.length === 0) {
+      // When search is cleared, reload all rules
+      loadRules('');
+    } else if (query.length > 2) {
+      // Load filtered rules when query is long enough
       loadRules(query);
     } else {
+      // Clear results for 1-2 character queries to avoid too many results
       setAvailableRules([]);
     }
   };
@@ -211,9 +191,7 @@ function Weapons() {
         // For new weapons, add to selected rules with tier information
         setSelectedRules(prev => [...prev, { ...rule, tier: tier }]);
       }
-      setShowRuleSelector(false);
-      setRuleSearchTerm('');
-      setShowSuggestions(false);
+      closeRuleSelector();
     } catch (err) {
       console.error('Failed to add rule to weapon:', err);
     }
@@ -226,11 +204,11 @@ function Weapons() {
     }
   }, [showRuleSelector, loadRules]);
 
-  const handleSuggestionSelect = (rule) => {
-    setRuleSearchTerm(rule.name);
-    setShowSuggestions(false);
-    // Load the full rule details
-    loadRules(rule.name);
+  // Cleanup function for closing rule selector
+  const closeRuleSelector = () => {
+    setShowRuleSelector(false);
+    setRuleSearchTerm('');
+    setAvailableRules([]);
   };
 
   const handleRuleRemove = async (ruleId) => {
@@ -325,7 +303,12 @@ function Weapons() {
   useEffect(() => {
     const rulePoints = selectedRules.reduce((total, rule) => {
       const points = rule.points || [];
-      return total + (points[0] || 0); // Use tier 1 points
+      // Use the selected tier, or default to tier 1
+      if (rule.tier && rule.tier >= 1 && rule.tier <= points.length) {
+        return total + (points[rule.tier - 1] || 0); // Use tier-specific points
+      } else {
+        return total + (points[0] || 0); // Default to tier 1
+      }
     }, 0);
     const totalPoints = baseWeaponPointsRef.current + rulePoints;
     
@@ -335,18 +318,41 @@ function Weapons() {
     }));
   }, [selectedRules]);
 
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = 'Name is required';
+    }
+    
+    if (!formData.type.trim()) {
+      errors.type = 'Type is required';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form before submitting
+    if (!validateForm()) {
+      return;
+    }
+    
     try {
       // Submit weapon data
       
       // Prepare weapon data with rules
       const weaponData = {
         ...formData,
-        rules: selectedRules.map(rule => ({
-          ruleId: rule.id,
-          tier: rule.tier || 1
-        }))
+        rules: selectedRules
+          .filter(rule => rule && rule.id) // Validate rule exists and has ID
+          .map(rule => ({
+            ruleId: rule.id,
+            tier: Math.min(3, Math.max(1, rule.tier || 1)) // Clamp tier to 1-3
+          }))
       };
       
       if (editingWeapon) {
@@ -355,6 +361,7 @@ function Weapons() {
         await weaponsAPI.create(weaponData);
       }
       setError(null); // Clear any previous errors
+      setValidationErrors({}); // Clear validation errors
       setShowForm(false);
       setEditingWeapon(null);
       resetForm();
@@ -461,6 +468,8 @@ function Weapons() {
           onClick={() => {
             setShowForm(true);
             setEditingWeapon(null);
+            setError(null);
+            setValidationErrors({});
             resetForm();
           }}
         >
@@ -493,7 +502,14 @@ function Weapons() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
+                  maxLength={100}
+                  title="Maximum 100 characters"
                 />
+                {validationErrors.name && (
+                  <div className="error-message" style={{ color: 'red', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                    {validationErrors.name}
+                  </div>
+                )}
               </div>
               
               <div className="form-group">
@@ -504,9 +520,14 @@ function Weapons() {
                   onChange={handleInputChange}
                 >
                   <option value="">Select Type</option>
-                  <option value="Ranged">Ranged</option>
-                  <option value="Melee">Melee</option>
+                  <option value="ranged">Ranged</option>
+                  <option value="melee">Melee</option>
                 </select>
+                {validationErrors.type && (
+                  <div className="error-message" style={{ color: 'red', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                    {validationErrors.type}
+                  </div>
+                )}
               </div>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -523,12 +544,19 @@ function Weapons() {
                 
                 <div className="form-group">
                   <label>AP</label>
-                  <input
-                    type="text"
+                  <select
                     name="ap"
                     value={formData.ap}
                     onChange={handleInputChange}
-                  />
+                  >
+                    <option value="">Select AP</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                  </select>
                 </div>
                 
                 <div className="form-group">
@@ -858,7 +886,7 @@ function Weapons() {
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              setShowRuleSelector(false);
+              closeRuleSelector();
             }
           }}
         >
@@ -883,7 +911,7 @@ function Weapons() {
             }}>
               <h3 style={{ color: '#f0f6fc', margin: 0 }}>Select Rules to Attach</h3>
               <button
-                onClick={() => setShowRuleSelector(false)}
+                onClick={closeRuleSelector}
                 style={{
                   backgroundColor: 'transparent',
                   border: 'none',
@@ -897,21 +925,15 @@ function Weapons() {
               </button>
             </div>
             
-            <div style={{ marginBottom: '1rem', position: 'relative' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#8b949e', fontSize: '0.85rem' }}>
+                Search and Filter Rules
+              </label>
               <input
                 type="text"
-                placeholder="Search rules by name or description..."
+                placeholder="Type to filter rules..."
                 value={ruleSearchTerm}
                 onChange={handleRuleSearch}
-                onFocus={() => {
-                  if (ruleSuggestions.length > 0) {
-                    setShowSuggestions(true);
-                  }
-                }}
-                onBlur={() => {
-                  // Delay hiding suggestions to allow clicking on them
-                  setTimeout(() => setShowSuggestions(false), 200);
-                }}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -924,186 +946,167 @@ function Weapons() {
                 }}
                 autoFocus
               />
-              
-              {/* Autocomplete Suggestions Dropdown */}
-              {showSuggestions && ruleSuggestions.length > 0 && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
+            </div>
+            
+            {/* Dropdown-style rule selector */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#8b949e', fontSize: '0.85rem' }}>
+                Select Rule from List
+              </label>
+              {ruleLoading ? (
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '1rem', 
+                  color: '#8b949e',
                   backgroundColor: '#21262d',
                   border: '1px solid #30363d',
-                  borderRadius: '6px',
-                  marginTop: '0.25rem',
-                  maxHeight: '200px',
-                  overflow: 'auto',
-                  zIndex: 10000,
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)'
+                  borderRadius: '6px'
                 }}>
-                  {ruleSuggestions.map(rule => (
-                    <div
-                      key={rule.id}
-                      onClick={() => handleSuggestionSelect(rule)}
-                      style={{
-                        padding: '0.75rem',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid #30363d',
-                        transition: 'background-color 0.2s ease'
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#30363d'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                    >
-                      <div style={{ color: '#f0f6fc', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                        {rule.name}
-                      </div>
-                      <div style={{ color: '#8b949e', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-                        {rule.description}
-                      </div>
-                      {rule.points && rule.points.length > 0 && (
-                        <div style={{ color: '#58a6ff', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                          {rule.points[0]}/{rule.points[1]}/{rule.points[2]} pts
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  Loading rules...
                 </div>
-              )}
-            </div>
-            
-            <div style={{ maxHeight: '400px', overflow: 'auto' }}>
-              {ruleLoading ? (
-                <div style={{ textAlign: 'center', color: '#8b949e', padding: '2rem' }}>Loading rules...</div>
               ) : availableRules.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#8b949e', padding: '2rem' }}>
-                  {ruleSearchTerm ? 'No rules found matching your search.' : 'Start typing to search for rules.'}
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '1rem', 
+                  color: '#8b949e',
+                  backgroundColor: '#21262d',
+                  border: '1px solid #30363d',
+                  borderRadius: '6px'
+                }}>
+                  {ruleSearchTerm ? `No weapon rules found matching "${ruleSearchTerm}".` : 'No weapon rules available.'}
                 </div>
               ) : (
-                availableRules.map(rule => (
-                  <div key={rule.id} style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '1rem',
-                    marginBottom: '0.75rem',
+                <select
+                  id="rule-dropdown-selector"
+                  size="8"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
                     backgroundColor: '#21262d',
-                    borderRadius: '6px',
                     border: '1px solid #30363d',
-                    transition: 'border-color 0.2s ease'
+                    borderRadius: '6px',
+                    color: '#f0f6fc',
+                    fontSize: '0.9rem',
+                    outline: 'none',
+                    cursor: 'pointer'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = '#58a6ff'}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = '#30363d'}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <div style={{ color: '#f0f6fc', fontWeight: 'bold', marginBottom: '0.25rem' }}>{rule.name}</div>
-                      <div style={{ color: '#8b949e', fontSize: '0.85rem', marginBottom: '0.25rem' }}>{rule.description}</div>
-                      {rule.points && rule.points.length > 0 && (
-                        <div style={{ color: '#58a6ff', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                          Points: {rule.points[0]}/{rule.points[1]}/{rule.points[2]} (Tier 1/2/3)
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
-                      {rule.points && rule.points.length > 0 ? (
-                        <div style={{ display: 'flex', gap: '0.25rem' }}>
-                          {[1, 2, 3].map(tier => (
-                            <button
-                              key={tier}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRuleSelect(rule, tier);
-                              }}
-                              style={{
-                                backgroundColor: '#238636',
-                                color: 'white',
-                                border: 'none',
-                                padding: '0.4rem 0.8rem',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                fontWeight: 'bold',
-                                transition: 'background-color 0.2s ease',
-                                minWidth: '40px'
-                              }}
-                              onMouseEnter={(e) => e.target.style.backgroundColor = '#2ea043'}
-                              onMouseLeave={(e) => e.target.style.backgroundColor = '#238636'}
-                              title={`Tier ${tier}: ${rule.points[tier-1]} points`}
-                            >
-                              T{tier}
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRuleSelect(rule, 1);
-                          }}
-                          style={{
-                            backgroundColor: '#238636',
-                            color: 'white',
-                            border: 'none',
-                            padding: '0.4rem 0.8rem',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '0.8rem',
-                            fontWeight: 'bold',
-                            transition: 'background-color 0.2s ease'
-                          }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#2ea043'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = '#238636'}
-                        >
-                          Attach
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
+                  onChange={(e) => {
+                    const selectedRule = availableRules.find(r => r.id === e.target.value);
+                    if (selectedRule) {
+                      document.getElementById('selected-rule-id').value = selectedRule.id;
+                      document.getElementById('selected-rule-name').textContent = selectedRule.name;
+                      document.getElementById('selected-rule-description').textContent = selectedRule.description;
+                    }
+                  }}
+                >
+                  {availableRules.map(rule => (
+                    <option 
+                      key={rule.id} 
+                      value={rule.id}
+                      style={{
+                        padding: '0.75rem',
+                        backgroundColor: '#21262d',
+                        color: '#f0f6fc',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {rule.name} - {rule.type}{rule.points && rule.points.length > 0 ? ` (${rule.points[0]}/${rule.points[1]}/${rule.points[2]} pts)` : ''}
+                    </option>
+                  ))}
+                </select>
               )}
             </div>
             
-            {selectedRules.length > 0 && (
+            {/* Selected rule details and add button */}
+            {availableRules.length > 0 && (
               <div style={{
-                marginTop: '1rem',
                 padding: '1rem',
-                backgroundColor: '#21262d',
+                backgroundColor: '#0d1117',
+                border: '1px solid #30363d',
                 borderRadius: '6px',
-                border: '1px solid #30363d'
+                marginBottom: '1rem'
               }}>
-                <div style={{ color: '#58a6ff', fontSize: '0.85rem' }}>
-                  <div>Rule Points: +{selectedRules.reduce((total, rule) => total + (rule.points?.[0] || 0), 0)}</div>
-                  <div style={{ color: '#f0f6fc', marginTop: '0.25rem' }}>
-                    Total Weapon Points: {calculateTotalPoints()}
+                <input type="hidden" id="selected-rule-id" />
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <div style={{ color: '#8b949e', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                    Selected Rule:
                   </div>
+                  <div id="selected-rule-name" style={{ color: '#f0f6fc', fontWeight: 'bold', fontSize: '1rem' }}>
+                    {availableRules[0]?.name || 'None'}
+                  </div>
+                  <div id="selected-rule-description" style={{ color: '#8b949e', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                    {availableRules[0]?.description || ''}
+                  </div>
+                </div>
+                
+                {/* Tier selection and add button */}
+                <div>
+                  {availableRules[0] && availableRules[0].points && availableRules[0].points.length > 0 ? (
+                    <>
+                      <label style={{ display: 'block', color: '#8b949e', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+                        Select Tier:
+                      </label>
+                      <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        {[1, 2, 3].map(tier => (
+                          <button
+                            key={tier}
+                            onClick={() => {
+                              const ruleId = document.getElementById('selected-rule-id')?.value || availableRules[0]?.id;
+                              const selectedRule = availableRules.find(r => r.id === ruleId) || availableRules[0];
+                              if (selectedRule) {
+                                handleRuleSelect(selectedRule, tier);
+                              }
+                            }}
+                            style={{
+                              flex: 1,
+                              backgroundColor: '#238636',
+                              color: 'white',
+                              border: 'none',
+                              padding: '0.65rem 1rem',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '0.9rem',
+                              fontWeight: 'bold',
+                              transition: 'background-color 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = '#2ea043'}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = '#238636'}
+                          >
+                            Tier {tier} ({availableRules[0].points[tier-1]} pts)
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        const ruleId = document.getElementById('selected-rule-id')?.value || availableRules[0]?.id;
+                        const selectedRule = availableRules.find(r => r.id === ruleId) || availableRules[0];
+                        if (selectedRule) {
+                          handleRuleSelect(selectedRule, 1);
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        backgroundColor: '#238636',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.65rem 1.5rem',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#2ea043'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#238636'}
+                    >
+                      Add Rule
+                    </button>
+                  )}
                 </div>
               </div>
             )}
-            
-            {/* Back Button */}
-            <div style={{ 
-              marginTop: '1rem', 
-              display: 'flex', 
-              justifyContent: 'flex-end'
-            }}>
-              <button
-                onClick={() => setShowRuleSelector(false)}
-                style={{
-                  backgroundColor: '#6e7681',
-                  color: 'white',
-                  border: 'none',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  fontWeight: 'bold',
-                  transition: 'background-color 0.2s ease'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#8b949e'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#6e7681'}
-              >
-                Back
-              </button>
-            </div>
           </div>
         </div>
       )}

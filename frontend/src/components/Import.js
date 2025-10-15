@@ -75,10 +75,15 @@ function Import() {
       setResult({
         message: response.message,
         count: response.count,
-        importedIds: response.imported_ids
+        importedIds: response.imported_ids || response.importedIds
       });
     } catch (err) {
-      setError(err.message);
+      const errorMessage = err.response?.data?.message 
+        || err.response?.data 
+        || err.message 
+        || 'Import failed';
+      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+      console.error('Import error:', err);
     } finally {
       setLoading(false);
     }

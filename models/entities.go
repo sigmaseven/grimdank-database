@@ -21,6 +21,13 @@ type RuleReference struct {
 	Tier   int                `bson:"tier" json:"tier"` // 1, 2, or 3 for tier selection
 }
 
+// WeaponReference represents a reference to a weapon with quantity and type
+type WeaponReference struct {
+	WeaponID primitive.ObjectID `bson:"weaponId" json:"weaponId" validate:"required"`
+	Quantity int                `bson:"quantity" json:"quantity"` // Number of models with this weapon
+	Type     string             `bson:"type" json:"type"`         // "Melee" or "Ranged"
+}
+
 // Weapon represents a weapon in the game
 type Weapon struct {
 	ID      primitive.ObjectID `bson:"_id,omitempty" json:"id"`
@@ -37,7 +44,6 @@ type Weapon struct {
 type WarGear struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Name        string             `bson:"name" json:"name" validate:"required"`
-	Type        string             `bson:"type" json:"type"`
 	Description string             `bson:"description" json:"description"`
 	Points      int                `bson:"points" json:"points"`
 	Rules       []RuleReference    `bson:"rules" json:"rules"`
@@ -53,10 +59,12 @@ type Unit struct {
 	Morale           int                  `bson:"morale" json:"morale"`
 	Defense          int                  `bson:"defense" json:"defense"`
 	Points           int                  `bson:"points" json:"points"`
+	Amount           int                  `bson:"amount" json:"amount" validate:"min=1"` // Number of models in the unit
+	Max              int                  `bson:"max" json:"max" validate:"min=1"`       // Maximum number of models allowed
 	Rules            []RuleReference      `bson:"rules" json:"rules"`
 	AvailableWeapons []primitive.ObjectID `bson:"availableWeaponIds" json:"availableWeaponIds"`
 	AvailableWarGear []primitive.ObjectID `bson:"availableWarGearIds" json:"availableWarGearIds"`
-	Weapons          []primitive.ObjectID `bson:"weaponIds" json:"weaponIds"`
+	Weapons          []WeaponReference    `bson:"weapons" json:"weapons"`
 	WarGear          []primitive.ObjectID `bson:"warGearIds" json:"warGearIds"`
 }
 
@@ -108,13 +116,20 @@ type PopulatedWarGear struct {
 	PopulatedRules []Rule `json:"populatedRules"`
 }
 
+// PopulatedWeaponReference combines weapon details with quantity/type info
+type PopulatedWeaponReference struct {
+	Weapon   Weapon `json:"weapon"`
+	Quantity int    `json:"quantity"`
+	Type     string `json:"type"`
+}
+
 type PopulatedUnit struct {
 	Unit
-	PopulatedRules            []Rule    `json:"populatedRules"`
-	PopulatedAvailableWeapons []Weapon  `json:"populatedAvailableWeapons"`
-	PopulatedAvailableWarGear []WarGear `json:"populatedAvailableWarGear"`
-	PopulatedWeapons          []Weapon  `json:"populatedWeapons"`
-	PopulatedWarGear          []WarGear `json:"populatedWarGear"`
+	PopulatedRules            []Rule                     `json:"populatedRules"`
+	PopulatedAvailableWeapons []Weapon                   `json:"populatedAvailableWeapons"`
+	PopulatedAvailableWarGear []WarGear                  `json:"populatedAvailableWarGear"`
+	PopulatedWeapons          []PopulatedWeaponReference `json:"populatedWeapons"`
+	PopulatedWarGear          []WarGear                  `json:"populatedWarGear"`
 }
 
 type PopulatedArmyBook struct {

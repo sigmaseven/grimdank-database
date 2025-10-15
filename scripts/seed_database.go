@@ -115,7 +115,7 @@ func main() {
 	weapons := []interface{}{
 		map[string]interface{}{
 			"name":    "Bolter",
-			"type":    "Rapid Fire",
+			"type":    "ranged",
 			"range":   24,
 			"ap":      "0",
 			"attacks": 1,
@@ -123,7 +123,7 @@ func main() {
 		},
 		map[string]interface{}{
 			"name":    "Plasma Gun",
-			"type":    "Assault",
+			"type":    "ranged",
 			"range":   18,
 			"ap":      "-3",
 			"attacks": 1,
@@ -131,7 +131,7 @@ func main() {
 		},
 		map[string]interface{}{
 			"name":    "Power Sword",
-			"type":    "Melee",
+			"type":    "melee",
 			"range":   0,
 			"ap":      "-3",
 			"attacks": 1,
@@ -139,7 +139,7 @@ func main() {
 		},
 		map[string]interface{}{
 			"name":    "Heavy Bolter",
-			"type":    "Heavy",
+			"type":    "ranged",
 			"range":   36,
 			"ap":      "-1",
 			"attacks": 3,
@@ -147,7 +147,7 @@ func main() {
 		},
 		map[string]interface{}{
 			"name":    "Flamer",
-			"type":    "Assault",
+			"type":    "ranged",
 			"range":   8,
 			"ap":      "0",
 			"attacks": 1,
@@ -155,7 +155,7 @@ func main() {
 		},
 		map[string]interface{}{
 			"name":    "Melta Gun",
-			"type":    "Assault",
+			"type":    "ranged",
 			"range":   12,
 			"ap":      "-4",
 			"attacks": 1,

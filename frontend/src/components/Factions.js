@@ -10,6 +10,7 @@ function Factions() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingFaction, setEditingFaction] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   
@@ -75,7 +76,7 @@ function Factions() {
 
   useEffect(() => {
     loadFactions(searchTerm);
-  }, [loadFactions, searchTerm]);
+  }, [searchTerm, pageSize, skip, loadFactions]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -125,8 +126,24 @@ function Factions() {
     });
   };
 
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = 'Name is required';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form before submitting
+    if (!validateForm()) {
+      return;
+    }
     
     try {
       if (editingFaction) {
@@ -136,6 +153,7 @@ function Factions() {
       }
       
       setError(null); // Clear any previous errors
+      setValidationErrors({}); // Clear validation errors
       loadFactions(searchTerm, false);
       setShowForm(false);
       setEditingFaction(null);
@@ -203,6 +221,8 @@ function Factions() {
           onClick={() => {
             setShowForm(true);
             setEditingFaction(null);
+            setError(null);
+            setValidationErrors({});
             resetForm();
           }}
         >
@@ -235,7 +255,14 @@ function Factions() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
+                  maxLength={100}
+                  title="Maximum 100 characters"
                 />
+                {validationErrors.name && (
+                  <div className="error-message" style={{ color: 'red', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                    {validationErrors.name}
+                  </div>
+                )}
               </div>
               
               <div className="form-group">
@@ -245,6 +272,8 @@ function Factions() {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows="3"
+                  maxLength={500}
+                  title="Maximum 500 characters"
                 />
               </div>
               

@@ -27,6 +27,13 @@ func (s *WeaponService) CreateWeapon(ctx context.Context, weapon *models.Weapon)
 		return nil, errors.New("name is required")
 	}
 
+	// Validate weapon type (only "melee" or "ranged" allowed)
+	weaponType := strings.ToLower(strings.TrimSpace(weapon.Type))
+	if weaponType != "melee" && weaponType != "ranged" {
+		return nil, errors.New("weapon type must be either 'melee' or 'ranged'")
+	}
+	weapon.Type = weaponType // Normalize to lowercase
+
 	id, err := s.repo.CreateWeapon(ctx, weapon)
 	if err != nil {
 		return nil, err
@@ -52,6 +59,13 @@ func (s *WeaponService) UpdateWeapon(ctx context.Context, id string, weapon *mod
 		return errors.New("name is required")
 	}
 
+	// Validate weapon type (only "melee" or "ranged" allowed)
+	weaponType := strings.ToLower(strings.TrimSpace(weapon.Type))
+	if weaponType != "melee" && weaponType != "ranged" {
+		return errors.New("weapon type must be either 'melee' or 'ranged'")
+	}
+	weapon.Type = weaponType // Normalize to lowercase
+
 	return s.repo.UpdateWeapon(ctx, id, weapon)
 }
 
@@ -73,6 +87,12 @@ func (s *WeaponService) BulkImportWeapons(ctx context.Context, weapons []models.
 		if strings.TrimSpace(weapon.Name) == "" {
 			return nil, fmt.Errorf("weapon at index %d has empty name", i)
 		}
+		// Validate and normalize weapon type
+		weaponType := strings.ToLower(strings.TrimSpace(weapon.Type))
+		if weaponType != "melee" && weaponType != "ranged" {
+			return nil, fmt.Errorf("weapon at index %d has invalid type '%s': must be 'melee' or 'ranged'", i, weapon.Type)
+		}
+		weapons[i].Type = weaponType // Normalize to lowercase
 	}
 
 	return s.repo.BulkImportWeapons(ctx, weapons)

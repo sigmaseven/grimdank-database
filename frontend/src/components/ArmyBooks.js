@@ -10,6 +10,7 @@ function ArmyBooks() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingArmyBook, setEditingArmyBook] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   
@@ -77,7 +78,7 @@ function ArmyBooks() {
 
   useEffect(() => {
     loadArmyBooks(searchTerm);
-  }, [loadArmyBooks, searchTerm]);
+  }, [searchTerm, pageSize, skip, loadArmyBooks]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -122,14 +123,20 @@ function ArmyBooks() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    setSubmitting(true);
+    setError(null);
+    
     try {
-      // Prepare army book data with rules
+      // Prepare army book data with rules (validate before mapping)
       const armyBookData = {
         ...formData,
-        rules: formData.rules.map(rule => ({
-          ruleId: rule.id,
-          tier: rule.tier || 1
-        }))
+        rules: (formData.rules || [])
+          .filter(rule => rule && rule.id) // Validate rule exists
+          .map(rule => ({
+            ruleId: rule.id,
+            tier: Math.min(3, Math.max(1, rule.tier || 1)) // Clamp tier to 1-3
+          }))
       };
       
       if (editingArmyBook) {
@@ -137,14 +144,16 @@ function ArmyBooks() {
       } else {
         await armyBooksAPI.create(armyBookData);
       }
-      setError(null); // Clear any previous errors
+      
       setShowForm(false);
       setEditingArmyBook(null);
       resetForm();
-      loadArmyBooks(searchTerm, false);
+      await loadArmyBooks(searchTerm, false);
     } catch (err) {
-      setError('Failed to save army book');
-      // Handle save error
+      setError(err.response?.data?.message || 'Failed to save army book');
+      console.error('Failed to save army book:', err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -161,7 +170,19 @@ function ArmyBooks() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this army book?')) {
+    const armyBook = armyBooks.find(ab => ab.id === id);
+    const hasUnits = armyBook?.units?.length > 0;
+    const hasRules = armyBook?.rules?.length > 0;
+    
+    let confirmMessage = 'Are you sure you want to delete this army book?';
+    if (hasUnits || hasRules) {
+      confirmMessage += '\n\n⚠️ This army book has:\n';
+      if (hasUnits) confirmMessage += `- ${armyBook.units.length} unit(s)\n`;
+      if (hasRules) confirmMessage += `- ${armyBook.rules.length} rule(s)\n`;
+      confirmMessage += '\nThese references will be removed.';
+    }
+    
+    if (window.confirm(confirmMessage)) {
       try {
         await armyBooksAPI.delete(id);
         setError(null); // Clear any previous errors
@@ -175,10 +196,10 @@ function ArmyBooks() {
           resetPagination();
         }
         
-        loadArmyBooks(searchTerm, false);
+        await loadArmyBooks(searchTerm, false);
       } catch (err) {
-        setError('Failed to delete army book');
-        // Handle delete error
+        setError(err.response?.data?.message || 'Failed to delete army book');
+        console.error('Failed to delete army book:', err);
       }
     }
   };
@@ -217,6 +238,7 @@ function ArmyBooks() {
           onClick={() => {
             setShowForm(true);
             setEditingArmyBook(null);
+            setError(null);
             resetForm();
           }}
         >
@@ -249,6 +271,8 @@ function ArmyBooks() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
+                  maxLength={100}
+                  title="Maximum 100 characters"
                 />
               </div>
               
@@ -269,12 +293,22 @@ function ArmyBooks() {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows="3"
+                  maxLength={500}
+                  title="Maximum 500 characters"
                 />
               </div>
 
               <div style={{ marginTop: '1rem' }}>
-                <button type="submit" className="btn btn-success">
-                  {editingArmyBook ? 'Update Army Book' : 'Create Army Book'}
+                <button 
+                  type="submit" 
+                  className="btn btn-success"
+                  disabled={submitting}
+                  style={{
+                    opacity: submitting ? 0.6 : 1,
+                    cursor: submitting ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {submitting ? 'Saving...' : (editingArmyBook ? 'Update Army Book' : 'Create Army Book')}
                 </button>
                 <button 
                   type="button" 
@@ -282,7 +316,10 @@ function ArmyBooks() {
                   onClick={() => {
                     setShowForm(false);
                     setEditingArmyBook(null);
+                    setError(null);
+                    resetForm();
                   }}
+                  disabled={submitting}
                 >
                   Cancel
                 </button>

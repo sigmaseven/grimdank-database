@@ -56,15 +56,18 @@ func TestUnitCRUD(t *testing.T) {
 		units := []*models.Unit{
 			{
 				Name: "Unit 1", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Amount: 5, Max: 10,
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Unit 2", Type: "Vehicle", Melee: 4, Ranged: 4, Morale: 8, Defense: 4, Points: 200,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Amount: 1, Max: 3,
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Unit 3", Type: "Monster", Melee: 5, Ranged: 2, Morale: 9, Defense: 5, Points: 300,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Amount: 1, Max: 1,
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 		}
 
@@ -94,15 +97,18 @@ func TestUnitCRUD(t *testing.T) {
 		units := []*models.Unit{
 			{
 				Name: "Fire Marines", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Amount: 5, Max: 10,
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Ice Warriors", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Amount: 5, Max: 10,
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Fire Tank", Type: "Vehicle", Melee: 4, Ranged: 4, Morale: 8, Defense: 4, Points: 200,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Amount: 1, Max: 3,
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 		}
 
@@ -179,7 +185,8 @@ func TestUnitCRUD(t *testing.T) {
 	t.Run("Create Unit With Empty Name Should Fail", func(t *testing.T) {
 		unit := &models.Unit{
 			Name: "", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
-			Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+			Amount: 1, Max: 5,
+			Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 		}
 
 		_, err := testServices.UnitService.CreateUnit(ctx, unit)
@@ -263,15 +270,18 @@ func TestUnitBulkImport(t *testing.T) {
 		units := []models.Unit{
 			{
 				Name: "Bulk Unit 1", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Amount: 5, Max: 10,
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Bulk Unit 2", Type: "Vehicle", Melee: 4, Ranged: 4, Morale: 8, Defense: 4, Points: 200,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Amount: 1, Max: 3,
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Bulk Unit 3", Type: "Monster", Melee: 5, Ranged: 2, Morale: 9, Defense: 5, Points: 300,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Amount: 1, Max: 1,
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 		}
 
@@ -302,11 +312,13 @@ func TestUnitBulkImport(t *testing.T) {
 		units := []models.Unit{
 			{
 				Name: "Valid Unit", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Amount: 5, Max: 10,
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "", Type: "Vehicle", Melee: 4, Ranged: 4, Morale: 8, Defense: 4, Points: 200,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Amount: 1, Max: 3,
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 		}
 
@@ -341,7 +353,7 @@ func TestUnitPagination(t *testing.T) {
 		for i := 1; i <= 5; i++ {
 			unit := &models.Unit{
 				Name: fmt.Sprintf("Unit %d", i), Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3,
-				Points: i * 50, Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Points: i * 50, Amount: 5, Max: 10, Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			}
 			_, err := testServices.UnitService.CreateUnit(ctx, unit)
 			if err != nil {

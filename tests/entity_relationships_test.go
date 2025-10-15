@@ -120,7 +120,6 @@ func TestEntityRelationships(t *testing.T) {
 		// Create wargear with the rule
 		wargear := &models.WarGear{
 			Name:        "Test WarGear",
-			Type:        "Equipment",
 			Description: "Test equipment",
 			Points:      25,
 			Rules: []models.RuleReference{
@@ -248,7 +247,6 @@ func TestEntityRelationships(t *testing.T) {
 		// Test that WarGear can use Defensive, Passive, and Tactical rules
 		wargear := &models.WarGear{
 			Name:        "Defensive Equipment",
-			Type:        "Armor",
 			Description: "Protective gear",
 			Points:      75,
 			Rules: []models.RuleReference{

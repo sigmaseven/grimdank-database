@@ -238,7 +238,7 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 		template = []models.Weapon{
 			{
 				Name:    "Example Weapon",
-				Type:    "Rapid Fire",
+				Type:    "ranged",
 				Range:   24,
 				AP:      "0",
 				Attacks: 1,
@@ -250,7 +250,6 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 		template = []models.WarGear{
 			{
 				Name:        "Example WarGear",
-				Type:        "Equipment",
 				Description: "This is an example wargear description",
 				Points:      5,
 				Rules:       []models.RuleReference{},
@@ -266,9 +265,13 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 				Morale:           7,
 				Defense:          3,
 				Points:           10,
+				Amount:           5,
+				Max:              10,
 				Rules:            []models.RuleReference{},
 				AvailableWeapons: []primitive.ObjectID{},
 				AvailableWarGear: []primitive.ObjectID{},
+				Weapons:          []models.WeaponReference{},
+				WarGear:          []primitive.ObjectID{},
 			},
 		}
 	case "armybooks":

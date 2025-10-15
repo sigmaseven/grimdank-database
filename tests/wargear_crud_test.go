@@ -52,9 +52,9 @@ func TestWarGearCRUD(t *testing.T) {
 
 		// Create multiple wargear items
 		wargearItems := []*models.WarGear{
-			{Name: "Wargear 1", Type: "Equipment", Description: "First wargear", Points: 5},
-			{Name: "Wargear 2", Type: "Armor", Description: "Second wargear", Points: 10},
-			{Name: "Wargear 3", Type: "Weapon", Description: "Third wargear", Points: 15},
+			{Name: "Wargear 1", Description: "First wargear", Points: 5},
+			{Name: "Wargear 2", Description: "Second wargear", Points: 10},
+			{Name: "Wargear 3", Description: "Third wargear", Points: 15},
 		}
 
 		for _, wargear := range wargearItems {
@@ -81,9 +81,9 @@ func TestWarGearCRUD(t *testing.T) {
 
 		// Create wargear with different names
 		wargearItems := []*models.WarGear{
-			{Name: "Fire Shield", Type: "Armor", Description: "A fire shield", Points: 10},
-			{Name: "Ice Sword", Type: "Weapon", Description: "An ice sword", Points: 15},
-			{Name: "Fire Gauntlets", Type: "Equipment", Description: "Fire gauntlets", Points: 8},
+			{Name: "Fire Shield", Description: "A fire shield", Points: 10},
+			{Name: "Ice Sword", Description: "An ice sword", Points: 15},
+			{Name: "Fire Gauntlets", Description: "Fire gauntlets", Points: 8},
 		}
 
 		for _, wargear := range wargearItems {
@@ -159,7 +159,6 @@ func TestWarGearCRUD(t *testing.T) {
 	t.Run("Create WarGear With Empty Name Should Fail", func(t *testing.T) {
 		wargear := &models.WarGear{
 			Name:        "",
-			Type:        "Equipment",
 			Description: "A wargear with empty name",
 			Points:      5,
 		}
@@ -243,9 +242,9 @@ func TestWarGearBulkImport(t *testing.T) {
 
 	t.Run("Bulk Import WarGear", func(t *testing.T) {
 		wargearItems := []models.WarGear{
-			{Name: "Bulk Wargear 1", Type: "Equipment", Description: "First bulk wargear", Points: 5},
-			{Name: "Bulk Wargear 2", Type: "Armor", Description: "Second bulk wargear", Points: 10},
-			{Name: "Bulk Wargear 3", Type: "Weapon", Description: "Third bulk wargear", Points: 15},
+			{Name: "Bulk Wargear 1", Description: "First bulk wargear", Points: 5},
+			{Name: "Bulk Wargear 2", Description: "Second bulk wargear", Points: 10},
+			{Name: "Bulk Wargear 3", Description: "Third bulk wargear", Points: 15},
 		}
 
 		importedIDs, err := testServices.WarGearService.BulkImportWarGear(ctx, wargearItems)
@@ -273,8 +272,8 @@ func TestWarGearBulkImport(t *testing.T) {
 		CleanupTestDB(t)
 
 		wargearItems := []models.WarGear{
-			{Name: "Valid Wargear", Type: "Equipment", Description: "A valid wargear", Points: 5},
-			{Name: "", Type: "Armor", Description: "Invalid wargear with empty name", Points: 10},
+			{Name: "Valid Wargear", Description: "A valid wargear", Points: 5},
+			{Name: "", Description: "Invalid wargear with empty name", Points: 10},
 		}
 
 		_, err := testServices.WarGearService.BulkImportWarGear(ctx, wargearItems)
@@ -308,7 +307,6 @@ func TestWarGearPagination(t *testing.T) {
 		for i := 1; i <= 5; i++ {
 			wargear := &models.WarGear{
 				Name:        fmt.Sprintf("Wargear %d", i),
-				Type:        "Equipment",
 				Description: fmt.Sprintf("Description %d", i),
 				Points:      i * 5,
 			}

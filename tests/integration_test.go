@@ -243,18 +243,18 @@ func TestBulkImportIntegration(t *testing.T) {
 		}
 
 		wargear := []models.WarGear{
-			{Name: "Bulk Wargear 1", Type: "Equipment", Description: "First bulk wargear", Points: 5},
-			{Name: "Bulk Wargear 2", Type: "Armor", Description: "Second bulk wargear", Points: 10},
+			{Name: "Bulk Wargear 1", Description: "First bulk wargear", Points: 5},
+			{Name: "Bulk Wargear 2", Description: "Second bulk wargear", Points: 10},
 		}
 
 		units := []models.Unit{
 			{
 				Name: "Bulk Unit 1", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 			{
 				Name: "Bulk Unit 2", Type: "Vehicle", Melee: 4, Ranged: 4, Morale: 8, Defense: 4, Points: 200,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			},
 		}
 
@@ -360,10 +360,10 @@ func TestSearchIntegration(t *testing.T) {
 		// Create test data with searchable names
 		rule := &models.Rule{Name: "Fire Rule", Description: "A fire rule", Type: "Special", Points: []int{5, 10, 15}}
 		weapon := &models.Weapon{Name: "Fire Weapon", Type: "Ranged", Range: 24, AP: "0", Attacks: 1, Points: 10}
-		wargear := &models.WarGear{Name: "Fire Wargear", Type: "Equipment", Description: "Fire equipment", Points: 15}
+		wargear := &models.WarGear{Name: "Fire Wargear", Description: "Fire equipment", Points: 15}
 		unit := &models.Unit{
 			Name: "Fire Unit", Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: 100,
-			Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+			Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 		}
 		armyBook := &models.ArmyBook{Name: "Fire Army Book", FactionID: primitive.NewObjectID(), Description: "A fire army book"}
 		armyList := &models.ArmyList{Name: "Fire Army List", Player: "Fire Player", FactionID: primitive.NewObjectID(), Points: 1000, Description: "A fire army list"}
@@ -461,10 +461,10 @@ func TestPaginationIntegration(t *testing.T) {
 		for i := 1; i <= 10; i++ {
 			rule := &models.Rule{Name: fmt.Sprintf("Rule %d", i), Description: fmt.Sprintf("Description %d", i), Type: "Type A", Points: []int{i * 5, i * 10, i * 15}}
 			weapon := &models.Weapon{Name: fmt.Sprintf("Weapon %d", i), Type: "Ranged", Range: 24, AP: "0", Attacks: 1, Points: i * 10}
-			wargear := &models.WarGear{Name: fmt.Sprintf("Wargear %d", i), Type: "Equipment", Description: fmt.Sprintf("Description %d", i), Points: i * 15}
+			wargear := &models.WarGear{Name: fmt.Sprintf("Wargear %d", i), Description: fmt.Sprintf("Description %d", i), Points: i * 15}
 			unit := &models.Unit{
 				Name: fmt.Sprintf("Unit %d", i), Type: "Infantry", Melee: 3, Ranged: 3, Morale: 7, Defense: 3, Points: i * 100,
-				Weapons: []primitive.ObjectID{}, WarGear: []primitive.ObjectID{},
+				Weapons: []models.WeaponReference{}, WarGear: []primitive.ObjectID{},
 			}
 			armyBook := &models.ArmyBook{Name: fmt.Sprintf("Army Book %d", i), FactionID: primitive.NewObjectID(), Description: fmt.Sprintf("Description %d", i)}
 			armyList := &models.ArmyList{Name: fmt.Sprintf("Army List %d", i), Player: fmt.Sprintf("Player %d", i), FactionID: primitive.NewObjectID(), Points: i * 1000, Description: fmt.Sprintf("Description %d", i)}

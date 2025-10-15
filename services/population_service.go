@@ -98,13 +98,18 @@ func (ps *PopulationService) PopulateUnitWithReferences(ctx context.Context, uni
 		populatedUnit.PopulatedAvailableWarGear = append(populatedUnit.PopulatedAvailableWarGear, *wargear)
 	}
 
-	// Populate equipped weapons
-	for _, weaponID := range unit.Weapons {
-		weapon, err := ps.weaponService.GetWeaponByID(ctx, weaponID.Hex())
+	// Populate equipped weapons with quantity and type info
+	for _, weaponRef := range unit.Weapons {
+		weapon, err := ps.weaponService.GetWeaponByID(ctx, weaponRef.WeaponID.Hex())
 		if err != nil {
 			return nil, err
 		}
-		populatedUnit.PopulatedWeapons = append(populatedUnit.PopulatedWeapons, *weapon)
+		popWeaponRef := models.PopulatedWeaponReference{
+			Weapon:   *weapon,
+			Quantity: weaponRef.Quantity,
+			Type:     weaponRef.Type,
+		}
+		populatedUnit.PopulatedWeapons = append(populatedUnit.PopulatedWeapons, popWeaponRef)
 	}
 
 	// Populate equipped wargear

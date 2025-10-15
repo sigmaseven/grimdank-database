@@ -10,6 +10,7 @@ function ArmyLists() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingArmyList, setEditingArmyList] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   
@@ -78,7 +79,7 @@ function ArmyLists() {
 
   useEffect(() => {
     loadArmyLists(searchTerm);
-  }, [loadArmyLists, searchTerm]);
+  }, [searchTerm, pageSize, skip, loadArmyLists]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -134,6 +135,9 @@ function ArmyLists() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    setSubmitting(true);
+    setError(null);
+    
     try {
       // Prepare army list data with units
       const armyListData = {
@@ -147,14 +151,15 @@ function ArmyLists() {
         await armyListsAPI.create(armyListData);
       }
       
-      setError(null); // Clear any previous errors
-      loadArmyLists(searchTerm, false);
       setShowForm(false);
       setEditingArmyList(null);
       resetForm();
+      await loadArmyLists(searchTerm, false);
     } catch (err) {
-      // Handle save error
-      setError('Failed to save army list');
+      setError(err.response?.data?.message || 'Failed to save army list');
+      console.error('Failed to save army list:', err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -172,7 +177,15 @@ function ArmyLists() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this army list?')) {
+    const armyList = armyLists.find(al => al.id === id);
+    const hasUnits = armyList?.unitIds?.length > 0;
+    
+    let confirmMessage = 'Are you sure you want to delete this army list?';
+    if (hasUnits) {
+      confirmMessage += `\n\n⚠️ This army list has ${armyList.unitIds.length} unit(s).\nThese references will be removed.`;
+    }
+    
+    if (window.confirm(confirmMessage)) {
       try {
         await armyListsAPI.delete(id);
         setError(null); // Clear any previous errors
@@ -186,10 +199,10 @@ function ArmyLists() {
           resetPagination();
         }
         
-        loadArmyLists(searchTerm, false);
+        await loadArmyLists(searchTerm, false);
       } catch (err) {
-        // Handle delete error
-        setError('Failed to delete army list');
+        setError(err.response?.data?.message || 'Failed to delete army list');
+        console.error('Failed to delete army list:', err);
       }
     }
   };
@@ -218,6 +231,7 @@ function ArmyLists() {
           onClick={() => {
             setShowForm(true);
             setEditingArmyList(null);
+            setError(null);
             resetForm();
           }}
         >
@@ -250,6 +264,8 @@ function ArmyLists() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
+                  maxLength={100}
+                  title="Maximum 100 characters"
                 />
               </div>
               
@@ -261,6 +277,8 @@ function ArmyLists() {
                   value={formData.player}
                   onChange={handleInputChange}
                   required
+                  maxLength={100}
+                  title="Maximum 100 characters"
                 />
               </div>
               
@@ -293,12 +311,22 @@ function ArmyLists() {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows="3"
+                  maxLength={500}
+                  title="Maximum 500 characters"
                 />
               </div>
               
               <div className="form-actions">
-                <button type="submit" className="btn btn-primary">
-                  {editingArmyList ? 'Update' : 'Create'} Army List
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  disabled={submitting}
+                  style={{
+                    opacity: submitting ? 0.6 : 1,
+                    cursor: submitting ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {submitting ? 'Saving...' : ((editingArmyList ? 'Update' : 'Create') + ' Army List')}
                 </button>
                 <button 
                   type="button" 
@@ -306,7 +334,10 @@ function ArmyLists() {
                   onClick={() => {
                     setShowForm(false);
                     setEditingArmyList(null);
+                    setError(null);
+                    resetForm();
                   }}
+                  disabled={submitting}
                 >
                   Cancel
                 </button>

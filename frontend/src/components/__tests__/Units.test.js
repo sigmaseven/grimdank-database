@@ -32,6 +32,8 @@ describe('Units Component', () => {
       morale: 7,
       defense: 3,
       points: 100,
+      amount: 5,
+      max: 10,
       rules: []
     },
     {
@@ -43,6 +45,8 @@ describe('Units Component', () => {
       morale: 8,
       defense: 4,
       points: 200,
+      amount: 3,
+      max: 5,
       rules: []
     }
   ];

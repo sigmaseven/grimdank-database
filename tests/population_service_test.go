@@ -71,7 +71,6 @@ func TestPopulationService(t *testing.T) {
 		// Create wargear with rule reference
 		wargear := &models.WarGear{
 			Name:        "Test WarGear",
-			Type:        "Equipment",
 			Description: "Test equipment",
 			Points:      5,
 			Rules: []models.RuleReference{
@@ -125,7 +124,6 @@ func TestPopulationService(t *testing.T) {
 		// Create wargear
 		wargear := &models.WarGear{
 			Name:        "Test WarGear",
-			Type:        "Equipment",
 			Description: "Test equipment",
 			Points:      5,
 		}
@@ -147,7 +145,7 @@ func TestPopulationService(t *testing.T) {
 			Rules:            []models.RuleReference{{RuleID: createdRule.ID, Tier: 1}},
 			AvailableWeapons: []primitive.ObjectID{createdWeapon.ID},
 			AvailableWarGear: []primitive.ObjectID{createdWarGear.ID},
-			Weapons:          []primitive.ObjectID{createdWeapon.ID},
+			Weapons:          []models.WeaponReference{{WeaponID: createdWeapon.ID, Quantity: 1, Type: "Melee"}},
 			WarGear:          []primitive.ObjectID{createdWarGear.ID},
 		}
 
@@ -213,7 +211,6 @@ func TestPopulationService(t *testing.T) {
 		// Create wargear with non-existent rule reference
 		wargear := &models.WarGear{
 			Name:        "Test WarGear",
-			Type:        "Equipment",
 			Description: "Test equipment",
 			Points:      5,
 			Rules: []models.RuleReference{
