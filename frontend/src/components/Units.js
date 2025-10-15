@@ -381,7 +381,8 @@ function Units() {
       const ruleWithTier = { ...rule, tier };
       setSelectedRules(prev => [...prev, ruleWithTier]);
       
-      // Clear search
+      // Close the rule selector dialog and return to step 2
+      setShowRuleSelector(false);
       setRuleSearchTerm('');
       setAvailableRules([]);
     } catch (err) {
@@ -589,7 +590,8 @@ function Units() {
 
       setSelectedWarGear(prev => [...prev, wargear]);
       
-      // Clear search
+      // Close the wargear selector dialog and return to step 2
+      setShowWarGearSelector(false);
       setWarGearSearchTerm('');
       setAvailableWarGear([]);
     } catch (err) {
