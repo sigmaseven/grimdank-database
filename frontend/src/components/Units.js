@@ -11,6 +11,7 @@ function Units() {
   const [showForm, setShowForm] = useState(false);
   const [editingUnit, setEditingUnit] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [dialogStep, setDialogStep] = useState(1); // 1 = basic info, 2 = attachments
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   
@@ -201,6 +202,7 @@ function Units() {
     setSelectedRules([]);
     setSelectedWeapons([]);
     setSelectedWarGear([]);
+    setDialogStep(1); // Reset to first step
   };
 
   const handleSubmit = async (e) => {
@@ -680,6 +682,11 @@ function Units() {
             )}
             
             <form onSubmit={handleSubmit}>
+              {/* Step 1: Basic Information */}
+              {dialogStep === 1 && (
+                <div>
+                  <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#161b22', borderRadius: '6px', border: '1px solid #30363d' }}>
+                    <h4 style={{ margin: '0 0 1rem 0', color: '#f0f6fc', fontSize: '1.1rem' }}>Step 1: Basic Information</h4>
               <div className="form-group">
                 <label>Name *</label>
                 <input
@@ -790,6 +797,39 @@ function Units() {
                   />
                 </div>
               </div>
+                  </div>
+                  
+                  {/* Step 1 Navigation */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        setShowForm(false);
+                        setEditingUnit(null);
+                        setError(null);
+                        resetForm();
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => setDialogStep(2)}
+                      disabled={!formData.name || !formData.type}
+                    >
+                      Next: Attachments →
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Step 2: Attachments */}
+              {dialogStep === 2 && (
+                <div>
+                  <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#161b22', borderRadius: '6px', border: '1px solid #30363d' }}>
+                    <h4 style={{ margin: '0 0 1rem 0', color: '#f0f6fc', fontSize: '1.1rem' }}>Step 2: Attachments</h4>
               
               
               <div className="form-group">
@@ -1211,32 +1251,45 @@ function Units() {
                 )}
               </div>
               
-              <div className="form-actions">
-                <button 
-                  type="submit" 
-                  className="btn btn-primary"
-                  disabled={submitting}
-                  style={{
-                    opacity: submitting ? 0.6 : 1,
-                    cursor: submitting ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  {submitting ? 'Saving...' : (editingUnit ? 'Update' : 'Create') + ' Unit'}
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingUnit(null);
-                    setError(null);
-                    resetForm();
-                  }}
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-              </div>
+                  </div>
+                  
+                  {/* Step 2 Navigation */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '1.5rem' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setDialogStep(1)}
+                    >
+                      ← Back to Basic Info
+                    </button>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => {
+                          setShowForm(false);
+                          setEditingUnit(null);
+                          setError(null);
+                          resetForm();
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary"
+                        disabled={submitting}
+                        style={{
+                          opacity: submitting ? 0.6 : 1,
+                          cursor: submitting ? 'not-allowed' : 'pointer'
+                        }}
+                      >
+                        {submitting ? 'Saving...' : (editingUnit ? 'Update' : 'Create') + ' Unit'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </form>
           </div>
         </div>
