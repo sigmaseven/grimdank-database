@@ -375,6 +375,20 @@ function Units() {
     }
   }, [showRuleSelector, loadRules]);
 
+  // Load initial weapons when dialog opens
+  useEffect(() => {
+    if (showWeaponSelector) {
+      loadWeapons('', weaponSelectorType); // Load weapons of the selected type initially
+    }
+  }, [showWeaponSelector, weaponSelectorType, loadWeapons]);
+
+  // Load initial wargear when dialog opens
+  useEffect(() => {
+    if (showWarGearSelector) {
+      loadWarGear(''); // Load all wargear initially
+    }
+  }, [showWarGearSelector, loadWarGear]);
+
   const handleRuleSelect = async (rule, tier = 1) => {
     try {
       // Check if rule is already selected
