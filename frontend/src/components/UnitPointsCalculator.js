@@ -6,6 +6,27 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
   const [breakdown, setBreakdown] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [portalContainer, setPortalContainer] = useState(null);
+
+  // Create a dedicated container for the portal
+  useEffect(() => {
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.zIndex = '999999';
+    container.style.pointerEvents = 'none';
+    document.body.appendChild(container);
+    setPortalContainer(container);
+
+    return () => {
+      if (container && container.parentNode) {
+        document.body.removeChild(container);
+      }
+    };
+  }, []);
 
   const calculatePoints = useCallback(async () => {
     if (!unit) return;
@@ -58,6 +79,8 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
     }
   };
 
+  if (!portalContainer) return null;
+
   return createPortal(
     <div 
       className="unit-points-calculator-overlay"
@@ -67,12 +90,15 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        backgroundColor: 'rgba(255, 0, 0, 0.8)', // RED background for testing
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 999999,
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
+        isolation: 'isolate', // Creates new stacking context
+        willChange: 'transform', // Optimizes for animation
+        transform: 'translateZ(0)' // Forces hardware acceleration
       }}
       onClick={(e) => {
         // Close modal when clicking on backdrop
@@ -85,7 +111,9 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
         className="unit-points-calculator-modal"
         style={{
           zIndex: 999999,
-          position: 'relative'
+          position: 'relative',
+          border: '5px solid yellow', // YELLOW border for testing
+          backgroundColor: 'white' // WHITE background for testing
         }}
         onClick={(e) => {
           // Prevent closing when clicking inside the modal content
@@ -409,7 +437,7 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
         `}</style>
       </div>
     </div>,
-    document.body
+    portalContainer
   );
 }
 
