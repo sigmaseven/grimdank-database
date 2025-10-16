@@ -90,15 +90,15 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(255, 0, 0, 0.8)', // RED background for testing
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 999999,
         pointerEvents: 'auto',
-        isolation: 'isolate', // Creates new stacking context
-        willChange: 'transform', // Optimizes for animation
-        transform: 'translateZ(0)' // Forces hardware acceleration
+        isolation: 'isolate',
+        willChange: 'transform',
+        transform: 'translateZ(0)'
       }}
       onClick={(e) => {
         // Close modal when clicking on backdrop
@@ -112,8 +112,8 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
         style={{
           zIndex: 999999,
           position: 'relative',
-          border: '5px solid yellow', // YELLOW border for testing
-          backgroundColor: 'white' // WHITE background for testing
+          background: '#0d1117',
+          border: '1px solid #30363d'
         }}
         onClick={(e) => {
           // Prevent closing when clicking inside the modal content
@@ -225,7 +225,7 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
 
         <style jsx>{`
           .unit-points-calculator-overlay {
-            /* Styles moved to inline for maximum z-index control */
+            /* Styles handled via inline styles for maximum z-index control */
           }
 
           .unit-points-calculator-modal {
