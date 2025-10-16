@@ -14,7 +14,6 @@ type Rule struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
 	Name        string             `bson:"name"`
 	Description string             `bson:"description"`
-	Type        string             `bson:"type"`
 	Points      []int              `bson:"points"`
 	CreatedAt   time.Time          `bson:"createdAt"`
 	UpdatedAt   time.Time          `bson:"updatedAt"`
@@ -128,16 +127,16 @@ func main() {
 	log.Println("📦 Creating Rules...")
 	ruleCollection := db.Collection("rules")
 	rules := []interface{}{
-		Rule{Name: "Shield Barrier", Description: "Provides additional protection against incoming attacks", Type: "Defensive", Points: []int{5, 10, 15}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		Rule{Name: "Rapid Strike", Description: "Allows for multiple quick attacks in succession", Type: "Offensive", Points: []int{8, 12, 18}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		Rule{Name: "Stealth Field", Description: "Makes the unit harder to detect and target", Type: "Passive", Points: []int{6, 9, 12}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		Rule{Name: "Commander's Will", Description: "Boosts morale of nearby friendly units", Type: "Tactical", Points: []int{10, 15, 20}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		Rule{Name: "Energy Absorption", Description: "Converts incoming energy damage into power", Type: "Defensive", Points: []int{7, 11, 16}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		Rule{Name: "Precision Targeting", Description: "Increases accuracy of ranged weapons", Type: "Offensive", Points: []int{5, 8, 12}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		Rule{Name: "Phase Shift", Description: "Can briefly become intangible", Type: "Passive", Points: []int{12, 18, 24}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		Rule{Name: "Tactical Retreat", Description: "Can disengage from combat without penalty", Type: "Tactical", Points: []int{4, 6, 8}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		Rule{Name: "Regeneration", Description: "Slowly recovers from damage over time", Type: "Passive", Points: []int{8, 14, 20}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		Rule{Name: "Coordinated Fire", Description: "Multiple units can combine ranged attacks", Type: "Tactical", Points: []int{6, 10, 15}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		Rule{Name: "Shield Barrier", Description: "Provides additional protection against incoming attacks", Points: []int{5, 10, 15}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		Rule{Name: "Rapid Strike", Description: "Allows for multiple quick attacks in succession", Points: []int{8, 12, 18}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		Rule{Name: "Stealth Field", Description: "Makes the unit harder to detect and target", Points: []int{6, 9, 12}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		Rule{Name: "Commander's Will", Description: "Boosts morale of nearby friendly units", Points: []int{10, 15, 20}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		Rule{Name: "Energy Absorption", Description: "Converts incoming energy damage into power", Points: []int{7, 11, 16}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		Rule{Name: "Precision Targeting", Description: "Increases accuracy of ranged weapons", Points: []int{5, 8, 12}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		Rule{Name: "Phase Shift", Description: "Can briefly become intangible", Points: []int{12, 18, 24}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		Rule{Name: "Tactical Retreat", Description: "Can disengage from combat without penalty", Points: []int{4, 6, 8}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		Rule{Name: "Regeneration", Description: "Slowly recovers from damage over time", Points: []int{8, 14, 20}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		Rule{Name: "Coordinated Fire", Description: "Multiple units can combine ranged attacks", Points: []int{6, 10, 15}, CreatedAt: time.Now(), UpdatedAt: time.Now()},
 	}
 	ruleResult, err := ruleCollection.InsertMany(context.TODO(), rules)
 	if err != nil {

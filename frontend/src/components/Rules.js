@@ -4,11 +4,13 @@ import PointsCalculator from './PointsCalculator';
 import { Icon } from './Icons';
 import Pagination from './Pagination';
 import { usePagination } from '../hooks/usePagination';
+import { useNavigationLoading } from '../hooks/useNavigationLoading';
 
 function Rules() {
   const [rules, setRules] = useState([]);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { isNavigating } = useNavigationLoading();
   const [showForm, setShowForm] = useState(false);
   const [editingRule, setEditingRule] = useState(null);
   const [showPointsCalculator, setShowPointsCalculator] = useState(false);
@@ -36,7 +38,6 @@ function Rules() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    type: '',
     points: [0, 0, 0]
   });
 
@@ -69,7 +70,6 @@ function Rules() {
       }
     } catch (err) {
       // Handle empty results gracefully - don't show error for empty lists
-      console.log('Rules API error:', err);
       setRules([]);
       setError(null);
       updateTotalItems(0);
@@ -200,9 +200,6 @@ function Rules() {
       errors.description = 'Description is required';
     }
     
-    if (!formData.type) {
-      errors.type = 'Type is required';
-    }
     
     if (!formData.points || formData.points.length !== 3) {
       errors.points = 'Points must have exactly 3 values';
@@ -234,7 +231,6 @@ function Rules() {
       loadRules(searchTerm, false);
     } catch (err) {
       setError('Failed to save rule');
-      console.error(err);
     }
   };
 
@@ -243,7 +239,6 @@ function Rules() {
     setFormData({
       name: rule.name,
       description: rule.description,
-      type: rule.type,
       points: rule.points || [0, 0, 0]
     });
     setShowForm(true);
@@ -267,7 +262,6 @@ function Rules() {
         loadRules(searchTerm, false);
       } catch (err) {
         setError('Failed to delete rule');
-        console.error(err);
       }
     }
   };
@@ -276,13 +270,13 @@ function Rules() {
     setFormData({
       name: '',
       description: '',
-      type: '',
       points: [0, 0, 0]
     });
     setValidationErrors({});
   };
 
-  if (loading) return <div className="loading">Loading rules...</div>;
+  // Don't show loading message during navigation - show content immediately
+  if (loading && !isNavigating) return <div className="loading">Loading rules...</div>;
 
   return (
     <div>
@@ -362,24 +356,6 @@ function Rules() {
                 )}
               </div>
               
-              <div className="form-group">
-                <label>Type *</label>
-                <select
-                  name="type"
-                  value={formData.type}
-                  onChange={handleInputChange}
-                  required
-                  className={validationErrors.type ? 'error' : ''}
-                >
-                  <option value="">Select Type</option>
-                  <option value="Unit">Unit</option>
-                  <option value="Weapon">Weapon</option>
-                  <option value="WarGear">WarGear</option>
-                </select>
-                {validationErrors.type && (
-                  <div className="error-message">{validationErrors.type}</div>
-                )}
-              </div>
               
               <div className="form-group">
                 <label>Points (3-tiered) *</label>
@@ -474,12 +450,6 @@ function Rules() {
                   Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th 
-                  onClick={() => handleSort('type')}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                >
-                  Type {sortField === 'type' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th 
                   onClick={() => handleSort('points')}
                   style={{ cursor: 'pointer', userSelect: 'none', minWidth: '120px', width: '120px' }}
                 >
@@ -493,7 +463,6 @@ function Rules() {
               {getSortedRules.map(rule => (
                 <tr key={rule.id}>
                   <td><strong>{rule.name}</strong></td>
-                  <td>{rule.type}</td>
                   <td style={{ minWidth: '120px', width: '120px' }}>{rule.points ? rule.points.join(' / ') : '0 / 0 / 0'}</td>
                   <td>{rule.description}</td>
                   <td>
@@ -564,8 +533,7 @@ function Rules() {
         <PointsCalculator
           rule={formData.name ? {
             name: formData.name,
-            description: formData.description,
-            type: formData.type
+            description: formData.description
           } : null}
           onPointsCalculated={(points) => {
             setFormData(prev => ({

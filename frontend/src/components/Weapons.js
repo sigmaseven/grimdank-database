@@ -4,11 +4,13 @@ import { Icon } from './Icons';
 import WeaponPointsCalculator from './WeaponPointsCalculator';
 import Pagination from './Pagination';
 import { usePagination } from '../hooks/usePagination';
+import { useNavigationLoading } from '../hooks/useNavigationLoading';
 
 function Weapons() {
   const [weapons, setWeapons] = useState([]);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { isNavigating } = useNavigationLoading();
   const [showForm, setShowForm] = useState(false);
   const [editingWeapon, setEditingWeapon] = useState(null);
   const [sortField, setSortField] = useState('name');
@@ -98,11 +100,8 @@ function Weapons() {
       setRuleLoading(true);
       const params = searchQuery ? { name: searchQuery, limit: 100 } : { limit: 100 };
       const data = await rulesAPI.getAll(params);
-      // Filter rules for Weapons: only show rules with type "Weapon"
-      const filteredRules = Array.isArray(data) ? data.filter(rule => 
-        rule.type === 'Weapon'
-      ) : [];
-      setAvailableRules(filteredRules);
+      // Load all rules - no type filtering needed
+      setAvailableRules(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to load rules:', err);
       setAvailableRules([]);
@@ -432,7 +431,8 @@ function Weapons() {
     setSelectedRules([]);
   };
 
-  if (loading) return <div className="loading">Loading weapons...</div>;
+  // Don't show loading message during navigation - show content immediately
+  if (loading && !isNavigating) return <div className="loading">Loading weapons...</div>;
 
   return (
     <div>
@@ -998,7 +998,7 @@ function Weapons() {
                         cursor: 'pointer'
                       }}
                     >
-                      {rule.name} - {rule.type}{rule.points && rule.points.length > 0 ? ` (${rule.points[0]}/${rule.points[1]}/${rule.points[2]} pts)` : ''}
+                      {rule.name}{rule.points && rule.points.length > 0 ? ` (${rule.points[0]}/${rule.points[1]}/${rule.points[2]} pts)` : ''}
                     </option>
                   ))}
                 </select>

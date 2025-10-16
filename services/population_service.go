@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"grimdank-database/models"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -56,6 +57,9 @@ func (ps *PopulationService) PopulateWeaponRules(ctx context.Context, weapon *mo
 				Tier: ruleRef.Tier,
 			}
 			populatedWeapon.PopulatedRules = append(populatedWeapon.PopulatedRules, ruleWithTier)
+		} else {
+			// Return error if rule doesn't exist
+			return nil, fmt.Errorf("rule with ID %s not found", ruleRef.RuleID.Hex())
 		}
 	}
 
@@ -90,6 +94,9 @@ func (ps *PopulationService) PopulateWarGearRules(ctx context.Context, wargear *
 	for _, ruleRef := range wargear.Rules {
 		if rule, exists := rulesMap[ruleRef.RuleID]; exists {
 			populatedWarGear.PopulatedRules = append(populatedWarGear.PopulatedRules, *rule)
+		} else {
+			// Return error if rule doesn't exist
+			return nil, fmt.Errorf("rule with ID %s not found", ruleRef.RuleID.Hex())
 		}
 	}
 

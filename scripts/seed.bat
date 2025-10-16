@@ -2,7 +2,7 @@
 echo 🌱 Seeding Grimdank Database...
 
 echo 📦 Running database seeder...
-go run scripts/seed_database.go
+go run scripts/seed-database/main.go
 
 if %errorlevel% equ 0 (
     echo ✅ Database seeding completed successfully!

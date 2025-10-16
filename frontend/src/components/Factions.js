@@ -3,11 +3,13 @@ import { factionsAPI } from '../services/api';
 import { Icon } from './Icons';
 import Pagination from './Pagination';
 import { usePagination } from '../hooks/usePagination';
+import { useNavigationLoading } from '../hooks/useNavigationLoading';
 
 function Factions() {
   const [factions, setFactions] = useState([]);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { isNavigating } = useNavigationLoading();
   const [showForm, setShowForm] = useState(false);
   const [editingFaction, setEditingFaction] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
@@ -197,7 +199,8 @@ function Factions() {
     }
   };
 
-  if (loading) return <div className="loading">Loading factions...</div>;
+  // Don't show loading message during navigation - show content immediately
+  if (loading && !isNavigating) return <div className="loading">Loading factions...</div>;
 
   return (
     <div>

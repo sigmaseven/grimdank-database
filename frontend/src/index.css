@@ -350,6 +350,37 @@ code {
   color: #8b949e;
 }
 
+/* Page transition styles for seamless navigation */
+.page-transition {
+  opacity: 1;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.page-transition.transitioning {
+  opacity: 0.95;
+}
+
+/* Seamless loading states */
+.seamless-loading {
+  opacity: 0.7;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.seamless-loading.loading {
+  opacity: 1;
+}
+
+/* Seamless container styles */
+.seamless-container {
+  min-height: 200px; /* Prevent layout shift */
+}
+
+.seamless-loading-placeholder {
+  background-color: #0d1117;
+  min-height: 200px;
+  /* Invisible placeholder that maintains layout */
+}
+
 .error {
   background-color: #490202;
   color: #f85149;

@@ -26,19 +26,13 @@ func NewRulePointsService(ruleService *RuleService) *RulePointsService {
 
 // CalculateRulePoints calculates points for a rule based on its content
 func (rps *RulePointsService) CalculateRulePoints(rule *models.Rule) []int {
-	effectiveness := rps.pointsCalculator.analyzeRuleText(rule.Name, rule.Description, rule.Type)
+	effectiveness := rps.pointsCalculator.analyzeRuleText(rule.Name, rule.Description)
 	return rps.pointsCalculator.CalculatePoints(effectiveness)
 }
 
 // CalculateRulePointsWithCustom calculates points with custom effectiveness values
 func (rps *RulePointsService) CalculateRulePointsWithCustom(rule *models.Rule, effectiveness RuleEffectiveness) []int {
 	return rps.pointsCalculator.CalculatePoints(effectiveness)
-}
-
-// GetPointsExplanation returns explanation for rule points
-func (rps *RulePointsService) GetPointsExplanation(rule *models.Rule) string {
-	effectiveness := rps.pointsCalculator.analyzeRuleText(rule.Name, rule.Description, rule.Type)
-	return rps.pointsCalculator.GetPointsExplanation(effectiveness)
 }
 
 // UpdateRuleWithCalculatedPoints updates a rule with calculated points
@@ -71,7 +65,7 @@ func (rps *RulePointsService) BulkCalculatePoints(rules []models.Rule) []models.
 
 // GetPointsBreakdown returns detailed breakdown of points calculation
 func (rps *RulePointsService) GetPointsBreakdown(rule *models.Rule) map[string]interface{} {
-	effectiveness := rps.pointsCalculator.analyzeRuleText(rule.Name, rule.Description, rule.Type)
+	effectiveness := rps.pointsCalculator.analyzeRuleText(rule.Name, rule.Description)
 	points := rps.pointsCalculator.CalculatePoints(effectiveness)
 
 	return map[string]interface{}{
@@ -83,7 +77,6 @@ func (rps *RulePointsService) GetPointsBreakdown(rule *models.Rule) map[string]i
 			"multiplier": effectiveness.Multiplier,
 			"frequency":  effectiveness.Frequency,
 		},
-		"explanation": rps.pointsCalculator.GetPointsExplanation(effectiveness),
 		"tier_scaling": map[string]interface{}{
 			"tier_1":            points[0],
 			"tier_2":            points[1],

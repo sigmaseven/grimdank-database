@@ -10,6 +10,7 @@ import Factions from './components/Factions';
 import Import from './components/Import';
 import Export from './components/Export';
 import Home from './components/Home';
+import PageTransition from './components/PageTransition';
 import { Icon } from './components/Icons';
 
 // Navigation component with icons
@@ -62,18 +63,20 @@ function App() {
       <div className="app-layout">
         <Sidebar />
         <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/units" element={<Units />} />
-            <Route path="/weapons" element={<Weapons />} />
-            <Route path="/wargear" element={<WarGear />} />
-            <Route path="/rules" element={<Rules />} />
-            <Route path="/factions" element={<Factions />} />
-            <Route path="/armybooks" element={<ArmyBooks />} />
-            <Route path="/armylists" element={<ArmyLists />} />
-            <Route path="/import" element={<Import />} />
-            <Route path="/export" element={<Export />} />
-          </Routes>
+          <PageTransition>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/units" element={<Units />} />
+              <Route path="/weapons" element={<Weapons />} />
+              <Route path="/wargear" element={<WarGear />} />
+              <Route path="/rules" element={<Rules />} />
+              <Route path="/factions" element={<Factions />} />
+              <Route path="/armybooks" element={<ArmyBooks />} />
+              <Route path="/armylists" element={<ArmyLists />} />
+              <Route path="/import" element={<Import />} />
+              <Route path="/export" element={<Export />} />
+            </Routes>
+          </PageTransition>
         </main>
       </div>
     </Router>

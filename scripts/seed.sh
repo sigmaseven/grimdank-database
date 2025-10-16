@@ -13,7 +13,7 @@ fi
 
 # Run the seeding script
 echo "📦 Running database seeder..."
-go run scripts/seed_database.go
+go run scripts/seed-database/main.go
 
 if [ $? -eq 0 ]; then
     echo "✅ Database seeding completed successfully!"

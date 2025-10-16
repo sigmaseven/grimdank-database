@@ -20,7 +20,6 @@ func TestEntityRelationships(t *testing.T) {
 		rule := &models.Rule{
 			Name:        "Test Rule",
 			Description: "A test rule",
-			Type:        "Defensive",
 			Points:      []int{5, 10, 15},
 		}
 		createdRule, err := testServices.RuleService.CreateRule(ctx, rule)
@@ -65,7 +64,6 @@ func TestEntityRelationships(t *testing.T) {
 		rule := &models.Rule{
 			Name:        "Weapon Rule",
 			Description: "A weapon rule",
-			Type:        "Offensive",
 			Points:      []int{3, 6, 9},
 		}
 		createdRule, err := testServices.RuleService.CreateRule(ctx, rule)
@@ -109,7 +107,6 @@ func TestEntityRelationships(t *testing.T) {
 		rule := &models.Rule{
 			Name:        "WarGear Rule",
 			Description: "A wargear rule",
-			Type:        "Passive",
 			Points:      []int{2, 4, 6},
 		}
 		createdRule, err := testServices.RuleService.CreateRule(ctx, rule)
@@ -148,9 +145,9 @@ func TestEntityRelationships(t *testing.T) {
 	t.Run("Unit with Multiple Rules", func(t *testing.T) {
 		// Create multiple rules
 		rules := []*models.Rule{
-			{Name: "Rule 1", Description: "First rule", Type: "Defensive", Points: []int{5, 10, 15}},
-			{Name: "Rule 2", Description: "Second rule", Type: "Offensive", Points: []int{3, 6, 9}},
-			{Name: "Rule 3", Description: "Third rule", Type: "Passive", Points: []int{2, 4, 6}},
+			{Name: "Rule 1", Description: "First rule", Points: []int{5, 10, 15}},
+			{Name: "Rule 2", Description: "Second rule", Points: []int{3, 6, 9}},
+			{Name: "Rule 3", Description: "Third rule", Points: []int{2, 4, 6}},
 		}
 
 		ruleIDs := make([]primitive.ObjectID, len(rules))
@@ -201,10 +198,10 @@ func TestEntityRelationships(t *testing.T) {
 
 	t.Run("Cross-Entity Rule Validation", func(t *testing.T) {
 		// Create rules of different types
-		defensiveRule := &models.Rule{Name: "Defensive", Type: "Defensive", Points: []int{5, 10, 15}}
-		offensiveRule := &models.Rule{Name: "Offensive", Type: "Offensive", Points: []int{3, 6, 9}}
-		passiveRule := &models.Rule{Name: "Passive", Type: "Passive", Points: []int{2, 4, 6}}
-		tacticalRule := &models.Rule{Name: "Tactical", Type: "Tactical", Points: []int{1, 2, 3}}
+		defensiveRule := &models.Rule{Name: "Defensive", Points: []int{5, 10, 15}}
+		offensiveRule := &models.Rule{Name: "Offensive", Points: []int{3, 6, 9}}
+		passiveRule := &models.Rule{Name: "Passive", Points: []int{2, 4, 6}}
+		tacticalRule := &models.Rule{Name: "Tactical", Points: []int{1, 2, 3}}
 
 		createdDefensive, _ := testServices.RuleService.CreateRule(ctx, defensiveRule)
 		createdOffensive, _ := testServices.RuleService.CreateRule(ctx, offensiveRule)

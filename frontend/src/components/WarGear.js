@@ -3,11 +3,13 @@ import { wargearAPI, rulesAPI } from '../services/api';
 import { Icon } from './Icons';
 import Pagination from './Pagination';
 import { usePagination } from '../hooks/usePagination';
+import { useNavigationLoading } from '../hooks/useNavigationLoading';
 
 function WarGear() {
   const [wargear, setWargear] = useState([]);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { isNavigating } = useNavigationLoading();
   const [showForm, setShowForm] = useState(false);
   const [editingWargear, setEditingWargear] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -72,7 +74,6 @@ function WarGear() {
       }
     } catch (err) {
       // Handle empty results gracefully - don't show error for empty lists
-      console.log('WarGear API error:', err);
       setWargear([]);
       setError(null);
       updateTotalItems(0);
@@ -131,12 +132,9 @@ function WarGear() {
   const loadRules = useCallback(async (query = '') => {
     try {
       setRuleLoading(true);
-      // Filter rules for WarGear: only show rules with type "WarGear"
+      // Load all rules - no type filtering needed
       const rules = await rulesAPI.getAll({ name: query, limit: 100 });
-      const filteredRules = Array.isArray(rules) ? rules.filter(rule => 
-        rule.type === 'WarGear'
-      ) : [];
-      setAvailableRules(filteredRules);
+      setAvailableRules(Array.isArray(rules) ? rules : []);
     } catch (err) {
       console.error('Failed to load rules:', err);
       setAvailableRules([]);
@@ -302,7 +300,8 @@ function WarGear() {
     }
   };
 
-  if (loading) return <div className="loading">Loading wargear...</div>;
+  // Don't show loading message during navigation - show content immediately
+  if (loading && !isNavigating) return <div className="loading">Loading wargear...</div>;
 
   return (
     <div>
@@ -741,7 +740,7 @@ function WarGear() {
                         cursor: 'pointer'
                       }}
                     >
-                      {rule.name} - {rule.type}{rule.points && rule.points.length > 0 ? ` (${rule.points[0]}/${rule.points[1]}/${rule.points[2]} pts)` : ''}
+                      {rule.name}{rule.points && rule.points.length > 0 ? ` (${rule.points[0]}/${rule.points[1]}/${rule.points[2]} pts)` : ''}
                     </option>
                   ))}
                 </select>

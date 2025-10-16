@@ -253,7 +253,6 @@ func TestPointsHandler(t *testing.T) {
 		request := handlers.CalculatePointsRequest{
 			Name:        "Test Rule",
 			Description: "A test rule",
-			Type:        "Special Ability",
 		}
 
 		jsonData, _ := json.Marshal(request)
@@ -404,8 +403,8 @@ func TestImportHandler(t *testing.T) {
 
 	t.Run("Import Rules", func(t *testing.T) {
 		rules := []models.Rule{
-			{Name: "Rule 1", Description: "First rule", Type: "Special Ability"},
-			{Name: "Rule 2", Description: "Second rule", Type: "Weapon Rule"},
+			{Name: "Rule 1", Description: "First rule"},
+			{Name: "Rule 2", Description: "Second rule"},
 		}
 
 		jsonData, _ := json.Marshal(rules)

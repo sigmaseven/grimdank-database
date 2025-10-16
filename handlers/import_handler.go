@@ -230,7 +230,6 @@ func (h *ImportHandler) GetImportTemplate(w http.ResponseWriter, r *http.Request
 			{
 				Name:        "Example Rule",
 				Description: "This is an example rule description",
-				Type:        "Special Rule",
 				Points:      []int{5, 10, 15},
 			},
 		}

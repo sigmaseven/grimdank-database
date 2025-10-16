@@ -237,7 +237,6 @@ func CreateTestRule() *models.Rule {
 	return &models.Rule{
 		Name:        "Test Rule",
 		Description: "A test rule for unit testing",
-		Type:        "Special Rule",
 		Points:      []int{5, 10, 15},
 	}
 }
@@ -247,7 +246,6 @@ func CreateTestRuleWithName(name string) *models.Rule {
 	return &models.Rule{
 		Name:        name,
 		Description: "A test rule for unit testing",
-		Type:        "Special Rule",
 		Points:      []int{5, 10, 15},
 	}
 }
@@ -333,9 +331,6 @@ func AssertEqualRules(t *testing.T, expected, actual *models.Rule, msg string) {
 	if expected.Description != actual.Description {
 		t.Errorf("%s: Expected description %s, got %s", msg, expected.Description, actual.Description)
 	}
-	if expected.Type != actual.Type {
-		t.Errorf("%s: Expected type %s, got %s", msg, expected.Type, actual.Type)
-	}
 	if !reflect.DeepEqual(expected.Points, actual.Points) {
 		t.Errorf("%s: Expected points %v, got %v", msg, expected.Points, actual.Points)
 	}
@@ -345,9 +340,6 @@ func AssertEqualRules(t *testing.T, expected, actual *models.Rule, msg string) {
 func AssertEqualWeapons(t *testing.T, expected, actual *models.Weapon, msg string) {
 	if expected.Name != actual.Name {
 		t.Errorf("%s: Expected name %s, got %s", msg, expected.Name, actual.Name)
-	}
-	if expected.Type != actual.Type {
-		t.Errorf("%s: Expected type %s, got %s", msg, expected.Type, actual.Type)
 	}
 	if expected.Range != actual.Range {
 		t.Errorf("%s: Expected range %d, got %d", msg, expected.Range, actual.Range)
@@ -381,9 +373,6 @@ func AssertEqualWarGear(t *testing.T, expected, actual *models.WarGear, msg stri
 func AssertEqualUnits(t *testing.T, expected, actual *models.Unit, msg string) {
 	if expected.Name != actual.Name {
 		t.Errorf("%s: Expected name %s, got %s", msg, expected.Name, actual.Name)
-	}
-	if expected.Type != actual.Type {
-		t.Errorf("%s: Expected type %s, got %s", msg, expected.Type, actual.Type)
 	}
 	if expected.Melee != actual.Melee {
 		t.Errorf("%s: Expected melee %d, got %d", msg, expected.Melee, actual.Melee)
@@ -438,8 +427,5 @@ func AssertEqualFactions(t *testing.T, expected, actual *models.Faction, msg str
 	}
 	if expected.Description != actual.Description {
 		t.Errorf("%s: Expected description %s, got %s", msg, expected.Description, actual.Description)
-	}
-	if expected.Type != actual.Type {
-		t.Errorf("%s: Expected type %s, got %s", msg, expected.Type, actual.Type)
 	}
 }

@@ -2,11 +2,10 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"grimdank-database/models"
 	"grimdank-database/repositories"
-	"strings"
+	"grimdank-database/utils"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -23,14 +22,14 @@ func NewWeaponService(repo *repositories.WeaponRepository) *WeaponService {
 }
 
 func (s *WeaponService) CreateWeapon(ctx context.Context, weapon *models.Weapon) (*models.Weapon, error) {
-	if strings.TrimSpace(weapon.Name) == "" {
-		return nil, errors.New("name is required")
+	if err := utils.ValidateName(weapon.Name); err != nil {
+		return nil, err
 	}
 
 	// Validate weapon type (only "melee" or "ranged" allowed)
-	weaponType := strings.ToLower(strings.TrimSpace(weapon.Type))
-	if weaponType != "melee" && weaponType != "ranged" {
-		return nil, errors.New("weapon type must be either 'melee' or 'ranged'")
+	weaponType, err := utils.ValidateWeaponType(weapon.Type)
+	if err != nil {
+		return nil, err
 	}
 	weapon.Type = weaponType // Normalize to lowercase
 
@@ -55,14 +54,14 @@ func (s *WeaponService) SearchWeaponsByName(ctx context.Context, name string, li
 }
 
 func (s *WeaponService) UpdateWeapon(ctx context.Context, id string, weapon *models.Weapon) error {
-	if strings.TrimSpace(weapon.Name) == "" {
-		return errors.New("name is required")
+	if err := utils.ValidateName(weapon.Name); err != nil {
+		return err
 	}
 
 	// Validate weapon type (only "melee" or "ranged" allowed)
-	weaponType := strings.ToLower(strings.TrimSpace(weapon.Type))
-	if weaponType != "melee" && weaponType != "ranged" {
-		return errors.New("weapon type must be either 'melee' or 'ranged'")
+	weaponType, err := utils.ValidateWeaponType(weapon.Type)
+	if err != nil {
+		return err
 	}
 	weapon.Type = weaponType // Normalize to lowercase
 
@@ -84,13 +83,13 @@ func (s *WeaponService) CountWeaponsByName(ctx context.Context, name string) (in
 func (s *WeaponService) BulkImportWeapons(ctx context.Context, weapons []models.Weapon) ([]string, error) {
 	// Validate all weapons before importing
 	for i, weapon := range weapons {
-		if strings.TrimSpace(weapon.Name) == "" {
-			return nil, fmt.Errorf("weapon at index %d has empty name", i)
+		if err := utils.ValidateName(weapon.Name); err != nil {
+			return nil, fmt.Errorf("weapon at index %d: %w", i, err)
 		}
 		// Validate and normalize weapon type
-		weaponType := strings.ToLower(strings.TrimSpace(weapon.Type))
-		if weaponType != "melee" && weaponType != "ranged" {
-			return nil, fmt.Errorf("weapon at index %d has invalid type '%s': must be 'melee' or 'ranged'", i, weapon.Type)
+		weaponType, err := utils.ValidateWeaponType(weapon.Type)
+		if err != nil {
+			return nil, fmt.Errorf("weapon at index %d: %w", i, err)
 		}
 		weapons[i].Type = weaponType // Normalize to lowercase
 	}
@@ -110,8 +109,8 @@ func NewWarGearService(repo *repositories.WarGearRepository) *WarGearService {
 }
 
 func (s *WarGearService) CreateWarGear(ctx context.Context, wargear *models.WarGear) (*models.WarGear, error) {
-	if strings.TrimSpace(wargear.Name) == "" {
-		return nil, errors.New("name is required")
+	if err := utils.ValidateName(wargear.Name); err != nil {
+		return nil, err
 	}
 
 	id, err := s.repo.CreateWarGear(ctx, wargear)
@@ -135,8 +134,8 @@ func (s *WarGearService) SearchWarGearByName(ctx context.Context, name string, l
 }
 
 func (s *WarGearService) UpdateWarGear(ctx context.Context, id string, wargear *models.WarGear) error {
-	if strings.TrimSpace(wargear.Name) == "" {
-		return errors.New("name is required")
+	if err := utils.ValidateName(wargear.Name); err != nil {
+		return err
 	}
 
 	return s.repo.UpdateWarGear(ctx, id, wargear)
@@ -149,8 +148,8 @@ func (s *WarGearService) DeleteWarGear(ctx context.Context, id string) error {
 func (s *WarGearService) BulkImportWarGear(ctx context.Context, wargear []models.WarGear) ([]string, error) {
 	// Validate all wargear before importing
 	for i, item := range wargear {
-		if strings.TrimSpace(item.Name) == "" {
-			return nil, fmt.Errorf("wargear at index %d has empty name", i)
+		if err := utils.ValidateName(item.Name); err != nil {
+			return nil, fmt.Errorf("wargear at index %d: %w", i, err)
 		}
 	}
 
@@ -169,8 +168,8 @@ func NewUnitService(repo *repositories.UnitRepository) *UnitService {
 }
 
 func (s *UnitService) CreateUnit(ctx context.Context, unit *models.Unit) (*models.Unit, error) {
-	if strings.TrimSpace(unit.Name) == "" {
-		return nil, errors.New("name is required")
+	if err := utils.ValidateName(unit.Name); err != nil {
+		return nil, err
 	}
 
 	id, err := s.repo.CreateUnit(ctx, unit)
@@ -194,8 +193,8 @@ func (s *UnitService) SearchUnitsByName(ctx context.Context, name string, limit,
 }
 
 func (s *UnitService) UpdateUnit(ctx context.Context, id string, unit *models.Unit) error {
-	if strings.TrimSpace(unit.Name) == "" {
-		return errors.New("name is required")
+	if err := utils.ValidateName(unit.Name); err != nil {
+		return err
 	}
 
 	return s.repo.UpdateUnit(ctx, id, unit)
@@ -208,8 +207,8 @@ func (s *UnitService) DeleteUnit(ctx context.Context, id string) error {
 func (s *UnitService) BulkImportUnits(ctx context.Context, units []models.Unit) ([]string, error) {
 	// Validate all units before importing
 	for i, unit := range units {
-		if strings.TrimSpace(unit.Name) == "" {
-			return nil, fmt.Errorf("unit at index %d has empty name", i)
+		if err := utils.ValidateName(unit.Name); err != nil {
+			return nil, fmt.Errorf("unit at index %d: %w", i, err)
 		}
 	}
 
@@ -228,8 +227,8 @@ func NewArmyBookService(repo *repositories.ArmyBookRepository) *ArmyBookService 
 }
 
 func (s *ArmyBookService) CreateArmyBook(ctx context.Context, armyBook *models.ArmyBook) (*models.ArmyBook, error) {
-	if strings.TrimSpace(armyBook.Name) == "" {
-		return nil, errors.New("name is required")
+	if err := utils.ValidateName(armyBook.Name); err != nil {
+		return nil, err
 	}
 
 	id, err := s.repo.CreateArmyBook(ctx, armyBook)
@@ -253,8 +252,8 @@ func (s *ArmyBookService) SearchArmyBooksByName(ctx context.Context, name string
 }
 
 func (s *ArmyBookService) UpdateArmyBook(ctx context.Context, id string, armyBook *models.ArmyBook) error {
-	if strings.TrimSpace(armyBook.Name) == "" {
-		return errors.New("name is required")
+	if err := utils.ValidateName(armyBook.Name); err != nil {
+		return err
 	}
 
 	return s.repo.UpdateArmyBook(ctx, id, armyBook)
@@ -267,8 +266,8 @@ func (s *ArmyBookService) DeleteArmyBook(ctx context.Context, id string) error {
 func (s *ArmyBookService) BulkImportArmyBooks(ctx context.Context, armyBooks []models.ArmyBook) ([]string, error) {
 	// Validate all army books before importing
 	for i, armyBook := range armyBooks {
-		if strings.TrimSpace(armyBook.Name) == "" {
-			return nil, fmt.Errorf("army book at index %d has empty name", i)
+		if err := utils.ValidateName(armyBook.Name); err != nil {
+			return nil, fmt.Errorf("army book at index %d: %w", i, err)
 		}
 	}
 
@@ -287,8 +286,8 @@ func NewArmyListService(repo *repositories.ArmyListRepository) *ArmyListService 
 }
 
 func (s *ArmyListService) CreateArmyList(ctx context.Context, armyList *models.ArmyList) (*models.ArmyList, error) {
-	if strings.TrimSpace(armyList.Name) == "" {
-		return nil, errors.New("name is required")
+	if err := utils.ValidateName(armyList.Name); err != nil {
+		return nil, err
 	}
 
 	id, err := s.repo.CreateArmyList(ctx, armyList)
@@ -312,8 +311,8 @@ func (s *ArmyListService) SearchArmyListsByName(ctx context.Context, name string
 }
 
 func (s *ArmyListService) UpdateArmyList(ctx context.Context, id string, armyList *models.ArmyList) error {
-	if strings.TrimSpace(armyList.Name) == "" {
-		return errors.New("name is required")
+	if err := utils.ValidateName(armyList.Name); err != nil {
+		return err
 	}
 
 	return s.repo.UpdateArmyList(ctx, id, armyList)
@@ -326,8 +325,8 @@ func (s *ArmyListService) DeleteArmyList(ctx context.Context, id string) error {
 func (s *ArmyListService) BulkImportArmyLists(ctx context.Context, armyLists []models.ArmyList) ([]string, error) {
 	// Validate all army lists before importing
 	for i, armyList := range armyLists {
-		if strings.TrimSpace(armyList.Name) == "" {
-			return nil, fmt.Errorf("army list at index %d has empty name", i)
+		if err := utils.ValidateName(armyList.Name); err != nil {
+			return nil, fmt.Errorf("army list at index %d: %w", i, err)
 		}
 	}
 

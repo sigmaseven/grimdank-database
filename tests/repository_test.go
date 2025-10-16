@@ -238,7 +238,6 @@ func TestRuleRepository(t *testing.T) {
 			rule := &models.Rule{
 				Name:        "Test Rule",
 				Description: "A test rule",
-				Type:        "Special Ability",
 			}
 			_, err := repo.CreateRule(ctx, rule)
 			if err != nil {
@@ -264,7 +263,6 @@ func TestRuleRepository(t *testing.T) {
 			rule := &models.Rule{
 				Name:        name,
 				Description: "A test rule",
-				Type:        "Special Ability",
 			}
 			_, err := repo.CreateRule(ctx, rule)
 			if err != nil {
@@ -332,8 +330,8 @@ func TestRuleRepository(t *testing.T) {
 
 	t.Run("Bulk Import Rules", func(t *testing.T) {
 		rules := []models.Rule{
-			{Name: "Bulk Rule 1", Description: "First bulk rule", Type: "Special Ability"},
-			{Name: "Bulk Rule 2", Description: "Second bulk rule", Type: "Weapon Rule"},
+			{Name: "Bulk Rule 1", Description: "First bulk rule"},
+			{Name: "Bulk Rule 2", Description: "Second bulk rule"},
 		}
 
 		importedIDs, err := repo.BulkImportRules(ctx, rules)

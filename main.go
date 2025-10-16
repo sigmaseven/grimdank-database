@@ -19,27 +19,39 @@ func main() {
 	// Load configuration
 	cfg := config.LoadConfig()
 
-	// Connect to database
-	log.Println("Initializing database connection...")
-	db, err := database.Connect(cfg.MongoURI, cfg.Database, cfg.DatabaseTimeout)
+	// Connect to database with resilience
+	log.Println("Initializing resilient database connection...")
+
+	// Convert environment config to database config
+	retryConfig := &database.RetryConfig{
+		MaxRetries:      cfg.EnvironmentConfig.RetryConfig.MaxRetries,
+		InitialDelay:    cfg.EnvironmentConfig.RetryConfig.InitialDelay,
+		MaxDelay:        cfg.EnvironmentConfig.RetryConfig.MaxDelay,
+		BackoffFactor:   cfg.EnvironmentConfig.RetryConfig.BackoffFactor,
+		RetryableErrors: cfg.EnvironmentConfig.RetryConfig.RetryableErrors,
+	}
+
+	db, err := database.NewResilientDatabase(cfg.MongoURI, cfg.Database, cfg.DatabaseTimeout, retryConfig)
 	if err != nil {
 		log.Fatal("❌ Failed to connect to database:", err)
 	}
 	defer func() {
 		log.Println("Disconnecting from database...")
-		if err := db.Disconnect(); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := db.DisconnectWithRetry(ctx); err != nil {
 			log.Printf("Error disconnecting from database: %v", err)
 		}
 	}()
 
 	// Initialize repositories
-	ruleRepo := repositories.NewRuleRepository(db.Database.Collection("rules"))
-	weaponRepo := repositories.NewWeaponRepository(db.Database.Collection("weapons"))
-	wargearRepo := repositories.NewWarGearRepository(db.Database.Collection("wargear"))
-	unitRepo := repositories.NewUnitRepository(db.Database.Collection("units"))
-	armyBookRepo := repositories.NewArmyBookRepository(db.Database.Collection("armybooks"))
-	armyListRepo := repositories.NewArmyListRepository(db.Database.Collection("armylists"))
-	factionRepo := repositories.NewFactionRepository(db.Database.Collection("factions"))
+	ruleRepo := repositories.NewRuleRepository(db.Collection("rules"))
+	weaponRepo := repositories.NewWeaponRepository(db.Collection("weapons"))
+	wargearRepo := repositories.NewWarGearRepository(db.Collection("wargear"))
+	unitRepo := repositories.NewUnitRepository(db.Collection("units"))
+	armyBookRepo := repositories.NewArmyBookRepository(db.Collection("armybooks"))
+	armyListRepo := repositories.NewArmyListRepository(db.Collection("armylists"))
+	factionRepo := repositories.NewFactionRepository(db.Collection("factions"))
 
 	// Initialize services
 	ruleService := services.NewRuleService(ruleRepo)
@@ -52,6 +64,7 @@ func main() {
 
 	// Initialize points services
 	rulePointsService := services.NewRulePointsService(ruleService)
+	unitPointsService := services.NewUnitPointsService(ruleService, weaponService, wargearService)
 
 	// Initialize population service for reference-based operations
 	populationService := services.NewPopulationService(ruleService, weaponService, wargearService, unitService)
@@ -66,6 +79,7 @@ func main() {
 	factionHandler := handlers.NewFactionHandler(factionService)
 	importHandler := handlers.NewImportHandler(ruleService, weaponService, wargearService, unitService, armyBookService, armyListService, factionService)
 	pointsHandler := handlers.NewPointsHandler(rulePointsService)
+	unitPointsHandler := handlers.NewUnitPointsHandler(unitPointsService, false)
 	populatedWeaponHandler := handlers.NewPopulatedWeaponHandler(weaponService, populationService)
 	populatedWarGearHandler := handlers.NewPopulatedWarGearHandler(wargearService, populationService)
 	weaponPointsHandler := handlers.NewWeaponPointsHandler()
@@ -168,6 +182,9 @@ func main() {
 	api.HandleFunc("/points/update/{id}", pointsHandler.UpdateRuleWithCalculatedPoints).Methods("PUT")
 	api.HandleFunc("/points/bulk", pointsHandler.BulkCalculatePoints).Methods("POST")
 	api.HandleFunc("/points/breakdown/{id}", pointsHandler.GetPointsBreakdown).Methods("GET")
+
+	// Unit points calculation routes
+	api.HandleFunc("/calculate-unit-points", unitPointsHandler.CalculateUnitPoints).Methods("POST")
 
 	// Weapon points calculation routes
 	api.HandleFunc("/weapon-points/calculate", weaponPointsHandler.CalculateWeaponPoints).Methods("POST")

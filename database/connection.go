@@ -64,3 +64,8 @@ func (db *Database) Disconnect() error {
 	defer cancel()
 	return db.Client.Disconnect(ctx)
 }
+
+// Collection returns a collection from the database
+func (db *Database) Collection(name string) *mongo.Collection {
+	return db.Database.Collection(name)
+}

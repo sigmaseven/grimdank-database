@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 function PointsCalculator({ rule, onPointsCalculated, onClose }) {
   const [calculatedPoints, setCalculatedPoints] = useState([0, 0, 0]);
   const [breakdown, setBreakdown] = useState(null);
-  const [explanation, setExplanation] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [customEffectiveness, setCustomEffectiveness] = useState({
@@ -27,8 +26,7 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
         },
         body: JSON.stringify({
           name: rule.name,
-          description: rule.description,
-          type: rule.type
+          description: rule.description
         })
       });
 
@@ -39,10 +37,8 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
       const data = await response.json();
       setCalculatedPoints(data.calculated_points);
       setBreakdown(data.breakdown);
-      setExplanation(data.explanation);
     } catch (err) {
       setError('Failed to calculate points: ' + err.message);
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -130,18 +126,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
     return '#9C27B0'; // Purple for very expensive (50-75)
   };
 
-  const getTierDescription = (tier) => {
-    const descriptions = [
-      'Basic - Minimal impact (1-25 pts)',
-      'Enhanced - Moderate advantage (26-50 pts)',
-      'Advanced - Elite capability (51-75 pts)'
-    ];
-    return descriptions[tier] || '';
-  };
-
-  const getUniqueTierNote = () => {
-    return 'Each tier has a unique cost (minimum 1 point difference)';
-  };
 
   return (
     <div className="points-calculator-overlay">
@@ -157,7 +141,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
           {rule && (
             <div className="rule-info">
               <h4>{rule.name}</h4>
-              <p><strong>Type:</strong> {rule.type}</p>
               <p><strong>Description:</strong> {rule.description}</p>
             </div>
           )}
@@ -260,14 +243,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
             </div>
           )}
 
-          {!useCustom && (
-            <div className="calculation-controls">
-              <button onClick={calculatePoints} disabled={loading} className="calculate-button">
-                {loading ? 'Calculating...' : 'Recalculate Points'}
-              </button>
-            </div>
-          )}
-
           {error && (
             <div className="error-message">
               {error}
@@ -275,25 +250,28 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
           )}
 
           <div className="calculated-points">
-            <h4>Calculated Points (Range: 1-75 per model)</h4>
-            <p style={{ fontSize: '0.9em', color: '#8b949e', marginBottom: '1rem' }}>
-              {getUniqueTierNote()}
-            </p>
-            <div className="points-display">
-              {calculatedPoints.map((points, index) => (
-                <div key={index} className="tier-points">
-                  <div 
-                    className="points-value"
-                    style={{ backgroundColor: getPointsColor(points) }}
-                  >
-                    {points}
-                  </div>
-                  <div className="tier-info">
-                    <div className="tier-label">Tier {index + 1}</div>
-                    <div className="tier-description">{getTierDescription(index)}</div>
-                  </div>
+            <h4>Calculated Points</h4>
+            <div className="points-section">
+              {!useCustom && (
+                <div className="recalculate-button-container">
+                  <button onClick={calculatePoints} disabled={loading} className="calculate-button">
+                    {loading ? 'Calculating...' : 'Recalculate Points'}
+                  </button>
                 </div>
-              ))}
+              )}
+              <div className="points-display">
+                {calculatedPoints.map((points, index) => (
+                  <div key={index} className="tier-points">
+                    <div 
+                      className="points-value"
+                      style={{ backgroundColor: getPointsColor(points) }}
+                    >
+                      {points}
+                    </div>
+                    <div className="tier-label">Tier {index + 1}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -317,12 +295,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
             </div>
           )}
 
-          {explanation && (
-            <div className="points-explanation">
-              <h4>Explanation</h4>
-              <pre className="explanation-text">{explanation}</pre>
-            </div>
-          )}
 
           <div className="points-actions">
             <button onClick={handleApplyPoints} className="apply-button">
@@ -495,10 +467,16 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
           cursor: not-allowed;
         }
 
+        .points-section {
+          display: flex;
+          align-items: center;
+          gap: 2rem;
+          margin: 1rem 0;
+        }
+
         .points-display {
           display: flex;
           gap: 1rem;
-          margin: 1rem 0;
         }
 
         .tier-points {
@@ -524,14 +502,14 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
           font-weight: 600;
           font-size: 0.9rem;
           color: #f0f6fc;
+          text-align: center;
         }
 
-        .tier-description {
-          font-size: 0.8rem;
-          color: #8b949e;
-          text-align: center;
-          max-width: 120px;
+        .recalculate-button-container {
+          display: flex;
+          align-items: center;
         }
+
 
         .breakdown-grid {
           display: grid;
@@ -557,16 +535,6 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
           color: #e6edf3;
         }
 
-        .explanation-text {
-          background: #0d1117;
-          border: 1px solid #30363d;
-          padding: 1rem;
-          border-radius: 6px;
-          white-space: pre-wrap;
-          font-family: monospace;
-          font-size: 0.9rem;
-          color: #e6edf3;
-        }
 
         .points-actions {
           display: flex;
@@ -620,9 +588,13 @@ function PointsCalculator({ rule, onPointsCalculated, onClose }) {
           border: 1px solid #da3633;
         }
 
-        .calculated-points h4,
-        .points-breakdown h4,
-        .points-explanation h4 {
+        .calculated-points h4 {
+          color: #f0f6fc;
+          font-weight: 600;
+          margin: 0 0 1rem 0;
+        }
+
+        .points-breakdown h4 {
           color: #f0f6fc;
           font-weight: 600;
           margin: 0 0 1rem 0;

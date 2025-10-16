@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"grimdank-database/models"
+	"grimdank-database/utils"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -29,7 +30,7 @@ func (r *RuleRepository) CreateRule(ctx context.Context, rule *models.Rule) (str
 }
 
 func (r *RuleRepository) GetRuleByID(ctx context.Context, id string) (*models.Rule, error) {
-	objectID, err := primitive.ObjectIDFromHex(id)
+	objectID, err := utils.ParseObjectID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +56,7 @@ func (r *RuleRepository) SearchRulesByName(ctx context.Context, name string, lim
 }
 
 func (r *RuleRepository) UpdateRule(ctx context.Context, id string, rule *models.Rule) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
+	objectID, err := utils.ParseObjectID(id)
 	if err != nil {
 		return err
 	}
@@ -64,7 +65,7 @@ func (r *RuleRepository) UpdateRule(ctx context.Context, id string, rule *models
 }
 
 func (r *RuleRepository) DeleteRule(ctx context.Context, id string) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
+	objectID, err := utils.ParseObjectID(id)
 	if err != nil {
 		return err
 	}

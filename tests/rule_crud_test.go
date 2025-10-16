@@ -64,9 +64,9 @@ func TestRuleCRUD(t *testing.T) {
 
 		// Create multiple rules
 		rules := []*models.Rule{
-			{Name: "Rule 1", Description: "First rule", Type: "Type A", Points: []int{5, 10, 15}},
-			{Name: "Rule 2", Description: "Second rule", Type: "Type B", Points: []int{10, 20, 30}},
-			{Name: "Rule 3", Description: "Third rule", Type: "Type A", Points: []int{15, 30, 45}},
+			{Name: "Rule 1", Description: "First rule", Points: []int{5, 10, 15}},
+			{Name: "Rule 2", Description: "Second rule", Points: []int{10, 20, 30}},
+			{Name: "Rule 3", Description: "Third rule", Points: []int{15, 30, 45}},
 		}
 
 		var createdRuleIDs []string
@@ -100,9 +100,9 @@ func TestRuleCRUD(t *testing.T) {
 
 		// Create rules with different names
 		rules := []*models.Rule{
-			{Name: "Fire Rule", Description: "A fire rule", Type: "Special", Points: []int{5, 10, 15}},
-			{Name: "Ice Rule", Description: "An ice rule", Type: "Special", Points: []int{5, 10, 15}},
-			{Name: "Fire Shield", Description: "A fire shield rule", Type: "Defensive", Points: []int{10, 20, 30}},
+			{Name: "Fire Rule", Description: "A fire rule", Points: []int{5, 10, 15}},
+			{Name: "Ice Rule", Description: "An ice rule", Points: []int{5, 10, 15}},
+			{Name: "Fire Shield", Description: "A fire shield rule", Points: []int{10, 20, 30}},
 		}
 
 		for _, rule := range rules {
@@ -179,7 +179,6 @@ func TestRuleCRUD(t *testing.T) {
 		rule := &models.Rule{
 			Name:        "",
 			Description: "A rule with empty name",
-			Type:        "Special",
 			Points:      []int{5, 10, 15},
 		}
 
@@ -262,9 +261,9 @@ func TestRuleBulkImport(t *testing.T) {
 
 	t.Run("Bulk Import Rules", func(t *testing.T) {
 		rules := []models.Rule{
-			{Name: "Bulk Rule 1", Description: "First bulk rule", Type: "Type A", Points: []int{5, 10, 15}},
-			{Name: "Bulk Rule 2", Description: "Second bulk rule", Type: "Type B", Points: []int{10, 20, 30}},
-			{Name: "Bulk Rule 3", Description: "Third bulk rule", Type: "Type C", Points: []int{15, 30, 45}},
+			{Name: "Bulk Rule 1", Description: "First bulk rule", Points: []int{5, 10, 15}},
+			{Name: "Bulk Rule 2", Description: "Second bulk rule", Points: []int{10, 20, 30}},
+			{Name: "Bulk Rule 3", Description: "Third bulk rule", Points: []int{15, 30, 45}},
 		}
 
 		importedIDs, err := testServices.RuleService.BulkImportRules(ctx, rules)
@@ -292,8 +291,8 @@ func TestRuleBulkImport(t *testing.T) {
 		CleanupTestDB(t)
 
 		rules := []models.Rule{
-			{Name: "Valid Rule", Description: "A valid rule", Type: "Type A", Points: []int{5, 10, 15}},
-			{Name: "", Description: "Invalid rule with empty name", Type: "Type B", Points: []int{10, 20, 30}},
+			{Name: "Valid Rule", Description: "A valid rule", Points: []int{5, 10, 15}},
+			{Name: "", Description: "Invalid rule with empty name", Points: []int{10, 20, 30}},
 		}
 
 		_, err := testServices.RuleService.BulkImportRules(ctx, rules)
@@ -328,7 +327,6 @@ func TestRulePagination(t *testing.T) {
 			rule := &models.Rule{
 				Name:        fmt.Sprintf("Rule %d", i),
 				Description: fmt.Sprintf("Description %d", i),
-				Type:        "Type A",
 				Points:      []int{i * 5, i * 10, i * 15},
 			}
 			_, err := testServices.RuleService.CreateRule(ctx, rule)

@@ -7,11 +7,22 @@ import (
 )
 
 // PointsCalculator handles dynamic points calculation for rules
-type PointsCalculator struct{}
+type PointsCalculator struct {
+	config *PointsCalculatorConfig
+}
 
 // NewPointsCalculator creates a new points calculator
 func NewPointsCalculator() *PointsCalculator {
-	return &PointsCalculator{}
+	return &PointsCalculator{
+		config: GetPointsCalculatorConfig(),
+	}
+}
+
+// NewPointsCalculatorWithConfig creates a new points calculator with custom config
+func NewPointsCalculatorWithConfig(config *PointsCalculatorConfig) *PointsCalculator {
+	return &PointsCalculator{
+		config: config,
+	}
 }
 
 // RuleEffectiveness represents the effectiveness level of a rule
@@ -111,111 +122,56 @@ func (pc *PointsCalculator) getBaseEffectivenessWeight(baseValue string) float64
 }
 
 // CalculatePointsFromDescription attempts to calculate points from rule description
-func (pc *PointsCalculator) CalculatePointsFromDescription(ruleName, description, ruleType string) []int {
-	effectiveness := pc.analyzeRuleText(ruleName, description, ruleType)
+func (pc *PointsCalculator) CalculatePointsFromDescription(ruleName, description string) []int {
+	effectiveness := pc.analyzeRuleText(ruleName, description)
 	return pc.CalculatePoints(effectiveness)
 }
 
 // analyzeRuleText analyzes rule text to determine effectiveness
-func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) RuleEffectiveness {
+func (pc *PointsCalculator) analyzeRuleText(name, description string) RuleEffectiveness {
 	// Start with base values
 	baseValue := "moderate" // Default moderate effectiveness
 	multiplier := 1.0
 	complexity := 2
 
 	// Convert to lowercase for analysis
-	text := strings.ToLower(name + " " + description + " " + ruleType)
+	text := strings.ToLower(name + " " + description)
 
-	// Analyze for high-impact keywords
-	highImpactKeywords := []string{
-		"invulnerable", "eternal", "immortal", "regeneration", "feel no pain",
-		"fearless", "stubborn", "unbreakable", "eternal warrior", "daemon",
-		"psychic", "magic", "warp", "soul", "spirit", "ethereal",
-		"phase", "teleport", "deep strike", "outflank", "infiltrate",
-		"stealth", "concealed", "hidden", "camouflage", "scout",
-		"fleet", "fast", "swift", "nimble", "agile", "quick",
-		"tough", "hardy", "resilient", "durable", "sturdy",
-		"strong", "mighty", "powerful", "devastating", "destructive",
-		"explosive", "blast", "template", "area", "zone",
-		"rending", "armour bane", "armourbane", "melta", "plasma",
-		"flame", "fire", "burn", "ignite", "incendiary",
-		"poison", "toxic", "venom", "acid", "corrosive",
-		"shred", "tear", "rip", "rend", "cleave",
-		"pierce", "penetrate", "drill", "bore", "punch",
-		"ignore", "bypass", "negate", "cancel", "void",
-		"immunity", "immune", "resistant", "resistance",
-		"bonus", "extra", "additional", "plus", "more",
-		"reroll", "roll again", "roll twice", "choose",
-		"preferred enemy", "hatred", "rage", "fury", "berserk",
-		"furious charge", "assault", "close combat", "melee",
-		"shooting", "ranged", "fire", "shoot", "gun",
-		"weapon", "armour", "save", "ward", "shield",
-		"cover", "concealment", "protection", "defense",
-		"movement", "advance", "charge", "run", "fleet",
-		"leadership", "morale", "break", "flee", "rout",
-	}
-
-	// Count high-impact keywords
+	// Count high-impact keywords using configuration
 	highImpactCount := 0
-	for _, keyword := range highImpactKeywords {
+	for _, keyword := range pc.config.HighImpactKeywords {
 		if strings.Contains(text, keyword) {
 			highImpactCount++
 		}
 	}
 
-	// Adjust base value based on keyword count
-	if highImpactCount >= 3 {
+	// Adjust base value based on keyword count using configuration thresholds
+	if highImpactCount >= pc.config.HighImpactThreshold {
 		baseValue = "overpowered"
-	} else if highImpactCount >= 2 {
+	} else if highImpactCount >= pc.config.StrongThreshold {
 		baseValue = "strong"
-	} else if highImpactCount >= 1 {
+	} else if highImpactCount >= pc.config.ModerateThreshold {
 		baseValue = "moderate"
 	}
 
-	// Analyze for complexity indicators
-	complexityKeywords := []string{
-		"if", "when", "unless", "but", "however", "except",
-		"roll", "dice", "d6", "d3", "2d6", "3d6",
-		"turn", "phase", "round", "battle", "game",
-		"model", "unit", "army", "faction", "force",
-		"within", "range", "distance", "inches", "cm",
-		"line of sight", "los", "visible", "hidden",
-		"terrain", "cover", "concealment", "obstacle",
-		"difficult", "dangerous", "hazardous", "perilous",
-		"special", "unique", "rare", "legendary", "epic",
-	}
-
+	// Analyze for complexity indicators using configuration
 	complexityCount := 0
-	for _, keyword := range complexityKeywords {
+	for _, keyword := range pc.config.ComplexityKeywords {
 		if strings.Contains(text, keyword) {
 			complexityCount++
 		}
 	}
 
-	// Adjust complexity based on keyword count
-	if complexityCount >= 5 {
-		complexity = 5
-	} else if complexityCount >= 3 {
-		complexity = 4
+	// Adjust complexity based on keyword count using configuration thresholds
+	if complexityCount >= pc.config.HighComplexityThreshold {
+		complexity = pc.config.MaxComplexity
+	} else if complexityCount >= pc.config.MediumComplexityThreshold {
+		complexity = pc.config.MaxComplexity - 1
 	} else if complexityCount >= 1 {
 		complexity = 3
 	}
 
-	// Analyze rule type for additional modifiers
-	switch ruleType {
-	case "Special Rule", "Special Ability", "Special Power":
-		multiplier = 1.2
-	case "Psychic Power", "Magic", "Warp":
-		multiplier = 1.5
-	case "Equipment", "Wargear", "Gear":
-		multiplier = 0.8
-	case "Tactical", "Strategic", "Command":
-		multiplier = 1.3
-	case "Defensive", "Protection", "Armour":
-		multiplier = 1.1
-	case "Offensive", "Attack", "Weapon":
-		multiplier = 1.2
-	}
+	// All rules are now treated equally without type restrictions
 
 	// Analyze frequency and base effectiveness based on text patterns
 	frequency := pc.analyzeFrequency(text)
@@ -232,25 +188,28 @@ func (pc *PointsCalculator) analyzeRuleText(name, description, ruleType string) 
 			}
 		}
 
-		if maxNumber >= 20 {
+		// Use configuration thresholds for numerical analysis
+		if maxNumber >= pc.config.OverpoweredThreshold {
 			baseValue = "overpowered"
-		} else if maxNumber >= 10 {
+		} else if maxNumber >= pc.config.StrongNumericalThreshold {
 			baseValue = "strong"
-		} else if maxNumber >= 6 {
+		} else if maxNumber >= pc.config.ModerateNumericalThreshold {
 			baseValue = "moderate"
 		}
 	}
-	if complexity > 5 {
-		complexity = 5
+
+	// Apply bounds using configuration
+	if complexity > pc.config.MaxComplexity {
+		complexity = pc.config.MaxComplexity
 	}
-	if complexity < 1 {
-		complexity = 1
+	if complexity < pc.config.MinComplexity {
+		complexity = pc.config.MinComplexity
 	}
-	if multiplier > 2.0 {
-		multiplier = 2.0
+	if multiplier > pc.config.MaxMultiplier {
+		multiplier = pc.config.MaxMultiplier
 	}
-	if multiplier < 0.1 {
-		multiplier = 0.1
+	if multiplier < pc.config.MinMultiplier {
+		multiplier = pc.config.MinMultiplier
 	}
 
 	return RuleEffectiveness{
@@ -287,62 +246,36 @@ func (pc *PointsCalculator) analyzeFrequency(text string) string {
 	// Convert to lowercase for analysis
 	text = strings.ToLower(text)
 
-	// Passive indicators - always active rules
-	passiveKeywords := []string{
-		"always", "permanent", "constant", "immune", "invulnerable",
-		"fearless", "stubborn", "unbreakable", "eternal", "stealth",
-		"concealed", "hidden", "camouflage", "feel no pain", "regeneration",
-		"tough", "hardy", "resilient", "durable", "sturdy", "save",
-		"ward", "shield", "protection", "armour", "cover", "concealment",
-	}
-
-	// Limited indicators - restricted use rules
-	limitedKeywords := []string{
-		"once per game", "once per turn", "once per battle", "once",
-		"roll a dice", "roll", "d6", "d3", "2d6", "3d6", "on a",
-		"command point", "cp", "spend", "cost", "pay", "sacrifice",
-		"lose", "remove", "destroy", "kill", "wound", "damage",
-	}
-
-	// Conditional indicators - triggered rules
-	conditionalKeywords := []string{
-		"if", "when", "unless", "but", "however", "except", "provided",
-		"charging", "charged", "assault", "close combat", "melee",
-		"shooting", "ranged", "fire", "shoot", "gun", "weapon",
-		"within", "range", "distance", "inches", "cm", "line of sight",
-		"los", "visible", "hidden", "terrain", "cover", "concealment",
-		"difficult", "dangerous", "hazardous", "perilous", "turn",
-		"phase", "round", "battle", "game", "model", "unit", "army",
-	}
-
-	// Count keyword matches
+	// Count keyword matches using configuration
 	passiveCount := 0
 	limitedCount := 0
-	conditionalCount := 0
+	frequentCount := 0
 
-	for _, keyword := range passiveKeywords {
+	for _, keyword := range pc.config.PassiveKeywords {
 		if strings.Contains(text, keyword) {
 			passiveCount++
 		}
 	}
 
-	for _, keyword := range limitedKeywords {
+	for _, keyword := range pc.config.LimitedKeywords {
 		if strings.Contains(text, keyword) {
 			limitedCount++
 		}
 	}
 
-	for _, keyword := range conditionalKeywords {
+	for _, keyword := range pc.config.FrequentKeywords {
 		if strings.Contains(text, keyword) {
-			conditionalCount++
+			frequentCount++
 		}
 	}
 
 	// Determine frequency based on keyword counts
-	if limitedCount >= 2 || (limitedCount >= 1 && conditionalCount == 0) {
+	if limitedCount >= 2 || (limitedCount >= 1 && frequentCount == 0) {
 		return "limited"
-	} else if passiveCount >= 2 || (passiveCount >= 1 && conditionalCount == 0) {
+	} else if passiveCount >= 2 || (passiveCount >= 1 && frequentCount == 0) {
 		return "passive"
+	} else if frequentCount >= 1 {
+		return "frequent"
 	} else {
 		return "conditional" // Default to conditional
 	}
@@ -435,46 +368,4 @@ func (pc *PointsCalculator) analyzeBaseEffectiveness(text string) string {
 	} else {
 		return "minimal" // Default to minimal
 	}
-}
-
-// GetPointsExplanation returns a human-readable explanation of the points calculation
-func (pc *PointsCalculator) GetPointsExplanation(effectiveness RuleEffectiveness) string {
-	points := pc.CalculatePoints(effectiveness)
-
-	// Get the actual values used in calculation
-	baseWeight := pc.getBaseEffectivenessWeight(effectiveness.BaseValue)
-	frequencyMultiplier := pc.getFrequencyMultiplier(effectiveness.Frequency)
-
-	// Calculate the intermediate values
-	combinedScore := baseWeight
-	finalScore := combinedScore * effectiveness.Multiplier
-	adjustedScore := finalScore * frequencyMultiplier
-	basePoints := math.Pow(2, (adjustedScore-1)/2)
-	clampedPoints := math.Max(1, math.Min(75, basePoints))
-
-	explanation := "Points Calculation Formula:\n\n"
-	explanation += "Step 1: Base Score = Base Effectiveness Weight\n"
-	explanation += "        = " + strconv.FormatFloat(baseWeight, 'f', 1, 64) + "\n\n"
-
-	explanation += "Step 2: Final Score = Base Score × Multiplier\n"
-	explanation += "        = " + strconv.FormatFloat(combinedScore, 'f', 1, 64) + " × " + strconv.FormatFloat(effectiveness.Multiplier, 'f', 1, 64) + " = " + strconv.FormatFloat(finalScore, 'f', 1, 64) + "\n\n"
-
-	explanation += "Step 3: Adjusted Score = Final Score × Frequency Multiplier\n"
-	explanation += "        = " + strconv.FormatFloat(finalScore, 'f', 1, 64) + " × " + strconv.FormatFloat(frequencyMultiplier, 'f', 1, 64) + " = " + strconv.FormatFloat(adjustedScore, 'f', 1, 64) + "\n\n"
-
-	explanation += "Step 4: Base Points = 2^((Adjusted Score - 1) / 2)\n"
-	explanation += "        = 2^((" + strconv.FormatFloat(adjustedScore, 'f', 1, 64) + " - 1) / 2) = 2^(" + strconv.FormatFloat((adjustedScore-1)/2, 'f', 1, 64) + ") = " + strconv.FormatFloat(basePoints, 'f', 1, 64) + "\n\n"
-
-	explanation += "Step 5: Clamp to Range (1-75)\n"
-	explanation += "        = max(1, min(75, " + strconv.FormatFloat(basePoints, 'f', 1, 64) + ")) = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + "\n\n"
-
-	explanation += "Step 6: Calculate Tiers (ensuring unique costs)\n"
-	explanation += "        Tier 1 = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + " = " + strconv.Itoa(points[0]) + " points\n"
-	explanation += "        Tier 2 = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + " × 1.1 = " + strconv.FormatFloat(clampedPoints*1.1, 'f', 1, 64) + " = " + strconv.Itoa(points[1]) + " points\n"
-	explanation += "        Tier 3 = " + strconv.FormatFloat(clampedPoints, 'f', 1, 64) + " × 1.21 = " + strconv.FormatFloat(clampedPoints*1.21, 'f', 1, 64) + " = " + strconv.Itoa(points[2]) + " points\n"
-	explanation += "        (Adjusted to ensure unique costs: min 1 point difference per tier)\n\n"
-
-	explanation += "Final Result: " + strconv.Itoa(points[0]) + " / " + strconv.Itoa(points[1]) + " / " + strconv.Itoa(points[2]) + " points (Tier 1/2/3)"
-
-	return explanation
 }

@@ -2,11 +2,10 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"grimdank-database/models"
 	"grimdank-database/repositories"
-	"strings"
+	"grimdank-database/utils"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -23,8 +22,8 @@ func NewRuleService(repo *repositories.RuleRepository) *RuleService {
 
 func (s *RuleService) CreateRule(ctx context.Context, rule *models.Rule) (*models.Rule, error) {
 	// Validate required fields
-	if strings.TrimSpace(rule.Name) == "" {
-		return nil, errors.New("name is required")
+	if err := utils.ValidateName(rule.Name); err != nil {
+		return nil, err
 	}
 
 	id, err := s.repo.CreateRule(ctx, rule)
@@ -49,8 +48,8 @@ func (s *RuleService) SearchRulesByName(ctx context.Context, name string, limit,
 
 func (s *RuleService) UpdateRule(ctx context.Context, id string, rule *models.Rule) error {
 	// Validate required fields
-	if strings.TrimSpace(rule.Name) == "" {
-		return errors.New("name is required")
+	if err := utils.ValidateName(rule.Name); err != nil {
+		return err
 	}
 
 	return s.repo.UpdateRule(ctx, id, rule)
@@ -63,8 +62,8 @@ func (s *RuleService) DeleteRule(ctx context.Context, id string) error {
 func (s *RuleService) BulkImportRules(ctx context.Context, rules []models.Rule) ([]string, error) {
 	// Validate all rules before importing
 	for i, rule := range rules {
-		if strings.TrimSpace(rule.Name) == "" {
-			return nil, fmt.Errorf("rule at index %d has empty name", i)
+		if err := utils.ValidateName(rule.Name); err != nil {
+			return nil, fmt.Errorf("rule at index %d: %w", i, err)
 		}
 	}
 

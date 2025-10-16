@@ -26,14 +26,12 @@ func NewPointsHandler(rulePointsService *services.RulePointsService) *PointsHand
 type CalculatePointsRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	Type        string `json:"type"`
 }
 
 // CalculatePointsResponse represents the response from points calculation
 type CalculatePointsResponse struct {
 	CalculatedPoints []int                  `json:"calculated_points"`
 	Breakdown        map[string]interface{} `json:"breakdown"`
-	Explanation      string                 `json:"explanation"`
 }
 
 // CalculatePoints calculates points for a rule
@@ -48,18 +46,15 @@ func (h *PointsHandler) CalculatePoints(w http.ResponseWriter, r *http.Request) 
 	rule := &models.Rule{
 		Name:        req.Name,
 		Description: req.Description,
-		Type:        req.Type,
 	}
 
 	// Calculate points
 	calculatedPoints := h.rulePointsService.CalculateRulePoints(rule)
 	breakdown := h.rulePointsService.GetPointsBreakdown(rule)
-	explanation := h.rulePointsService.GetPointsExplanation(rule)
 
 	response := CalculatePointsResponse{
 		CalculatedPoints: calculatedPoints,
 		Breakdown:        breakdown,
-		Explanation:      explanation,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -81,12 +76,10 @@ func (h *PointsHandler) CalculatePointsForRule(w http.ResponseWriter, r *http.Re
 	// Calculate points
 	calculatedPoints := h.rulePointsService.CalculateRulePoints(rule)
 	breakdown := h.rulePointsService.GetPointsBreakdown(rule)
-	explanation := h.rulePointsService.GetPointsExplanation(rule)
 
 	response := CalculatePointsResponse{
 		CalculatedPoints: calculatedPoints,
 		Breakdown:        breakdown,
-		Explanation:      explanation,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

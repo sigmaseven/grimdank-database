@@ -3,15 +3,19 @@ import { unitsAPI, rulesAPI, weaponsAPI, wargearAPI } from '../services/api';
 import { Icon } from './Icons';
 import Pagination from './Pagination';
 import { usePagination } from '../hooks/usePagination';
+import { useNavigationLoading } from '../hooks/useNavigationLoading';
+import UnitPointsCalculator from './UnitPointsCalculator';
 
 function Units() {
   const [units, setUnits] = useState([]);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { isNavigating } = useNavigationLoading();
   const [showForm, setShowForm] = useState(false);
   const [editingUnit, setEditingUnit] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [dialogStep, setDialogStep] = useState(1); // 1 = basic info, 2 = attachments
+  const [showPointsCalculator, setShowPointsCalculator] = useState(false);
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   
@@ -371,12 +375,9 @@ function Units() {
   const loadRules = useCallback(async (query = '') => {
     try {
       setRuleLoading(true);
-      // Filter rules for Units: only show rules with type "Unit"
+      // Load all rules - no type filtering needed
       const rules = await rulesAPI.getAll({ name: query, limit: 20 });
-      const filteredRules = Array.isArray(rules) ? rules.filter(rule => 
-        rule.type === 'Unit'
-      ) : [];
-      setAvailableRules(filteredRules);
+      setAvailableRules(Array.isArray(rules) ? rules : []);
     } catch (err) {
       console.error('Failed to load rules:', err);
       setAvailableRules([]);
@@ -640,7 +641,8 @@ function Units() {
     }
   };
 
-  if (loading) return <div className="loading">Loading units...</div>;
+  // Don't show loading message during navigation - show content immediately
+  if (loading && !isNavigating) return <div className="loading">Loading units...</div>;
 
   return (
     <div>
@@ -785,13 +787,34 @@ function Units() {
               
               <div className="form-group">
                 <label>Points</label>
-                <input
-                  type="number"
-                  name="points"
-                  value={formData.points}
-                  onChange={handleInputChange}
-                  min="0"
-                />
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="number"
+                    name="points"
+                    value={formData.points}
+                    onChange={handleInputChange}
+                    min="0"
+                    style={{ flex: '0 0 120px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPointsCalculator(true)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#238636',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      flex: '1',
+                      minWidth: '140px'
+                    }}
+                    title="Calculate Unit Points"
+                  >
+                    🧮 Calculate
+                  </button>
+                </div>
               </div>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -1554,7 +1577,7 @@ function Units() {
                         cursor: 'pointer'
                       }}
                     >
-                      {rule.name} - {rule.type}{rule.points && rule.points.length > 0 ? ` (${rule.points[0]}/${rule.points[1]}/${rule.points[2]} pts)` : ''}
+                      {rule.name}{rule.points && rule.points.length > 0 ? ` (${rule.points[0]}/${rule.points[1]}/${rule.points[2]} pts)` : ''}
                     </option>
                   ))}
                 </select>
@@ -2109,6 +2132,17 @@ function Units() {
             )}
           </div>
         </div>
+      )}
+
+      {showPointsCalculator && (
+        <UnitPointsCalculator
+          unit={formData}
+          onPointsCalculated={(points) => {
+            setFormData(prev => ({ ...prev, points }));
+            setShowPointsCalculator(false);
+          }}
+          onClose={() => setShowPointsCalculator(false)}
+        />
       )}
     </div>
   );

@@ -3,9 +3,9 @@ package repositories
 import (
 	"context"
 	"grimdank-database/models"
+	"grimdank-database/utils"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -29,7 +29,7 @@ func (r *WeaponRepository) CreateWeapon(ctx context.Context, weapon *models.Weap
 }
 
 func (r *WeaponRepository) GetWeaponByID(ctx context.Context, id string) (*models.Weapon, error) {
-	objectID, err := primitive.ObjectIDFromHex(id)
+	objectID, err := utils.ParseObjectID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (r *WeaponRepository) SearchWeaponsByName(ctx context.Context, name string,
 }
 
 func (r *WeaponRepository) UpdateWeapon(ctx context.Context, id string, weapon *models.Weapon) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
+	objectID, err := utils.ParseObjectID(id)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func (r *WeaponRepository) UpdateWeapon(ctx context.Context, id string, weapon *
 }
 
 func (r *WeaponRepository) DeleteWeapon(ctx context.Context, id string) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
+	objectID, err := utils.ParseObjectID(id)
 	if err != nil {
 		return err
 	}

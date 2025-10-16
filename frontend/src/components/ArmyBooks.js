@@ -3,11 +3,13 @@ import { armyBooksAPI } from '../services/api';
 import { Icon } from './Icons';
 import Pagination from './Pagination';
 import { usePagination } from '../hooks/usePagination';
+import { useNavigationLoading } from '../hooks/useNavigationLoading';
 
 function ArmyBooks() {
   const [armyBooks, setArmyBooks] = useState([]);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { isNavigating } = useNavigationLoading();
   const [showForm, setShowForm] = useState(false);
   const [editingArmyBook, setEditingArmyBook] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -214,7 +216,8 @@ function ArmyBooks() {
     });
   };
 
-  if (loading) return <div className="loading">Loading army books...</div>;
+  // Don't show loading message during navigation - show content immediately
+  if (loading && !isNavigating) return <div className="loading">Loading army books...</div>;
 
   return (
     <div>

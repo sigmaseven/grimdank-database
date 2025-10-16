@@ -19,7 +19,6 @@ func TestRulePointsService(t *testing.T) {
 		rule := &models.Rule{
 			Name:        "Basic Rule",
 			Description: "A basic rule",
-			Type:        "Special Ability",
 		}
 
 		points := service.CalculateRulePoints(rule)
@@ -37,7 +36,6 @@ func TestRulePointsService(t *testing.T) {
 		rule := &models.Rule{
 			Name:        "Advanced Rule",
 			Description: "An advanced rule with complex mechanics",
-			Type:        "Special Ability",
 		}
 
 		points := service.CalculateRulePoints(rule)
@@ -55,7 +53,6 @@ func TestRulePointsService(t *testing.T) {
 		rule := &models.Rule{
 			Name:        "Test Rule",
 			Description: "A test rule",
-			Type:        "Special Ability",
 		}
 
 		breakdown := service.GetPointsBreakdown(rule)
@@ -76,7 +73,6 @@ func TestRulePointsService(t *testing.T) {
 		rule := &models.Rule{
 			Name:        "Test Rule",
 			Description: "A test rule",
-			Type:        "Special Ability",
 		}
 
 		explanation := service.GetPointsExplanation(rule)
@@ -85,19 +81,18 @@ func TestRulePointsService(t *testing.T) {
 		}
 	})
 
-	t.Run("Calculate Rule Points - Different Types", func(t *testing.T) {
-		ruleTypes := []string{"Special Ability", "Weapon Rule", "Unit Rule", "Faction Rule"}
+	t.Run("Calculate Rule Points - Different Descriptions", func(t *testing.T) {
+		ruleDescriptions := []string{"Special Ability", "Weapon Rule", "Unit Rule", "Faction Rule"}
 
-		for _, ruleType := range ruleTypes {
+		for _, description := range ruleDescriptions {
 			rule := &models.Rule{
 				Name:        "Test Rule",
-				Description: "A test rule",
-				Type:        ruleType,
+				Description: description,
 			}
 
 			points := service.CalculateRulePoints(rule)
 			if len(points) == 0 {
-				t.Errorf("Expected points to be calculated for type %s, got empty slice", ruleType)
+				t.Errorf("Expected points to be calculated for description %s, got empty slice", description)
 			}
 		}
 	})

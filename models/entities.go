@@ -11,7 +11,6 @@ type Rule struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Name        string             `bson:"name" json:"name" validate:"required"`
 	Description string             `bson:"description" json:"description"`
-	Type        string             `bson:"type" json:"type"`
 	Points      []int              `bson:"points" json:"points"`
 }
 
