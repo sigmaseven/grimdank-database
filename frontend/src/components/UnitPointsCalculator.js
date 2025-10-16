@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
   const [calculatedPoints, setCalculatedPoints] = useState(0);
@@ -57,9 +58,40 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
     }
   };
 
-  return (
-    <div className="unit-points-calculator-overlay">
-      <div className="unit-points-calculator-modal">
+  return createPortal(
+    <div 
+      className="unit-points-calculator-overlay"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 999999,
+        pointerEvents: 'auto'
+      }}
+      onClick={(e) => {
+        // Close modal when clicking on backdrop
+        if (e.target === e.currentTarget && onClose) {
+          onClose();
+        }
+      }}
+    >
+      <div 
+        className="unit-points-calculator-modal"
+        style={{
+          zIndex: 999999,
+          position: 'relative'
+        }}
+        onClick={(e) => {
+          // Prevent closing when clicking inside the modal content
+          e.stopPropagation();
+        }}
+      >
         <div className="unit-points-calculator-header">
           <h3>🧮 Unit Points Calculator</h3>
           {onClose && (
@@ -165,16 +197,7 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
 
         <style jsx>{`
           .unit-points-calculator-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 99999 !important;
+            /* Styles moved to inline for maximum z-index control */
           }
 
           .unit-points-calculator-modal {
@@ -385,7 +408,8 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
           }
         `}</style>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
