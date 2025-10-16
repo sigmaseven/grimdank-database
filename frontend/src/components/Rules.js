@@ -78,7 +78,7 @@ function Rules() {
         setLoading(false);
       }
     }
-  }, [pageSize, skip, updateTotalItems]);
+  }, [pageSize, skip, updateTotalItems, setLoading]);
 
   useEffect(() => {
     loadRules(searchTerm);

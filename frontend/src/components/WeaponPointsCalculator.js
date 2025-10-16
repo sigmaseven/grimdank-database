@@ -71,7 +71,7 @@ function WeaponPointsCalculator({ weapon, onPointsCalculated, onClose }) {
   // Auto-calculate on component mount and when stats change
   useEffect(() => {
     calculateCustomPoints();
-  }, [weaponStats]); // Remove calculateCustomPoints dependency to prevent infinite re-renders
+  }, [weaponStats, calculateCustomPoints]); // Include calculateCustomPoints dependency
 
   const parseAttacks = (attacks) => {
     if (attacks === 'X' || attacks === 'x') return 3; // Assume X means 3 attacks

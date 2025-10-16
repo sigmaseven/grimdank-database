@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 export const usePagination = (initialPageSize = 50, pageSizeOptions = [50, 100, 200]) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,7 +37,7 @@ export const usePagination = (initialPageSize = 50, pageSizeOptions = [50, 100, 
       // Reset to last valid page
       setCurrentPage(newTotalPages);
     }
-  }, [pageSize]); // Remove currentPage dependency to avoid circular dependency
+  }, [pageSize, currentPage]); // Include currentPage dependency
 
   // Calculate skip value for API calls
   const skip = (currentPage - 1) * pageSize;

@@ -75,7 +75,7 @@ function ArmyLists() {
         setLoading(false);
       }
     }
-  }, [pageSize, skip, updateTotalItems]);
+  }, [pageSize, skip, updateTotalItems, setLoading]);
 
   useEffect(() => {
     loadArmyLists(searchTerm);

@@ -91,7 +91,7 @@ function Weapons() {
         setLoading(false);
       }
     }
-  }, [pageSize, skip, updateTotalItems]);
+  }, [pageSize, skip, updateTotalItems, setLoading]);
 
   const loadRules = useCallback(async (searchQuery = '') => {
     try {
@@ -233,18 +233,6 @@ function Weapons() {
     }
   };
 
-  const calculateTotalPoints = () => {
-    const basePoints = baseWeaponPointsRef.current || 0;
-    const rulePoints = selectedRules.reduce((total, rule) => {
-      const points = rule.points || [];
-      if (rule.tier && rule.tier >= 1 && rule.tier <= points.length) {
-        return total + (points[rule.tier - 1] || 0); // Use tier-specific points
-      } else {
-        return total + (points[0] || 0); // Default to tier 1
-      }
-    }, 0);
-    return basePoints + rulePoints;
-  };
 
   const handleWeaponPointsCalculated = (points) => {
     setFormData(prev => ({

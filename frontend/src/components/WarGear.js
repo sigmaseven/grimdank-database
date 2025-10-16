@@ -81,7 +81,7 @@ function WarGear() {
         setLoading(false);
       }
     }
-  }, [pageSize, skip, updateTotalItems]);
+  }, [pageSize, skip, updateTotalItems, setLoading]);
 
   useEffect(() => {
     loadWargear(searchTerm);

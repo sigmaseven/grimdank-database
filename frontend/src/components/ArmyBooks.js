@@ -74,7 +74,7 @@ function ArmyBooks() {
         setLoading(false);
       }
     }
-  }, [pageSize, skip, updateTotalItems]);
+  }, [pageSize, skip, updateTotalItems, setLoading]);
 
   useEffect(() => {
     loadArmyBooks(searchTerm);

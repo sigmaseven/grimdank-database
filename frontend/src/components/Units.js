@@ -106,7 +106,7 @@ function Units() {
         setLoading(false);
       }
     }
-  }, [pageSize, skip, updateTotalItems]);
+  }, [pageSize, skip, updateTotalItems, setLoading]);
 
   useEffect(() => {
     loadUnits(searchTerm);
@@ -588,7 +588,6 @@ function Units() {
     }
   }, [showWarGearSelector, loadWarGear]);
 
-  const warGearSuggestionTimeoutRef = useRef(null);
 
   // Load initial weapons when dialog opens
   useEffect(() => {
