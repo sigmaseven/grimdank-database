@@ -188,7 +188,7 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2000;
+            z-index: 9999;
           }
 
           .unit-points-calculator-modal {
