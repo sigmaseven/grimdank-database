@@ -58,22 +58,8 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
   };
 
   return (
-    <div 
-      className="unit-points-calculator-overlay"
-      onClick={(e) => {
-        // Close modal when clicking on backdrop
-        if (e.target === e.currentTarget && onClose) {
-          onClose();
-        }
-      }}
-    >
-      <div 
-        className="unit-points-calculator-modal"
-        onClick={(e) => {
-          // Prevent closing when clicking inside the modal content
-          e.stopPropagation();
-        }}
-      >
+    <div className="unit-points-calculator-overlay">
+      <div className="unit-points-calculator-modal">
         <div className="unit-points-calculator-header">
           <h3>🧮 Unit Points Calculator</h3>
           {onClose && (
