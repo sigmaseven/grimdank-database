@@ -1,10 +1,32 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
   const [calculatedPoints, setCalculatedPoints] = useState(0);
   const [breakdown, setBreakdown] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [portalContainer, setPortalContainer] = useState(null);
+
+  // Create a dedicated container for the portal
+  useEffect(() => {
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.zIndex = '999999';
+    container.style.pointerEvents = 'none';
+    document.body.appendChild(container);
+    setPortalContainer(container);
+
+    return () => {
+      if (container && container.parentNode) {
+        document.body.removeChild(container);
+      }
+    };
+  }, []);
 
   const calculatePoints = useCallback(async () => {
     if (!unit) return;
@@ -31,16 +53,12 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
       setCalculatedPoints(data.total_points);
       setBreakdown(data.breakdown);
       
-      // Call the callback with the calculated points
-      if (onPointsCalculated) {
-        onPointsCalculated(data.total_points);
-      }
     } catch (err) {
       setError('Failed to calculate points: ' + err.message);
     } finally {
       setLoading(false);
     }
-  }, [unit, onPointsCalculated]);
+  }, [unit]);
 
   useEffect(() => {
     if (unit) {
@@ -57,9 +75,47 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
     }
   };
 
-  return (
-    <div className="unit-points-calculator-overlay">
-      <div className="unit-points-calculator-modal">
+  if (!portalContainer) return null;
+
+  return createPortal(
+    <div 
+      className="unit-points-calculator-overlay"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 999999,
+        pointerEvents: 'auto',
+        isolation: 'isolate',
+        willChange: 'transform',
+        transform: 'translateZ(0)'
+      }}
+      onClick={(e) => {
+        // Close modal when clicking on backdrop
+        if (e.target === e.currentTarget && onClose) {
+          onClose();
+        }
+      }}
+    >
+      <div 
+        className="unit-points-calculator-modal"
+        style={{
+          zIndex: 999999,
+          position: 'relative',
+          background: '#0d1117',
+          border: '1px solid #30363d'
+        }}
+        onClick={(e) => {
+          // Prevent closing when clicking inside the modal content
+          e.stopPropagation();
+        }}
+      >
         <div className="unit-points-calculator-header">
           <h3>🧮 Unit Points Calculator</h3>
           {onClose && (
@@ -127,28 +183,28 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
             <div className="unit-stats">
               <div className="stat-item">
                 <span className="stat-label">Melee:</span>
-                <span className="stat-value">{unit?.melee || 0}</span>
+                <span className="stat-value">{unit.melee}</span>
               </div>
               <div className="stat-item">
                 <span className="stat-label">Ranged:</span>
-                <span className="stat-value">{unit?.ranged || 0}</span>
+                <span className="stat-value">{unit.ranged}</span>
               </div>
               <div className="stat-item">
                 <span className="stat-label">Morale:</span>
-                <span className="stat-value">{unit?.morale || 0}</span>
+                <span className="stat-value">{unit.morale}</span>
               </div>
               <div className="stat-item">
                 <span className="stat-label">Defense:</span>
-                <span className="stat-value">{unit?.defense || 0}</span>
+                <span className="stat-value">{unit.defense}</span>
               </div>
               <div className="stat-item">
                 <span className="stat-label">Models:</span>
-                <span className="stat-value">{unit?.amount || 0}</span>
+                <span className="stat-value">{unit.amount}</span>
               </div>
             </div>
           </div>
 
-          <div className="unit-actions">
+          <div className="points-actions">
             <button onClick={calculatePoints} disabled={loading} className="recalculate-button">
               {loading ? 'Calculating...' : 'Recalculate Points'}
             </button>
@@ -165,27 +221,18 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
 
         <style jsx>{`
           .unit-points-calculator-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999 !important;
+            /* Styles handled via inline styles for maximum z-index control */
           }
 
           .unit-points-calculator-modal {
             background: #0d1117;
             border: 1px solid #30363d;
             border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
             width: 90%;
-            max-width: 600px;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
           }
 
           .unit-points-calculator-header {
@@ -206,15 +253,10 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
           .close-button {
             background: none;
             border: none;
-            color: #8b949e;
             font-size: 1.5rem;
             cursor: pointer;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            color: #8b949e;
+            padding: 0.25rem;
             border-radius: 6px;
             transition: all 0.2s ease;
           }
@@ -236,8 +278,8 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
           }
 
           .error-message {
-            background: #da3633;
-            color: white;
+            background: #490202;
+            color: #f85149;
             padding: 1rem;
             border-radius: 6px;
             margin: 1rem 0;
@@ -260,16 +302,12 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
           }
 
           .total-points-value {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #238636, #2ea043);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: #238636;
             color: white;
-            font-weight: bold;
+            padding: 1rem 2rem;
+            border-radius: 8px;
             font-size: 1.5rem;
+            font-weight: bold;
             box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
           }
 
@@ -333,7 +371,7 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
             font-weight: 600;
           }
 
-          .unit-actions {
+          .points-actions {
             display: flex;
             gap: 1rem;
             justify-content: flex-end;
@@ -385,9 +423,9 @@ function UnitPointsCalculator({ unit, onPointsCalculated, onClose }) {
           }
         `}</style>
       </div>
-    </div>
+    </div>,
+    portalContainer
   );
 }
 
 export default UnitPointsCalculator;
-
