@@ -183,7 +183,7 @@ Understanding these profiles allows players to make informed decisions about uni
 
 ---
 
-## Chapter 7: Special Rules
+## Chapter 4: Special Rules
 
 Special rules are the core mechanics that make units and weapons unique. They modify how units behave, fight, and interact with the battlefield. All special rules use a 3-tier system of effectiveness.
 
@@ -280,7 +280,7 @@ When multiple special rules interact:
 
 ---
 
-## Chapter 4: Army List Building
+## Chapter 5: Army List Building
 
 Building your army is where strategy begins. The point-based system ensures balanced, competitive games while allowing for creative army compositions that reflect your tactical preferences.
 
@@ -350,7 +350,7 @@ This system encourages tactical diversity while maintaining game balance and ens
 
 ---
 
-## Chapter 5: Game Setup and Deployment
+## Chapter 6: Game Setup and Deployment
 
 Proper game setup ensures fair, balanced battles where terrain and deployment create interesting tactical challenges without overwhelming complexity.
 
@@ -448,7 +448,7 @@ Proper setup creates the foundation for an engaging, tactical battle where both 
 
 ---
 
-## Chapter 6: Playing the Game
+## Chapter 7: Playing the Game
 
 This chapter details the complete gameplay engine. The game is played through a series of rounds. Each round consists of alternating unit activations until all units have been activated.
 
